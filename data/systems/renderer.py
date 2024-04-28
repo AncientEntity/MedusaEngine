@@ -49,6 +49,7 @@ class RendererSystem(EntitySystem):
     def Update(self,currentScene : Scene):
         self._renderTarget.fill((255,255,255))
 
+        #TileMapRenderer
         for tileMapRenderer in currentScene.components[TilemapRenderer]:
             if(tileMapRenderer.tileMap == None or tileMapRenderer.tileMap.tileSet == None):
                 continue
@@ -61,18 +62,16 @@ class RendererSystem(EntitySystem):
                     spritePosition = [centeredOffset[0]+(x*tileMapRenderer.tileMap.tileSize),centeredOffset[1]+(y*tileMapRenderer.tileMap.tileSize)]
                     self._renderTarget.blit(targetSprite,[spritePosition[0]-self.cameraPosition[0],spritePosition[1]-self.cameraPosition[1]])
 
+        #SpriteRenderer
         for spriteRenderer in currentScene.components[SpriteRenderer]:
             if(spriteRenderer.sprite == None):
                 continue
-
             self._renderTarget.blit(spriteRenderer.sprite,self.FinalPositionOfSprite(spriteRenderer.parentEntity.position,spriteRenderer.sprite))
 
-        for event in pygame.event.get():
-            if(event.type == pygame.QUIT):
-                currentScene.game.Quit()
-            if(event.type == pygame.KEYDOWN):
-                if(event.key == pygame.K_w):
-                    self.cameraPosition[0] += 10
+        if(self.game.KeyPressed(pygame.K_w)):
+            self.cameraPosition[0] += 1
+        elif(self.game.KeyPressed(pygame.K_s)):
+            self.cameraPosition[0] -= 1
 
         self.game.display.blit(pygame.transform.scale(self._renderTarget,(self._screenSize[0],self._screenSize[1])),(0,0))
         pygame.display.update()
