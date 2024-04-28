@@ -6,6 +6,7 @@ class Scene:
         self.systems : list[EntitySystem] = []
         self.entities = []
         self.components = {}
+        self.game = None
     def AddComponent(self,component):
         componentType = type(component)
         if(componentType not in self.components):
@@ -20,9 +21,11 @@ class Scene:
             system.Update(self)
     def Init(self):
         for system in self.systems:
+            system.game = self.game
             for targetComponent in system.targetComponents:
                 if(targetComponent not in self.components):
                     self.components[targetComponent] = []
+            system.OnEnable()
 
 class Component:
     def __init__(self,parentEntity):
@@ -35,7 +38,10 @@ class Entity:
         self.components = []
 
 class EntitySystem:
-    def __init__(self,targetComponents=[]):
+    def __init__(self, targetComponents=[]):
         self.targetComponents = targetComponents
+        self.game = None
     def Update(self,currentScene : Scene):
+        pass
+    def OnEnable(self):
         pass

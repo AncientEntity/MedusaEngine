@@ -7,11 +7,12 @@ import random
 
 TestScene = ecs.Scene()
 TestScene.systems.append(renderer.RendererSystem())
-ent = ecs.Entity()
-TestScene.entities.append(ent)
-ent.position = [500, 500]
-t = SpriteRenderer(ent, pygame.image.load("data/art/testplayer.png"))
-TestScene.AddComponent(t)
+for i in range(20):
+    ent = ecs.Entity()
+    TestScene.entities.append(ent)
+    ent.position = [random.randint(0,300),random.randint(0,300)]
+    t = SpriteRenderer(ent, pygame.image.load("data/art/testplayer.png"))
+    TestScene.AddComponent(t)
 
 tileEnt = ecs.Entity()
 TestScene.entities.append(tileEnt)

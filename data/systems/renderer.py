@@ -40,8 +40,14 @@ class RendererSystem(EntitySystem):
     def __init__(self):
         super().__init__([SpriteRenderer,TilemapRenderer])
         self.cameraPosition = [0,0]
+        self.renderScale = 3
+        self._renderTarget = None
+        self._screenSize = None
+    def OnEnable(self):
+        self._screenSize = [self.game.display.get_width(),self.game.display.get_height()]
+        self._renderTarget = pygame.Surface((self._screenSize[0] // self.renderScale,self._screenSize[1] // self.renderScale))
     def Update(self,currentScene : Scene):
-        currentScene.game.display.fill((255,255,255))
+        self._renderTarget.fill((255,255,255))
 
         for tileMapRenderer in currentScene.components[TilemapRenderer]:
             if(tileMapRenderer.tileMap == None or tileMapRenderer.tileMap.tileSet == None):
@@ -53,18 +59,22 @@ class RendererSystem(EntitySystem):
                         continue
                     targetSprite = tileMapRenderer.tileMap.tileSet[tileMapRenderer.tileMap.map[x][y]]
                     spritePosition = [centeredOffset[0]+(x*tileMapRenderer.tileMap.tileSize),centeredOffset[1]+(y*tileMapRenderer.tileMap.tileSize)]
-                    currentScene.game.display.blit(targetSprite,spritePosition)
+                    self._renderTarget.blit(targetSprite,[spritePosition[0]-self.cameraPosition[0],spritePosition[1]-self.cameraPosition[1]])
 
         for spriteRenderer in currentScene.components[SpriteRenderer]:
             if(spriteRenderer.sprite == None):
                 continue
 
-            currentScene.game.display.blit(spriteRenderer.sprite,self.FinalPositionOfSprite(spriteRenderer.parentEntity.position,spriteRenderer.sprite))
+            self._renderTarget.blit(spriteRenderer.sprite,self.FinalPositionOfSprite(spriteRenderer.parentEntity.position,spriteRenderer.sprite))
 
         for event in pygame.event.get():
             if(event.type == pygame.QUIT):
                 currentScene.game.Quit()
+            if(event.type == pygame.KEYDOWN):
+                if(event.key == pygame.K_w):
+                    self.cameraPosition[0] += 10
 
+        self.game.display.blit(pygame.transform.scale(self._renderTarget,(self._screenSize[0],self._screenSize[1])),(0,0))
         pygame.display.update()
     def FinalPositionOfSprite(self,position,sprite):
         topLeftPosition = CenterToTopLeftPosition(position, sprite)

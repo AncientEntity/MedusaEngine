@@ -12,7 +12,7 @@ from data.scenes.testing.TestScene import TestScene
 class Game:
     def __init__(self):
         self._currentScene : ecs.Scene = TestScene
-        self.display = None
+        self.display : pygame.Surface = None
         self.running = False
         self._lastTickStart = 0
         self.deltaTime = 0
@@ -27,8 +27,8 @@ class Game:
             self._lastTickStart = time.time()
             self._currentScene.Update()
 
-            import random
-            self._currentScene.entities[0].position = [random.randint(0,300),random.randint(0,300)]
+            #import random
+            #self._currentScene.entities[0].position = [random.randint(0,300),random.randint(0,300)]
 
 
             await asyncio.sleep(0)
