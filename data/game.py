@@ -40,6 +40,7 @@ class Game:
         pygame.init()
         pygame.mixer.init()
         self.display = pygame.display.set_mode((600,600))
+        pygame.display.set_caption("PyBulletHell")
         self.LoadScene(self._currentScene)
 
         Log("Game Initialized",LOG_ALL)
