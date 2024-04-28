@@ -2,11 +2,10 @@ from data.logging import *
 
 
 class Scene:
-    def __init__(self,game):
+    def __init__(self):
         self.systems : list[EntitySystem] = []
         self.entities = []
         self.components = {}
-        self.game = game
     def AddComponent(self,component):
         componentType = type(component)
         if(componentType not in self.components):

@@ -6,13 +6,12 @@ import data.ecs as ecs
 from data.logging import *
 import time
 
-from data.systems import renderer
-from data.systems.renderer import SpriteRenderer
+from data.scenes.testing.TestScene import TestScene
 
 
 class Game:
     def __init__(self):
-        self._currentScene : ecs.Scene = None
+        self._currentScene : ecs.Scene = TestScene
         self.display = None
         self.running = False
         self._lastTickStart = 0
@@ -20,6 +19,7 @@ class Game:
     async def Start(self):
         Log("Game Starting",LOG_ALL)
         self.Init()
+
         self.running = True
         self._lastTickStart = time.time()
         while self.running:
@@ -37,19 +37,12 @@ class Game:
         pygame.init()
         pygame.mixer.init()
         self.display = pygame.display.set_mode((600,600))
-
-        TestScene = ecs.Scene(self)
-        TestScene.systems.append(renderer.RendererSystem())
-        ent = ecs.Entity()
-        TestScene.entities.append(ent)
-        ent.position = [500,500]
-        t = SpriteRenderer(ent,pygame.image.load("data/art/testplayer.png"))
-        TestScene.AddComponent(t)
-        self.SwapScene(TestScene)
+        self.LoadScene(self._currentScene)
 
         Log("Game Initialized",LOG_ALL)
-    def SwapScene(self,scene):
+    def LoadScene(self, scene):
         self._currentScene = copy.copy(scene)
+        self._currentScene.game = self
         self._currentScene.Init()
     def Quit(self):
         Log("Game Quitting",LOG_ALL)
