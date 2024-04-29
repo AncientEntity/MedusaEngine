@@ -8,7 +8,7 @@ from engine.systems.renderer import RendererSystem, SpriteRenderer
 class EngineSplashScreenLoadNextScene(EntitySystem):
     def __init__(self):
         super().__init__()
-        self.timeLeft = 3
+        self.timeLeft = 1
     def Update(self, currentScene: Scene):
         self.timeLeft -= self.game.deltaTime
         if(self.timeLeft <= 0):

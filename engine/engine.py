@@ -9,10 +9,10 @@ from engine.logging import *
 import time
 
 from engine.scenes import splashscene
-from game.scenes.testing.TestScene import TestScene
 
 
 class Engine:
+    _instance = None
     def __init__(self,game):
         self._game : Game = game
         self.gameName = "Empty Game"
@@ -26,7 +26,7 @@ class Engine:
 
         self._inputStates = {}
         self.scroll = 0
-
+        Engine._instance = self
 
         self.LoadGame() #Loads self._game into the engine
     def LoadGame(self):
@@ -110,3 +110,12 @@ class Engine:
     def Quit(self):
         Log("Game Quitting",LOG_ALL)
         exit(0)
+
+class Input:
+    #Input class functions accessible via Input.KeyPressed, KeyDown, KeyUp
+    def KeyPressed(key):
+        return Engine._instance.KeyPressed(key)
+    def KeyDown(key):
+        return Engine._instance.KeyDown(key)
+    def KeyUp(key):
+        return Engine._instance.KeyUp(key)

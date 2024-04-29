@@ -1,7 +1,7 @@
 from engine.engine import *
 import asyncio
 
-from game import testgame
+from game.testing import testgame
 
 if __name__ == "__main__":
     gameInstance = Engine(testgame.TestGame())

@@ -82,9 +82,6 @@ class RendererSystem(EntitySystem):
             if(self.debug): #If debug draw bounds of spriterenderers
                 pygame.draw.rect(self._renderTarget,(255,0,0),pygame.Rect(finalPosition[0],finalPosition[1],spriteRenderer.sprite.get_width(),spriteRenderer.sprite.get_height()),width=1)
 
-        if(self.game.KeyPressed(pygame.K_w)):
-            self.cameraPosition[0] -= 1
-
         self.game.display.blit(pygame.transform.scale(self._renderTarget,(self._screenSize[0],self._screenSize[1])),(0,0))
         pygame.display.update()
     def FinalPositionOfSprite(self,position,sprite):
