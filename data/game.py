@@ -20,6 +20,7 @@ class Game:
         self.deltaTime = 0
 
         self._inputStates = {}
+        self.scroll = 0
     async def Start(self):
         Log("Game Starting",LOG_ALL)
         self.Init()
@@ -56,12 +57,18 @@ class Game:
 
         #Check all the new pygame events for quitting and keys.
         for event in pygame.event.get():
+            #Quit Button
             if(event.type == pygame.QUIT):
                 self.Quit()
+            #Keys
             elif(event.type == pygame.KEYDOWN):
                 self._inputStates[event.key] = KEYDOWN
             elif(event.type == pygame.KEYUP):
                 self._inputStates[event.key] = KEYUP
+            #Scrolling
+            elif(event.type == pygame.MOUSEWHEEL):
+                self.scroll = event.y
+
     def IsKeyState(self,key : int, targetState : int) -> bool:
         if(key in self._inputStates):
             return self._inputStates[key] == targetState
