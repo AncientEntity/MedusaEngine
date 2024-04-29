@@ -8,13 +8,15 @@ LOG_ALL = 3
 LOG_LEVEL = 3
 
 def LogPrefix(level):
-    if(level == 3):
+    if(level == LOG_ALL):
         return "[Logging]"
-    elif(level == 2):
+    elif(level == LOG_WARNINGS):
         return "[Warning]"
-    elif(level == 1):
+    elif(level == LOG_ERRORS):
         return "[ERROR]"
 
 def Log(message,level):
     if(LOG_LEVEL >= level):
         print(LogPrefix(level),datetime.now(),":",message)
+        if(level == LOG_ERRORS):
+            exit(-1)
