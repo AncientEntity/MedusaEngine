@@ -107,6 +107,8 @@ class Engine:
         self._currentScene = copy.copy(scene)
         self._currentScene.game = self
         self._currentScene.Init()
+    def GetCurrentScene(self):
+        return self._currentScene
     def Quit(self):
         Log("Game Quitting",LOG_ALL)
         exit(0)

@@ -1,3 +1,5 @@
+import math
+
 import pygame.display
 
 from engine.ecs import EntitySystem, Scene, Component
@@ -8,14 +10,34 @@ import time
 def CenterToTopLeftPosition(centerPosition, surface : pygame.Surface):
     return [centerPosition[0]-surface.get_width()//2,centerPosition[1]-surface.get_height()//2]
 
+def GetSprite(sprite):
+    if(isinstance(sprite,pygame.Surface)):
+        return sprite
+    else:
+        return sprite.GetSprite()
+
 class Sprite:
     def __init__(self,filePath):
-        self.sprite = pygame.image.load(filePath)
+        if(filePath != ""):
+            self.sprite = pygame.image.load(filePath)
+        else:
+            self.sprite = None
+        self._flipX = False
     def GetSprite(self):
         return self.sprite
+    def FlipX(self,flipped):
+        if(flipped == self._flipX):
+            return
+
+        self._flipX = flipped
+        if(isinstance(self.sprite,pygame.Surface)):
+            self.sprite = pygame.transform.flip(self.sprite,True,False)
+        else:
+            self.sprite.FlipX(flipped)
 
 class AnimatedSprite(Sprite):
     def __init__(self,sprites,fps):
+        super().__init__("")
         self.timer = 0
         self.sprites = sprites
         self.fps = fps
@@ -28,12 +50,16 @@ class AnimatedSprite(Sprite):
             return targetSprite
         elif(isinstance(targetSprite,Sprite)):
             return targetSprite.GetSprite()
+    def FlipX(self,flipped):
+        if(flipped == self._flipX):
+            return
 
-def GetSprite(sprite):
-    if(isinstance(sprite,pygame.Surface)):
-        return sprite
-    else:
-        return sprite.GetSprite()
+        self._flipX = flipped
+        for i in range(len(self.sprites)):
+            if(isinstance(self.sprites[i],pygame.Surface)):
+                self.sprites[i] = pygame.transform.flip(self.sprites[i],True,False)
+            else:
+                self.sprites[i].FlipX(flipped)
 
 class SpriteRenderer(Component):
     def __init__(self, sprite : Sprite or pygame.Surface):
@@ -106,7 +132,7 @@ class RenderingSystem(EntitySystem):
                         continue
                     targetSprite = GetSprite(tileMapRenderer.tileMap.tileSet[tileMapRenderer.tileMap.map[x][y]])
                     spritePosition = [centeredOffset[0]+(x*tileMapRenderer.tileMap.tileSize),centeredOffset[1]+(y*tileMapRenderer.tileMap.tileSize)]
-                    self._renderTarget.blit(targetSprite,[spritePosition[0]-self.cameraPosition[0],spritePosition[1]-self.cameraPosition[1]])
+                    self._renderTarget.blit(targetSprite,[spritePosition[0]-math.floor(self.cameraPosition[0]) + self._scaledScreenSize[0]//2,spritePosition[1]-math.floor(self.cameraPosition[1]) + self._scaledScreenSize[1]//2])
 
         #SpriteRenderer
         for spriteRenderer in currentScene.components[SpriteRenderer]:
@@ -125,7 +151,7 @@ class RenderingSystem(EntitySystem):
         pygame.display.update()
     def FinalPositionOfSprite(self,position,sprite):
         topLeftPosition = CenterToTopLeftPosition(position, sprite)
-        return [topLeftPosition[0] - self.cameraPosition[0], topLeftPosition[1] - self.cameraPosition[1]]
+        return [topLeftPosition[0] - self.cameraPosition[0] + self._scaledScreenSize[0]//2, topLeftPosition[1] - self.cameraPosition[1] + self._scaledScreenSize[1]//2]
 
     #Doesn't work so disabled for now.
     def IsOnScreen(self,spriteRenderer : SpriteRenderer) -> bool:
