@@ -2,6 +2,7 @@ import pygame
 
 from engine.ecs import EntitySystem, Component, Scene
 from engine.engine import Input
+from engine.systems import physics
 from engine.systems.renderer import SpriteRenderer, RenderingSystem, AnimatedSprite
 from engine.tools.spritesheet import SpriteSheet
 from game import assets
@@ -34,17 +35,21 @@ class PlayerSystem(EntitySystem):
     def PlayerMovement(self,player : PlayerComponent):
         moved = False
         if (Input.KeyPressed(player.controls["up"])):
-            player.parentEntity.position[1] -= self.game.deltaTime * player.speed
+            player.parentEntity.GetComponent(physics.PhysicsComponent).Move((0,-self.game.deltaTime * player.speed))
+            #player.parentEntity.position[1] -= self.game.deltaTime * player.speed
             moved = True
         elif(Input.KeyPressed(player.controls["down"])):
-            player.parentEntity.position[1] += self.game.deltaTime * player.speed
+            player.parentEntity.GetComponent(physics.PhysicsComponent).Move((0,self.game.deltaTime * player.speed))
+            #player.parentEntity.position[1] += self.game.deltaTime * player.speed
             moved = True
         if (Input.KeyPressed(player.controls["left"])):
-            player.parentEntity.position[0] -= self.game.deltaTime * player.speed
+            player.parentEntity.GetComponent(physics.PhysicsComponent).Move((-self.game.deltaTime * player.speed,0))
+            #player.parentEntity.position[0] -= self.game.deltaTime * player.speed
             player.parentEntity.GetComponent(SpriteRenderer).sprite.FlipX(True)
             moved = True
         elif(Input.KeyPressed(player.controls["right"])):
-            player.parentEntity.position[0] += self.game.deltaTime * player.speed
+            player.parentEntity.GetComponent(physics.PhysicsComponent).Move((self.game.deltaTime * player.speed,0))
+            #player.parentEntity.position[0] += self.game.deltaTime * player.speed
             player.parentEntity.GetComponent(SpriteRenderer).sprite.FlipX(False)
             moved = True
         if(moved):

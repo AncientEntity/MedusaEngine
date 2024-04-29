@@ -34,6 +34,10 @@ class Sprite:
             self.sprite = pygame.transform.flip(self.sprite,True,False)
         else:
             self.sprite.FlipX(flipped)
+    def get_width(self):
+        return self.sprite.get_width()
+    def get_height(self):
+        return self.sprite.get_height()
 
 class AnimatedSprite(Sprite):
     def __init__(self,sprites,fps):
@@ -60,6 +64,10 @@ class AnimatedSprite(Sprite):
                 self.sprites[i] = pygame.transform.flip(self.sprites[i],True,False)
             else:
                 self.sprites[i].FlipX(flipped)
+    def get_width(self):
+        return self.GetSprite().get_width()
+    def get_height(self):
+        return self.GetSprite().get_height()
 
 class SpriteRenderer(Component):
     def __init__(self, sprite : Sprite or pygame.Surface):
@@ -112,7 +120,7 @@ class RenderingSystem(EntitySystem):
         self._screenSize = None
         self._scaledScreenSize = None
         self._scaledHalfSize = None
-        self.debug = False
+        self.debug = True
 
         RenderingSystem.instance = self
     def OnEnable(self):

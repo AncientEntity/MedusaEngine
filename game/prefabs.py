@@ -1,12 +1,13 @@
 import random
 
+from engine.systems import physics
 from engine.systems.renderer import SpriteRenderer, AnimatedSprite
 from game import assets
 from game.systems import playersystem
 from game.systems.NPCSystem import NPCComponent
 
 def CreatePlayer(scene):
-    scene.CreateEntity(name="Player",position=[80,50],components=[SpriteRenderer(None),playersystem.PlayerComponent()])
+    scene.CreateEntity(name="Player",position=[80,50],components=[SpriteRenderer(None),playersystem.PlayerComponent(),physics.PhysicsComponent()])
 
 def CreateSkeleton(scene):
     npcComponent = NPCComponent()
@@ -18,4 +19,4 @@ def CreateSkeleton(scene):
         pass
     npcComponent.behaviourTick = SkeletonBehaviour
 
-    scene.CreateEntity("SkeletonEnemy",position=[random.randint(-500,500),random.randint(-500,500)],components=[SpriteRenderer(npcComponent.idleAnim),npcComponent])
+    scene.CreateEntity("SkeletonEnemy",position=[random.randint(-500,500),random.randint(-500,500)],components=[SpriteRenderer(npcComponent.idleAnim),npcComponent,physics.PhysicsComponent()])
