@@ -111,12 +111,14 @@ class RenderingSystem(EntitySystem):
         self._renderTarget = None
         self._screenSize = None
         self._scaledScreenSize = None
+        self._scaledHalfSize = None
         self.debug = False
 
         RenderingSystem.instance = self
     def OnEnable(self):
         self._screenSize = [self.game.display.get_width(),self.game.display.get_height()]
         self._scaledScreenSize = [self.game.display.get_width() // self.renderScale,self.game.display.get_height() // self.renderScale]
+        self._scaledHalfSize = [self._scaledScreenSize[0]//2,self._scaledScreenSize[1]//2]
         self._renderTarget = pygame.Surface(self._scaledScreenSize)
     def Update(self,currentScene : Scene):
         self._renderTarget.fill(self.backgroundColor)
@@ -130,17 +132,30 @@ class RenderingSystem(EntitySystem):
                 for y in range(tileMapRenderer.tileMap.size[1]):
                     if(tileMapRenderer.tileMap.map[x][y] == -1): #Empty tile
                         continue
-                    targetSprite = GetSprite(tileMapRenderer.tileMap.tileSet[tileMapRenderer.tileMap.map[x][y]])
+
                     spritePosition = [centeredOffset[0]+(x*tileMapRenderer.tileMap.tileSize),centeredOffset[1]+(y*tileMapRenderer.tileMap.tileSize)]
-                    self._renderTarget.blit(targetSprite,[spritePosition[0]-math.floor(self.cameraPosition[0]) + self._scaledScreenSize[0]//2,spritePosition[1]-math.floor(self.cameraPosition[1]) + self._scaledScreenSize[1]//2])
+                    finalDrawPosition = [spritePosition[0]-math.floor(self.cameraPosition[0]) + self._scaledHalfSize[0],spritePosition[1]-math.floor(self.cameraPosition[1]) + self._scaledHalfSize[1]]
+
+                    if(False == self.IsOnScreenRect(pygame.Rect(spritePosition[0],spritePosition[1],tileMapRenderer.tileMap.tileSize,tileMapRenderer.tileMap.tileSize))):
+                        continue
+
+                    targetSprite = GetSprite(tileMapRenderer.tileMap.tileSet[tileMapRenderer.tileMap.map[x][y]])
+                    self._renderTarget.blit(targetSprite,finalDrawPosition)
 
         #SpriteRenderer
         for spriteRenderer in currentScene.components[SpriteRenderer]:
-            if(spriteRenderer.sprite == None):# or False == self.IsOnScreen(spriteRenderer)):
+            if(spriteRenderer.sprite == None):
                 continue
+
             actualSprite = GetSprite(spriteRenderer.sprite)
+            #Validate if we found an actual sprite
             if(actualSprite == None):
                 continue
+
+            #Verify what is being drawn is on the screen
+            if(False == self.IsOnScreenSprite(actualSprite, spriteRenderer.parentEntity.position)):
+                continue
+
             finalPosition = self.FinalPositionOfSprite(spriteRenderer.parentEntity.position,actualSprite)
             self._renderTarget.blit(actualSprite,finalPosition)
 
@@ -151,15 +166,11 @@ class RenderingSystem(EntitySystem):
         pygame.display.update()
     def FinalPositionOfSprite(self,position,sprite):
         topLeftPosition = CenterToTopLeftPosition(position, sprite)
-        return [topLeftPosition[0] - self.cameraPosition[0] + self._scaledScreenSize[0]//2, topLeftPosition[1] - self.cameraPosition[1] + self._scaledScreenSize[1]//2]
+        return [topLeftPosition[0] - self.cameraPosition[0] + self._scaledHalfSize[0], topLeftPosition[1] - self.cameraPosition[1] + self._scaledHalfSize[1]]
 
-    #Doesn't work so disabled for now.
-    def IsOnScreen(self,spriteRenderer : SpriteRenderer) -> bool:
+    def IsOnScreenSprite(self, sprite : pygame.Surface, position) -> bool:
+        return self.IsOnScreenRect(pygame.Rect(position[0]-sprite.get_width()//2,position[1]-sprite.get_height()//2,sprite.get_width(),sprite.get_height()))
 
-        #screen bounds with camera, xywh
-        screenBounds = pygame.Rect(self.cameraPosition[0] - self._scaledScreenSize[0]//2,self.cameraPosition[1] - self._scaledScreenSize[1]//2,self._scaledScreenSize[0],self._scaledScreenSize[1])
-        spriteBounds = pygame.Rect(spriteRenderer.parentEntity.position[0]-spriteRenderer.sprite.get_width()//2,spriteRenderer.parentEntity.position[1]-spriteRenderer.sprite.get_height()//2,spriteRenderer.sprite.get_width(),spriteRenderer.sprite.get_height())
-
-        #pygame.draw.rect(self._renderTarget,(255,0,0),spriteBounds)
-        #pygame.draw.rect(self._renderTarget,(0,255,0),screenBounds)
-        return screenBounds.colliderect(spriteBounds)
+    def IsOnScreenRect(self,rect : pygame.Rect):
+        screenBounds = pygame.Rect(self.cameraPosition[0] - self._scaledHalfSize[0],self.cameraPosition[1] - self._scaledHalfSize[1],self._scaledScreenSize[0],self._scaledScreenSize[1])
+        return screenBounds.colliderect(rect)
