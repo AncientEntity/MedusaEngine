@@ -29,6 +29,12 @@ class Tilemap:
             self.map[x][y] = tileID
         else:
             Log("Invalid spot to set tile or invalid tileID.",LOG_ERRORS)
+    def SetTileSetFromSpriteSheet(self,spriteSheet : SpriteSheet):
+        i = 0
+        for x in range(spriteSheet.xCount):
+            for y in range(spriteSheet.yCount):
+                self.tileSet[i] = spriteSheet[(x,y)]
+                i += 1
 
 class TilemapRenderer(Component):
     def __init__(self, parentEntity):

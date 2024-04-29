@@ -5,10 +5,10 @@ class SpriteSheet:
         print("[SpriteSheet] Loaded full: "+file)
         self.fullSize = self.full.get_size()
         self.sprites = {}
-        xCount = self.fullSize[0] // spriteSize
-        yCount = self.fullSize[1] // spriteSize
-        for x in range(xCount):
-            for y in range(yCount):
+        self.xCount = self.fullSize[0] // spriteSize
+        self.yCount = self.fullSize[1] // spriteSize
+        for x in range(self.xCount):
+            for y in range(self.yCount):
                 subSprite = self.full.subsurface(pygame.Rect(x*spriteSize,y*spriteSize,spriteSize,spriteSize))
                 self.sprites[str(x)+":"+str(y)] = subSprite
                 print("[SpriteSheet] Loaded sprite from spritesheet("+file+"): "+str(x)+", "+str(y))
