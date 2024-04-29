@@ -122,6 +122,7 @@ class RenderingSystem(EntitySystem):
         self._renderTarget = pygame.Surface(self._scaledScreenSize)
     def Update(self,currentScene : Scene):
         self._renderTarget.fill(self.backgroundColor)
+        self.cameraPosition = [math.floor(self.cameraPosition[0]),math.floor(self.cameraPosition[1])]
 
         #TileMapRenderer
         for tileMapRenderer in currentScene.components[TilemapRenderer]:
@@ -134,7 +135,7 @@ class RenderingSystem(EntitySystem):
                         continue
 
                     spritePosition = [centeredOffset[0]+(x*tileMapRenderer.tileMap.tileSize),centeredOffset[1]+(y*tileMapRenderer.tileMap.tileSize)]
-                    finalDrawPosition = [spritePosition[0]-math.floor(self.cameraPosition[0]) + self._scaledHalfSize[0],spritePosition[1]-math.floor(self.cameraPosition[1]) + self._scaledHalfSize[1]]
+                    finalDrawPosition = [spritePosition[0]-self.cameraPosition[0] + self._scaledHalfSize[0],spritePosition[1]-self.cameraPosition[1] + self._scaledHalfSize[1]]
 
                     if(False == self.IsOnScreenRect(pygame.Rect(spritePosition[0],spritePosition[1],tileMapRenderer.tileMap.tileSize,tileMapRenderer.tileMap.tileSize))):
                         continue

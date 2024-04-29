@@ -32,18 +32,19 @@ class PlayerSystem(EntitySystem):
             self.PlayerMovement(player)
     def PlayerMovement(self,player : PlayerComponent):
         moved = False
+        wantedDirection = [0,0]
         if (Input.KeyPressed(player.controls["up"])):
-            player.parentEntity.position[1] -= 1#self.game.deltaTime * player.speed
+            player.parentEntity.position[1] -= self.game.deltaTime * player.speed
             moved = True
         elif(Input.KeyPressed(player.controls["down"])):
-            player.parentEntity.position[1] += 1#self.game.deltaTime * player.speed
+            player.parentEntity.position[1] += self.game.deltaTime * player.speed
             moved = True
         if (Input.KeyPressed(player.controls["left"])):
-            player.parentEntity.position[0] -= 1#self.game.deltaTime * player.speed
+            player.parentEntity.position[0] -= self.game.deltaTime * player.speed
             player.parentEntity.GetComponent(SpriteRenderer).sprite.FlipX(True)
             moved = True
         elif(Input.KeyPressed(player.controls["right"])):
-            player.parentEntity.position[0] += 1#self.game.deltaTime * player.speed
+            player.parentEntity.position[0] += self.game.deltaTime * player.speed
             player.parentEntity.GetComponent(SpriteRenderer).sprite.FlipX(False)
             moved = True
         if(moved):
