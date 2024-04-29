@@ -4,11 +4,10 @@ from data import ecs
 from data.systems import renderer
 from data.systems.renderer import SpriteRenderer
 import random
-import data.systems.steamworks
 
 from data.tools.spritesheet import SpriteSheet
 
-testSpriteSheet = SpriteSheet("data/art/testtileset.png",16)
+testSpriteSheet = SpriteSheet("data/art/testing/testtileset.png",16)
 
 TestScene = ecs.Scene()
 TestScene.systems.append(renderer.RendererSystem())
@@ -16,7 +15,7 @@ for i in range(20):
     ent = ecs.Entity()
     TestScene.entities.append(ent)
     ent.position = [random.randint(0,300),random.randint(0,300)]
-    t = SpriteRenderer(ent, pygame.image.load("data/art/testplayer.png"))
+    t = SpriteRenderer(ent, pygame.image.load("data/art/testing/testplayer.png"))
     TestScene.AddComponent(t)
 
 tileEnt = ecs.Entity()

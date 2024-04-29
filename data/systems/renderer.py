@@ -77,9 +77,9 @@ class RendererSystem(EntitySystem):
             self._renderTarget.blit(spriteRenderer.sprite,self.FinalPositionOfSprite(spriteRenderer.parentEntity.position,spriteRenderer.sprite))
 
         if(self.game.KeyPressed(pygame.K_w)):
-            self.cameraPosition[0] += 1
+            self.cameraPosition[0] += self.game.deltaTime*50
         elif(self.game.KeyPressed(pygame.K_s)):
-            self.cameraPosition[0] -= 1
+            self.cameraPosition[0] -= self.game.deltaTime*50
 
         self.game.display.blit(pygame.transform.scale(self._renderTarget,(self._screenSize[0],self._screenSize[1])),(0,0))
         pygame.display.update()

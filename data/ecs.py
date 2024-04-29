@@ -19,6 +19,12 @@ class Scene:
         if (componentType in self.components):
             self.components[componentType].remove(component)
 
+    def GetSystemByClass(self,systemType : type):
+        for system in self.systems:
+            if(type(system) == systemType):
+                return system
+        return None
+
     def Update(self):
         for system in self.systems:
             system.Update(self)
