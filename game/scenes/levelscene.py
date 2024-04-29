@@ -7,9 +7,10 @@ import random
 
 from engine.systems.renderer import TilemapRenderer, SpriteRenderer, AnimatedSprite
 from engine.tools.spritesheet import SpriteSheet
+from game import prefabs
+from game.assets import dungeonTileSet
 from game.systems import playersystem
-
-testSpriteSheet = SpriteSheet("game/testing/art/testing/0x72_DungeonTilesetII_v1.7.png",-1,"game/testing/art/testing/tile_list_v1.7")
+from game.systems.NPCSystem import NPCComponent
 
 LevelScene = ecs.Scene()
 LevelScene.systems.append(renderer.RenderingSystem())
@@ -17,13 +18,13 @@ LevelScene.systems.append(playersystem.PlayerSystem())
 
 mapEntity = LevelScene.CreateEntity("Map Entity",position=[0,0],components=[TilemapRenderer(renderer.Tilemap([100,100]))])
 mapEntity.GetComponent(TilemapRenderer).tileMap.tileSize = 16
-mapEntity.GetComponent(TilemapRenderer).tileMap.SetTileSetFromSpriteSheet(testSpriteSheet)
-
-def CreatePlayer():
-    LevelScene.CreateEntity("Player",position=[80,50],components=[SpriteRenderer(None),playersystem.PlayerComponent()])
+mapEntity.GetComponent(TilemapRenderer).tileMap.SetTileSetFromSpriteSheet(dungeonTileSet)
 
 for x in range(100):
     for y in range(100):
         mapEntity.GetComponent(TilemapRenderer).tileMap.SetTile("floor_"+str(random.randint(1,8)),x,y)
 
-CreatePlayer()
+for i in range(100):
+    prefabs.CreateSkeleton(LevelScene)
+
+prefabs.CreatePlayer(LevelScene)
