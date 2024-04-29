@@ -3,13 +3,40 @@ import pygame.display
 from engine.ecs import EntitySystem, Scene, Component
 from engine.logging import Log, LOG_ERRORS
 from engine.tools.spritesheet import SpriteSheet
+import time
 
 def CenterToTopLeftPosition(centerPosition, surface : pygame.Surface):
     return [centerPosition[0]-surface.get_width()//2,centerPosition[1]-surface.get_height()//2]
 
+class Sprite:
+    def __init__(self,filePath):
+        self.sprite = pygame.image.load(filePath)
+    def GetSprite(self):
+        return self.sprite
+
+class AnimatedSprite(Sprite):
+    def __init__(self,sprites,fps):
+        self.timer = 0
+        self.sprites = sprites
+        self.fps = fps
+        self.lastTime = time.time()
+    def GetSprite(self):
+        self.timer += (time.time() - self.lastTime)
+        self.lastTime = time.time()
+        targetSprite = self.sprites[int((self.timer * self.fps) % len(self.sprites))]
+        if isinstance(targetSprite, pygame.Surface):
+            return targetSprite
+        elif(isinstance(targetSprite,Sprite)):
+            return targetSprite.GetSprite()
+
+def GetSprite(sprite):
+    if(isinstance(sprite,pygame.Surface)):
+        return sprite
+    else:
+        return sprite.GetSprite()
+
 class SpriteRenderer(Component):
-    def __init__(self, parentEntity, sprite : pygame.Surface):
-        super().__init__(parentEntity)
+    def __init__(self, sprite : Sprite or pygame.Surface):
         self.sprite = sprite
 
 class Tilemap:
@@ -28,7 +55,7 @@ class Tilemap:
         if(x < self.size[0] and y < self.size[1] and (tileID in self.tileSet or tileID == -1)):
             self.map[x][y] = tileID
         else:
-            Log("Invalid spot to set tile or invalid tileID.",LOG_ERRORS)
+            Log("Invalid spot to set tile or invalid tileID."+str(tileID),LOG_ERRORS)
     def SetTileSetFromSpriteSheet(self,spriteSheet : SpriteSheet):
         if(spriteSheet.splitType == 'size'):
             i = 0
@@ -43,9 +70,9 @@ class Tilemap:
             Log("Unknown sprite sheet split type: ",spriteSheet.splitType,LOG_ERRORS)
 
 class TilemapRenderer(Component):
-    def __init__(self, parentEntity):
-        super().__init__(parentEntity)
-        self.tileMap = None
+    def __init__(self,tileMap=None):
+        super().__init__()
+        self.tileMap = tileMap
 
 
 class RenderingSystem(EntitySystem):
@@ -77,7 +104,7 @@ class RenderingSystem(EntitySystem):
                 for y in range(tileMapRenderer.tileMap.size[1]):
                     if(tileMapRenderer.tileMap.map[x][y] == -1): #Empty tile
                         continue
-                    targetSprite = tileMapRenderer.tileMap.tileSet[tileMapRenderer.tileMap.map[x][y]]
+                    targetSprite = GetSprite(tileMapRenderer.tileMap.tileSet[tileMapRenderer.tileMap.map[x][y]])
                     spritePosition = [centeredOffset[0]+(x*tileMapRenderer.tileMap.tileSize),centeredOffset[1]+(y*tileMapRenderer.tileMap.tileSize)]
                     self._renderTarget.blit(targetSprite,[spritePosition[0]-self.cameraPosition[0],spritePosition[1]-self.cameraPosition[1]])
 
@@ -85,8 +112,11 @@ class RenderingSystem(EntitySystem):
         for spriteRenderer in currentScene.components[SpriteRenderer]:
             if(spriteRenderer.sprite == None):# or False == self.IsOnScreen(spriteRenderer)):
                 continue
-            finalPosition = self.FinalPositionOfSprite(spriteRenderer.parentEntity.position,spriteRenderer.sprite)
-            self._renderTarget.blit(spriteRenderer.sprite,finalPosition)
+            actualSprite = GetSprite(spriteRenderer.sprite)
+            if(actualSprite == None):
+                continue
+            finalPosition = self.FinalPositionOfSprite(spriteRenderer.parentEntity.position,actualSprite)
+            self._renderTarget.blit(actualSprite,finalPosition)
 
             if(self.debug): #If debug draw bounds of spriterenderers
                 pygame.draw.rect(self._renderTarget,(255,0,0),pygame.Rect(finalPosition[0],finalPosition[1],spriteRenderer.sprite.get_width(),spriteRenderer.sprite.get_height()),width=1)

@@ -1,11 +1,28 @@
 from engine.logging import *
 
+class Component:
+    def __init__(self):
+        self.parentEntity = None
+
+
+
 class Scene:
     def __init__(self):
         self.systems: list[EntitySystem] = []
         self.entities = []
         self.components = {}
         self.game = None
+
+    def CreateEntity(self,name,position,components):
+        newEnt = Entity()
+        newEnt.name = name
+        newEnt.position = position
+        newEnt.components = components
+        self.entities.append(newEnt)
+        for component in newEnt.components:
+            component.parentEntity = newEnt
+            self.AddComponent(component)
+        return newEnt
 
     def AddComponent(self, component):
         componentType = type(component)
@@ -37,17 +54,16 @@ class Scene:
             system.OnEnable()
 
 
-class Component:
-    def __init__(self, parentEntity):
-        self.parentEntity = parentEntity
-
-
 class Entity:
     def __init__(self):
         self.name = "Unnamed Entity"
         self.position = (0, 0)
         self.components = []
-
+    def GetComponent(self, t):
+        for component in self.components:
+            if(isinstance(component,t)):
+                return component
+        return None
 
 class EntitySystem:
     def __init__(self, targetComponents=[]):

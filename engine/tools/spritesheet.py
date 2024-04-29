@@ -1,6 +1,6 @@
 import pygame
 
-from engine.logging import Log, LOG_WARNINGS
+from engine.logging import Log, LOG_WARNINGS, LOG_ALL
 
 
 class SpriteSheet:
@@ -36,6 +36,7 @@ class SpriteSheet:
                 continue
             subSprite = self.full.subsurface(pygame.Rect(int(splitLine[1]), int(splitLine[2]), int(splitLine[3]), int(splitLine[4])))
             self.sprites[splitLine[0]] = subSprite
+            Log("Created "+splitLine[0] + " sprite frame",LOG_ALL)
 
         mapFile.close()
 

@@ -5,9 +5,9 @@ import pygame
 import engine.ecs as ecs
 from engine.constants import KEYDOWN, KEYUP, KEYPRESSED, KEYINACTIVE
 from engine.game import Game
-from engine.logging import *
 import time
 
+from engine.logging import Log, LOG_ALL, LOG_ERRORS
 from engine.scenes import splashscene
 
 

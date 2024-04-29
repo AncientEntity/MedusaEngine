@@ -1,9 +1,9 @@
 from engine.engine import *
 import asyncio
 
-from game.testing import testgame
+from game import bulletgame
 
 if __name__ == "__main__":
-    gameInstance = Engine(testgame.TestGame())
+    gameInstance = Engine(bulletgame.BulletGame())
     asyncio.run(gameInstance.Start())
 
