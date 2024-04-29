@@ -6,7 +6,7 @@ from game.systems import playersystem
 from game.systems.NPCSystem import NPCComponent
 
 def CreatePlayer(scene):
-    scene.CreateEntity("Player",position=[80,50],components=[SpriteRenderer(None),playersystem.PlayerComponent()])
+    scene.CreateEntity(name="Player",position=[80,50],components=[SpriteRenderer(None),playersystem.PlayerComponent()])
 
 def CreateSkeleton(scene):
     npcComponent = NPCComponent()

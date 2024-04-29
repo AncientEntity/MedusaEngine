@@ -5,6 +5,7 @@ from engine.engine import Input
 from engine.systems.renderer import SpriteRenderer, RenderingSystem, AnimatedSprite
 from engine.tools.spritesheet import SpriteSheet
 from game import assets
+from game.scenes import levelscene
 
 
 class PlayerComponent(Component):
@@ -32,7 +33,6 @@ class PlayerSystem(EntitySystem):
             self.PlayerMovement(player)
     def PlayerMovement(self,player : PlayerComponent):
         moved = False
-        wantedDirection = [0,0]
         if (Input.KeyPressed(player.controls["up"])):
             player.parentEntity.position[1] -= self.game.deltaTime * player.speed
             moved = True

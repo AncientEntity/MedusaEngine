@@ -8,6 +8,7 @@ class Component:
 
 class Scene:
     def __init__(self):
+        self.name = "Unnamed Scene"
         self.systems: list[EntitySystem] = []
         self.entities = []
         self.components = {}
@@ -52,6 +53,10 @@ class Scene:
                 if (targetComponent not in self.components):
                     self.components[targetComponent] = []
             system.OnEnable()
+
+    def Clear(self):
+        self.components = {}
+        self.entities = []
 
 
 class Entity:

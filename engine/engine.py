@@ -103,10 +103,11 @@ class Engine:
     def KeyUp(self,key : int) -> bool:
         return self.IsKeyState(key,KEYUP)
 
-    def LoadScene(self, scene):
-        self._currentScene = copy.copy(scene)
+    def LoadScene(self, scene : ecs.Scene):
+        self._currentScene = scene
         self._currentScene.game = self
         self._currentScene.Init()
+        Log("Loading scene: "+scene.name,LOG_ALL)
     def GetCurrentScene(self):
         return self._currentScene
     def Quit(self):
