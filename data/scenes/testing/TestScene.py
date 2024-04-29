@@ -4,6 +4,7 @@ from data import ecs
 from data.systems import renderer
 from data.systems.renderer import SpriteRenderer
 import random
+import data.systems.steamworks
 
 from data.tools.spritesheet import SpriteSheet
 

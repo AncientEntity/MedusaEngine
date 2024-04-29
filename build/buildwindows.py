@@ -6,4 +6,4 @@ setup(name = "Unnamed PyBulletHell",
       version = "0.1",
       description = "",
       options = {"build_exe" : build_options},
-      executables=[Executable("main.py")])
+      executables=[Executable("main.py", base="Win32GUI")])
