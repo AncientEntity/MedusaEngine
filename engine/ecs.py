@@ -1,6 +1,5 @@
 from engine.logging import *
 
-
 class Scene:
     def __init__(self):
         self.systems: list[EntitySystem] = []

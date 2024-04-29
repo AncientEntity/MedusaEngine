@@ -5,7 +5,7 @@ from engine.logging import Log, LOG_ERRORS
 from engine.tools.spritesheet import SpriteSheet
 
 def CenterToTopLeftPosition(centerPosition, surface : pygame.Surface):
-    return [centerPosition[0]-surface.get_width(),centerPosition[1]-surface.get_height()]
+    return [centerPosition[0]-surface.get_width()//2,centerPosition[1]-surface.get_height()//2]
 
 class SpriteRenderer(Component):
     def __init__(self, parentEntity, sprite : pygame.Surface):
@@ -45,17 +45,19 @@ class TilemapRenderer(Component):
 class RendererSystem(EntitySystem):
     def __init__(self):
         super().__init__([SpriteRenderer,TilemapRenderer])
-        self.cameraPosition = [0,100]
+        self.cameraPosition = [0,0]
         self.renderScale = 3
+        self.backgroundColor = (255,255,255)
         self._renderTarget = None
         self._screenSize = None
         self._scaledScreenSize = None
+        self.debug = False
     def OnEnable(self):
         self._screenSize = [self.game.display.get_width(),self.game.display.get_height()]
         self._scaledScreenSize = [self.game.display.get_width() // self.renderScale,self.game.display.get_height() // self.renderScale]
         self._renderTarget = pygame.Surface(self._scaledScreenSize)
     def Update(self,currentScene : Scene):
-        self._renderTarget.fill((255,255,255))
+        self._renderTarget.fill(self.backgroundColor)
 
         #TileMapRenderer
         for tileMapRenderer in currentScene.components[TilemapRenderer]:
@@ -74,7 +76,14 @@ class RendererSystem(EntitySystem):
         for spriteRenderer in currentScene.components[SpriteRenderer]:
             if(spriteRenderer.sprite == None):# or False == self.IsOnScreen(spriteRenderer)):
                 continue
-            self._renderTarget.blit(spriteRenderer.sprite,self.FinalPositionOfSprite(spriteRenderer.parentEntity.position,spriteRenderer.sprite))
+            finalPosition = self.FinalPositionOfSprite(spriteRenderer.parentEntity.position,spriteRenderer.sprite)
+            self._renderTarget.blit(spriteRenderer.sprite,finalPosition)
+
+            if(self.debug): #If debug draw bounds of spriterenderers
+                pygame.draw.rect(self._renderTarget,(255,0,0),pygame.Rect(finalPosition[0],finalPosition[1],spriteRenderer.sprite.get_width(),spriteRenderer.sprite.get_height()),width=1)
+
+        if(self.game.KeyPressed(pygame.K_w)):
+            self.cameraPosition[0] -= 1
 
         self.game.display.blit(pygame.transform.scale(self._renderTarget,(self._screenSize[0],self._screenSize[1])),(0,0))
         pygame.display.update()

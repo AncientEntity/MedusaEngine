@@ -8,6 +8,7 @@ from engine.game import Game
 from engine.logging import *
 import time
 
+from engine.scenes import splashscene
 from game.scenes.testing.TestScene import TestScene
 
 
@@ -34,7 +35,12 @@ class Engine:
         if(self._game.startingScene == None):
             Log("Game has no starting scene",LOG_ERRORS)
             exit(0)
-        self._currentScene = self._game.startingScene
+
+        #Load splash screen if enabled otherwise load starting scene, if we load splash screen scene the splash screen scene swaps to the self._game.startingScene for us.
+        if(self._game.startingSplashEnabled):
+            self._currentScene = splashscene.engineSplashScreenScene
+        else:
+            self._currentScene = self._game.startingScene
         Log("Finished loading game into engine",LOG_ALL)
 
     async def Start(self):
@@ -58,7 +64,7 @@ class Engine:
         pygame.mixer.init()
         self.display = pygame.display.set_mode((600,600))
         pygame.display.set_caption(self.gameName)
-        self.LoadScene(self._game.startingScene)
+        self.LoadScene(self._currentScene)
 
         Log("Game Initialized",LOG_ALL)
 
