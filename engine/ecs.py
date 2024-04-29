@@ -1,4 +1,4 @@
-from data.logging import *
+from engine.logging import *
 
 
 class Scene:

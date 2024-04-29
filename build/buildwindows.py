@@ -1,6 +1,6 @@
 from cx_Freeze import setup,Executable
 
-build_options = {"include_files" : "data"}
+build_options = {"include_files" : "engine"}
 
 setup(name = "Unnamed PyBulletHell",
       version = "0.1",

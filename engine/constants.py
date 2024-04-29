@@ -1,4 +1,4 @@
-# List of engine constants, not really meant for game constants.
+# List of engine constants, don't put game constants here
 
 KEYINACTIVE = 0 # When input/key has no state
 KEYPRESSED = 1  # When input/key is actively being pressed

@@ -1,8 +1,8 @@
 import pygame.display
 
-from data.ecs import EntitySystem, Scene, Component
-from data.logging import Log, LOG_ERRORS
-from data.tools.spritesheet import SpriteSheet
+from engine.ecs import EntitySystem, Scene, Component
+from engine.logging import Log, LOG_ERRORS
+from engine.tools.spritesheet import SpriteSheet
 
 def CenterToTopLeftPosition(centerPosition, surface : pygame.Surface):
     return [centerPosition[0]-surface.get_width(),centerPosition[1]-surface.get_height()]

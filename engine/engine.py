@@ -2,17 +2,21 @@ import asyncio
 import copy
 
 import pygame
-import data.ecs as ecs
-from data.constants import KEYDOWN, KEYUP, KEYPRESSED, KEYINACTIVE
-from data.logging import *
+import engine.ecs as ecs
+from engine.constants import KEYDOWN, KEYUP, KEYPRESSED, KEYINACTIVE
+from engine.game import Game
+from engine.logging import *
 import time
 
-from data.scenes.testing.TestScene import TestScene
+from game.scenes.testing.TestScene import TestScene
 
 
-class Game:
-    def __init__(self):
-        self._currentScene : ecs.Scene = TestScene
+class Engine:
+    def __init__(self,game):
+        self._game : Game = game
+        self.gameName = "Empty Game"
+
+        self._currentScene : ecs.Scene = None
         self.display : pygame.Surface = None
         self.running = False
 
@@ -21,6 +25,18 @@ class Game:
 
         self._inputStates = {}
         self.scroll = 0
+
+
+        self.LoadGame() #Loads self._game into the engine
+    def LoadGame(self):
+        Log("Loading game into engine",LOG_ALL)
+        self.gameName = self._game.name
+        if(self._game.startingScene == None):
+            Log("Game has no starting scene",LOG_ERRORS)
+            exit(0)
+        self._currentScene = self._game.startingScene
+        Log("Finished loading game into engine",LOG_ALL)
+
     async def Start(self):
         Log("Game Starting",LOG_ALL)
         self.Init()
@@ -41,8 +57,8 @@ class Game:
         pygame.init()
         pygame.mixer.init()
         self.display = pygame.display.set_mode((600,600))
-        pygame.display.set_caption("PyBulletHell")
-        self.LoadScene(self._currentScene)
+        pygame.display.set_caption(self.gameName)
+        self.LoadScene(self._game.startingScene)
 
         Log("Game Initialized",LOG_ALL)
 
