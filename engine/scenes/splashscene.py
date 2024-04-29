@@ -6,7 +6,13 @@ from engine.systems.renderer import RendererSystem, SpriteRenderer
 
 #This loads the starting scene of the game after X seconds
 class EngineSplashScreenLoadNextScene(EntitySystem):
-    pass
+    def __init__(self):
+        super().__init__()
+        self.timeLeft = 3
+    def Update(self, currentScene: Scene):
+        self.timeLeft -= self.game.deltaTime
+        if(self.timeLeft <= 0):
+            self.game.LoadScene(self.game._game.startingScene)
 
 class EngineSplashScreenScene(Scene):
     def __init__(self):
@@ -14,6 +20,7 @@ class EngineSplashScreenScene(Scene):
         self.renderEngine = RendererSystem()
         self.renderEngine.renderScale = 1
         self.systems.append(self.renderEngine)
+        self.systems.append(EngineSplashScreenLoadNextScene())
     def Init(self):
         super().Init()
         font = pygame.font.SysFont("Arial", 36, True, False)
