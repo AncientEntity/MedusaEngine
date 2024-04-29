@@ -17,7 +17,7 @@ class Tilemap:
         self.size = size
         self.tileSize = 50
         self.map = []
-        self.tileSet : dict = dict() #{0: SURFACE, 1 : SURFACE, 2 : SURFACE} etc
+        self.tileSet : dict = dict() #{0: SURFACE, 1 : SURFACE, 2 : SURFACE} or {"orc_1" : SURFACE, "orc_2" : SURFACE} etc
 
         for x in range(self.size[0]):
             xRow = []
@@ -30,11 +30,17 @@ class Tilemap:
         else:
             Log("Invalid spot to set tile or invalid tileID.",LOG_ERRORS)
     def SetTileSetFromSpriteSheet(self,spriteSheet : SpriteSheet):
-        i = 0
-        for x in range(spriteSheet.xCount):
-            for y in range(spriteSheet.yCount):
-                self.tileSet[i] = spriteSheet[(x,y)]
-                i += 1
+        if(spriteSheet.splitType == 'size'):
+            i = 0
+            for x in range(spriteSheet.xCount):
+                for y in range(spriteSheet.yCount):
+                    self.tileSet[i] = spriteSheet[(x,y)]
+                    i += 1
+        elif(spriteSheet.splitType == 'map'):
+            for key,value in spriteSheet.sprites.items():
+                self.tileSet[key] = value
+        else:
+            Log("Unknown sprite sheet split type: ",spriteSheet.splitType,LOG_ERRORS)
 
 class TilemapRenderer(Component):
     def __init__(self, parentEntity):
@@ -42,7 +48,8 @@ class TilemapRenderer(Component):
         self.tileMap = None
 
 
-class RendererSystem(EntitySystem):
+class RenderingSystem(EntitySystem):
+    instance = None
     def __init__(self):
         super().__init__([SpriteRenderer,TilemapRenderer])
         self.cameraPosition = [0,0]
@@ -52,6 +59,8 @@ class RendererSystem(EntitySystem):
         self._screenSize = None
         self._scaledScreenSize = None
         self.debug = False
+
+        RenderingSystem.instance = self
     def OnEnable(self):
         self._screenSize = [self.game.display.get_width(),self.game.display.get_height()]
         self._scaledScreenSize = [self.game.display.get_width() // self.renderScale,self.game.display.get_height() // self.renderScale]

@@ -2,7 +2,7 @@
 import pygame.font
 
 from engine.ecs import Scene, Entity, EntitySystem
-from engine.systems.renderer import RendererSystem, SpriteRenderer
+from engine.systems.renderer import RenderingSystem, SpriteRenderer
 
 #This loads the starting scene of the game after X seconds
 class EngineSplashScreenLoadNextScene(EntitySystem):
@@ -17,7 +17,7 @@ class EngineSplashScreenLoadNextScene(EntitySystem):
 class EngineSplashScreenScene(Scene):
     def __init__(self):
         super().__init__()
-        self.renderEngine = RendererSystem()
+        self.renderEngine = RenderingSystem()
         self.renderEngine.renderScale = 1
         self.systems.append(self.renderEngine)
         self.systems.append(EngineSplashScreenLoadNextScene())
