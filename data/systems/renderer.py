@@ -45,13 +45,15 @@ class TilemapRenderer(Component):
 class RendererSystem(EntitySystem):
     def __init__(self):
         super().__init__([SpriteRenderer,TilemapRenderer])
-        self.cameraPosition = [0,0]
+        self.cameraPosition = [0,100]
         self.renderScale = 3
         self._renderTarget = None
         self._screenSize = None
+        self._scaledScreenSize = None
     def OnEnable(self):
         self._screenSize = [self.game.display.get_width(),self.game.display.get_height()]
-        self._renderTarget = pygame.Surface((self._screenSize[0] // self.renderScale,self._screenSize[1] // self.renderScale))
+        self._scaledScreenSize = [self.game.display.get_width() // self.renderScale,self.game.display.get_height() // self.renderScale]
+        self._renderTarget = pygame.Surface(self._scaledScreenSize)
     def Update(self,currentScene : Scene):
         self._renderTarget.fill((255,255,255))
 
@@ -70,7 +72,7 @@ class RendererSystem(EntitySystem):
 
         #SpriteRenderer
         for spriteRenderer in currentScene.components[SpriteRenderer]:
-            if(spriteRenderer.sprite == None):
+            if(spriteRenderer.sprite == None):# or False == self.IsOnScreen(spriteRenderer)):
                 continue
             self._renderTarget.blit(spriteRenderer.sprite,self.FinalPositionOfSprite(spriteRenderer.parentEntity.position,spriteRenderer.sprite))
 
@@ -84,3 +86,14 @@ class RendererSystem(EntitySystem):
     def FinalPositionOfSprite(self,position,sprite):
         topLeftPosition = CenterToTopLeftPosition(position, sprite)
         return [topLeftPosition[0] - self.cameraPosition[0], topLeftPosition[1] - self.cameraPosition[1]]
+
+    #Doesn't work so disabled for now.
+    def IsOnScreen(self,spriteRenderer : SpriteRenderer) -> bool:
+
+        #screen bounds with camera, xywh
+        screenBounds = pygame.Rect(self.cameraPosition[0] - self._scaledScreenSize[0]//2,self.cameraPosition[1] - self._scaledScreenSize[1]//2,self._scaledScreenSize[0],self._scaledScreenSize[1])
+        spriteBounds = pygame.Rect(spriteRenderer.parentEntity.position[0]-spriteRenderer.sprite.get_width()//2,spriteRenderer.parentEntity.position[1]-spriteRenderer.sprite.get_height()//2,spriteRenderer.sprite.get_width(),spriteRenderer.sprite.get_height())
+
+        #pygame.draw.rect(self._renderTarget,(255,0,0),spriteBounds)
+        #pygame.draw.rect(self._renderTarget,(0,255,0),screenBounds)
+        return screenBounds.colliderect(spriteBounds)
