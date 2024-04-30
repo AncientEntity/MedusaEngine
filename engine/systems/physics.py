@@ -14,6 +14,9 @@ class PhysicsComponent(Component):
         self.mapToSpriteOnStart = True
         self.touchingDirections = {'top':  False, 'bottom' : False, 'left' : False, 'right' : False}
 
+        self.mass = 1.0
+
+        self.static = False #If static it wont be checked in the physics loop as the main body only as other body.
         self.gravity : tuple(float) = None #either None or a tuple like: (0,9.84)
         self.velocity = [0,0]
 
@@ -40,17 +43,29 @@ class PhysicsComponent(Component):
 class PhysicsSystem(EntitySystem):
     def __init__(self):
         super().__init__([PhysicsComponent])
+        self.stepsPerFrame = 8
+
     def Update(self,currentScene : Scene):
+        for i in range(self.stepsPerFrame):
+            self.Step(currentScene,self.game.deltaTime/self.stepsPerFrame)
+
+    def Step(self, currentScene : Scene, stepTime):
         body : PhysicsComponent
 
         #Physics Component Collision
         for body in currentScene.components[PhysicsComponent]:
-            if(body.gravity != None):
-                body.velocity[0] += body.gravity[0] * self.game.deltaTime
-                body.velocity[1] += body.gravity[1] * self.game.deltaTime
-            if(body.velocity[0] != 0 or body.velocity[1] != 0):
-                body.Move((body.velocity[0] * self.game.deltaTime,body.velocity[1] * self.game.deltaTime))
+            if(body.static): #If static do not check for collisions with others, as it should be stationary.
+                continue
 
+            #Add gravity
+            if(body.gravity != None):
+                body.velocity[0] += body.gravity[0] * stepTime
+                body.velocity[1] += body.gravity[1] * stepTime
+            #Add velocity movement
+            if(body.velocity[0] != 0 or body.velocity[1] != 0):
+                body.Move((body.velocity[0] * stepTime,body.velocity[1] * stepTime))
+
+            #If we aren't moving the object then skip
             if(body._moveRequest == None):
                 continue
             body.parentEntity.position[0] += body._moveRequest[0]
@@ -68,8 +83,7 @@ class PhysicsSystem(EntitySystem):
                 otherPos = other.parentEntity.position
                 bodyBounds = pygame.Rect(bodyPos[0]-body.bounds[0]//2,bodyPos[1]-body.bounds[1]//2,body.bounds[0],body.bounds[1])
                 otherBounds = pygame.Rect(otherPos[0]-other.bounds[0]//2,otherPos[1]-other.bounds[1]//2,other.bounds[0],other.bounds[1])
-
-                self.HandlePhysicsCollision(body,bodyPos,otherPos,bodyBounds,otherBounds)
+                self.HandlePhysicsCollision(body,bodyPos,bodyBounds,other,otherBounds.center,otherBounds)
 
             #Tileset Collision
             for tilemapRenderer in currentScene.components[TilemapRenderer]:
@@ -87,7 +101,7 @@ class PhysicsSystem(EntitySystem):
                         continue
                     if(tilemapRenderer.tileMap.tileSet[tile[0]].hasCollision):
                         otherBounds = pygame.Rect(tile[1][0], tile[1][1], tilemapRenderer.tileMap.tileSize, tilemapRenderer.tileMap.tileSize)
-                        self.HandlePhysicsCollision(body,bodyPos,otherBounds.center,bodyBounds,otherBounds)
+                        self.HandlePhysicsCollision(body,bodyPos,bodyBounds,None,otherBounds.center,otherBounds)
 
             body._moveRequest = None
 
@@ -99,7 +113,7 @@ class PhysicsSystem(EntitySystem):
             if(body.mapToSpriteOnStart):
                 body.MapToSpriteRenderer()
 
-    def HandlePhysicsCollision(self,body,bodyPos,otherPos,bodyBounds,otherBounds):
+    def HandlePhysicsCollision(self,body : PhysicsComponent,bodyPos,bodyBounds,other : PhysicsComponent,otherPos,otherBounds):
         #If colliding handle accordingly, otherwise we have an else statement below that detects touching.
         if (bodyBounds.colliderect(otherBounds)):
             # body and other are colliding.
@@ -125,6 +139,7 @@ class PhysicsSystem(EntitySystem):
                 bodyBounds.bottom = otherBounds.top
                 body.parentEntity.position[1] = bodyBounds.centery-body.offset[1]
                 body.velocity[1] = 0
+
                 body.touchingDirections['bottom'] = True
             # Top
             elif (body._moveRequest[1] < 0 and bodyPos[1] > otherPos[1] and abs(
@@ -132,6 +147,7 @@ class PhysicsSystem(EntitySystem):
                 bodyBounds.top = otherBounds.bottom
                 body.parentEntity.position[1] = bodyBounds.centery-body.offset[1]
                 body.velocity[1] = 0
+
                 body.touchingDirections['top'] = True
         else:
             if (abs(bodyBounds.left - otherBounds.right) <= 2):

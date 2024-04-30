@@ -12,7 +12,8 @@ def CreatePlayer(scene):
     physicsComponent.bounds = [10,16]
     physicsComponent.offset = (0,6)
     physicsComponent.mapToSpriteOnStart = False
-    scene.CreateEntity(name="Player",position=[0,0],components=[SpriteRenderer(None),playersystem.PlayerComponent(),physicsComponent])
+    return scene.CreateEntity(name="Player",position=[0,0],components=[SpriteRenderer(None),playersystem.PlayerComponent(),physicsComponent])
+
 
 def CreateSkeleton(scene,i):
     npcComponent = NPCComponent()
