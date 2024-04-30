@@ -6,7 +6,7 @@ from engine.systems import physics
 from engine.systems.renderer import SpriteRenderer, RenderingSystem, AnimatedSprite
 from engine.tools.spritesheet import SpriteSheet
 from game import assets
-from game.scenes import levelscene
+from game.scenes import levelscene, sidescrollingscene
 
 
 class PlayerComponent(Component):
@@ -56,3 +56,5 @@ class PlayerSystem(EntitySystem):
             player.parentEntity.GetComponent(SpriteRenderer).sprite = player.runAnim
         else:
             player.parentEntity.GetComponent(SpriteRenderer).sprite = player.idleAnim
+        if(Input.KeyDown(pygame.K_r)):
+            self.game.LoadScene(sidescrollingscene.SideScrollingScene())

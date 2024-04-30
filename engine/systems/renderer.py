@@ -17,12 +17,16 @@ def GetSprite(sprite):
         return sprite.GetSprite()
 
 class Sprite:
-    def __init__(self,filePath):
-        if(filePath != ""):
-            self.sprite = pygame.image.load(filePath)
-        else:
-            self.sprite = None
+    def __init__(self,filePathOrSurface : str or pygame.Surface):
+        if(isinstance(filePathOrSurface,str)):
+            if(filePathOrSurface != ""):
+                self.sprite = pygame.image.load(filePathOrSurface)
+            else:
+                self.sprite = None
+        elif(isinstance(filePathOrSurface,pygame.Surface)):
+            self.sprite = filePathOrSurface
         self._flipX = False
+        self.hasCollision = False
     def GetSprite(self):
         return self.sprite
     def FlipX(self,flipped):
@@ -78,7 +82,7 @@ class Tilemap:
         self.size = size
         self.tileSize = 50
         self.map = []
-        self.tileSet : dict = dict() #{0: SURFACE, 1 : SURFACE, 2 : SURFACE} or {"orc_1" : SURFACE, "orc_2" : SURFACE} etc
+        self.tileSet : dict = dict() #{0: Sprite, 1 : Sprite, 2 : Sprite} or {"orc_1" : Sprite, "orc_2" : Sprite} etc dont put surfaces in
 
         for x in range(self.size[0]):
             xRow = []
@@ -95,11 +99,11 @@ class Tilemap:
             i = 0
             for x in range(spriteSheet.xCount):
                 for y in range(spriteSheet.yCount):
-                    self.tileSet[i] = spriteSheet[(x,y)]
+                    self.tileSet[i] = Sprite(spriteSheet[(x,y)])
                     i += 1
         elif(spriteSheet.splitType == 'map'):
             for key,value in spriteSheet.sprites.items():
-                self.tileSet[key] = value
+                self.tileSet[key] = Sprite(value)
         else:
             Log("Unknown sprite sheet split type: ",spriteSheet.splitType,LOG_ERRORS)
 
@@ -107,6 +111,21 @@ class TilemapRenderer(Component):
     def __init__(self,tileMap=None):
         super().__init__()
         self.tileMap = tileMap
+    def WorldToRoundedPosition(self, worldPosition): #Rounds a world position to a world position where the tile is.
+        return [(worldPosition[0]-self.parentEntity.position[0])//self.tileMap.tileSize*self.tileMap.tileSize,(worldPosition[1]-self.parentEntity.position[1])//self.tileMap.tileSize*self.tileMap.tileSize]
+    def WorldToTilePosition(self,worldPosition):
+        return [(worldPosition[0]-self.parentEntity.position[0]+(self.tileMap.size[0]//2*self.tileMap.tileSize))//self.tileMap.tileSize,(worldPosition[1]-self.parentEntity.position[1]+(self.tileMap.size[1]//2*self.tileMap.tileSize))//self.tileMap.tileSize]
+    def TileToWorldPosition(self,tilePosition):
+        return [tilePosition[0]*self.tileMap.tileSize+self.parentEntity.position[0]-(self.tileMap.size[0]//2*self.tileMap.tileSize),tilePosition[1]*self.tileMap.tileSize+self.parentEntity.position[1]-(self.tileMap.size[1]//2*self.tileMap.tileSize)]
+
+    def GetOverlappingTilesInTileSpace(self,topLeft,bottomRight):
+        tiles = []
+        for x in range(topLeft[0]-2,bottomRight[0]+2):
+            for y in range(topLeft[1]-2,bottomRight[1]+2):
+                if(x >= 0 and y >= 0 and x < self.tileMap.size[0] and y < self.tileMap.size[1]):
+                    worldPos = self.TileToWorldPosition((x,y))
+                    tiles.append([self.tileMap.map[x][y],(worldPos[0],worldPos[1]-self.tileMap.tileSize//2)])
+        return tiles
 
 
 class RenderingSystem(EntitySystem):
@@ -142,14 +161,15 @@ class RenderingSystem(EntitySystem):
                     if(tileMapRenderer.tileMap.map[x][y] == -1): #Empty tile
                         continue
 
-                    spritePosition = [centeredOffset[0]+(x*tileMapRenderer.tileMap.tileSize),centeredOffset[1]+(y*tileMapRenderer.tileMap.tileSize)]
-                    finalDrawPosition = [spritePosition[0]-self.cameraPosition[0] + self._scaledHalfSize[0],spritePosition[1]-self.cameraPosition[1] + self._scaledHalfSize[1]]
+                    #Get world position then the left anchored screen position
+                    worldPosition = [centeredOffset[0]+(x*tileMapRenderer.tileMap.tileSize),centeredOffset[1]+(y*tileMapRenderer.tileMap.tileSize)]
+                    leftAnchoredScreenPosition = self.WorldToScreenPosition(worldPosition)
 
-                    if(False == self.IsOnScreenRect(pygame.Rect(spritePosition[0],spritePosition[1],tileMapRenderer.tileMap.tileSize,tileMapRenderer.tileMap.tileSize))):
+                    if(False == self.IsOnScreenRect(pygame.Rect(worldPosition[0], worldPosition[1],tileMapRenderer.tileMap.tileSize,tileMapRenderer.tileMap.tileSize))):
                         continue
 
                     targetSprite = GetSprite(tileMapRenderer.tileMap.tileSet[tileMapRenderer.tileMap.map[x][y]])
-                    self._renderTarget.blit(targetSprite,finalDrawPosition)
+                    self._renderTarget.blit(targetSprite,leftAnchoredScreenPosition)
 
         #SpriteRenderer
         for spriteRenderer in currentScene.components[SpriteRenderer]:
@@ -171,11 +191,16 @@ class RenderingSystem(EntitySystem):
             if(self.debug): #If debug draw bounds of spriterenderers
                 pygame.draw.rect(self._renderTarget,(255,0,0),pygame.Rect(finalPosition[0]-1,finalPosition[1],actualSprite.get_width(),actualSprite.get_height()),width=1)
 
+        #Finally blit the render target onto the final display.
         self.game.display.blit(pygame.transform.scale(self._renderTarget,(self._screenSize[0],self._screenSize[1])),(0,0))
-        pygame.display.update()
+        #pygame.display.update()
+
+    def WorldToScreenPosition(self,position):
+        return [position[0] - self.cameraPosition[0] + self._scaledHalfSize[0], position[1] - self.cameraPosition[1] + self._scaledHalfSize[1]]
+
     def FinalPositionOfSprite(self,position,sprite):
         topLeftPosition = CenterToTopLeftPosition(position, sprite)
-        return [topLeftPosition[0] - self.cameraPosition[0] + self._scaledHalfSize[0], topLeftPosition[1] - self.cameraPosition[1] + self._scaledHalfSize[1]]
+        return self.WorldToScreenPosition(topLeftPosition)
 
     def IsOnScreenSprite(self, sprite : pygame.Surface, position) -> bool:
         return self.IsOnScreenRect(pygame.Rect(position[0]-sprite.get_width()//2,position[1]-sprite.get_height()//2,sprite.get_width(),sprite.get_height()))
@@ -183,3 +208,7 @@ class RenderingSystem(EntitySystem):
     def IsOnScreenRect(self,rect : pygame.Rect):
         screenBounds = pygame.Rect(self.cameraPosition[0] - self._scaledHalfSize[0],self.cameraPosition[1] - self._scaledHalfSize[1],self._scaledScreenSize[0],self._scaledScreenSize[1])
         return screenBounds.colliderect(rect)
+
+    def DebugDrawWorldRect(self,color,rect):
+        worldP = self.WorldToScreenPosition((rect.x,rect.y))
+        pygame.draw.rect(self._renderTarget,(255,0,0),(worldP[0],worldP[1],rect.w,rect.h))

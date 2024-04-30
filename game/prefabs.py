@@ -9,7 +9,7 @@ from game.systems.NPCSystem import NPCComponent
 def CreatePlayer(scene):
     physicsComponent = physics.PhysicsComponent()
     physicsComponent.gravity = (0,250)
-    scene.CreateEntity(name="Player",position=[80,50],components=[SpriteRenderer(None),playersystem.PlayerComponent(),physicsComponent])
+    scene.CreateEntity(name="Player",position=[0,0],components=[SpriteRenderer(None),playersystem.PlayerComponent(),physicsComponent])
 
 def CreateSkeleton(scene,i):
     npcComponent = NPCComponent()
@@ -21,4 +21,4 @@ def CreateSkeleton(scene,i):
         pass
     npcComponent.behaviourTick = SkeletonBehaviour
 
-    scene.CreateEntity("SkeletonEnemy",position=[i*16-160,200],components=[SpriteRenderer(npcComponent.idleAnim),npcComponent,physics.PhysicsComponent()])
+    scene.CreateEntity("SkeletonEnemy",position=[i*16-100,0],components=[SpriteRenderer(npcComponent.idleAnim),npcComponent,physics.PhysicsComponent()])

@@ -18,14 +18,18 @@ class SideScrollingScene(Scene):
         self.systems = [renderer.RenderingSystem(),playersystem.PlayerSystem(),physics.PhysicsSystem()]
     def Init(self):
         self.Clear()
-        mapEntity = self.CreateEntity(name="Map Entity",position=[0,0],components=[TilemapRenderer(renderer.Tilemap([100,100]))])
+        mapEntity = self.CreateEntity(name="Map Entity",position=[0,0],components=[TilemapRenderer(renderer.Tilemap([10,11]))])
         mapEntity.GetComponent(TilemapRenderer).tileMap.tileSize = 16
         mapEntity.GetComponent(TilemapRenderer).tileMap.SetTileSetFromSpriteSheet(dungeonTileSet)
-        for x in range(100):
-            for y in range(100):
-                mapEntity.GetComponent(TilemapRenderer).tileMap.SetTile("floor_" + str(random.randint(1, 8)), x, y)
-        for i in range(100):
-            prefabs.CreateSkeleton(self,i)
+        mapEntity.GetComponent(TilemapRenderer).tileMap.tileSet['wall_left'].hasCollision = True
+        for x in range(10):
+            for y in range(11):
+                if(y == 9 or random.randint(0,100) <= 15):
+                    mapEntity.GetComponent(TilemapRenderer).tileMap.SetTile("wall_left", x, y)
+                else:
+                    mapEntity.GetComponent(TilemapRenderer).tileMap.SetTile("floor_" + str(random.randint(1, 8)), x, y)
+        #for i in range(100):
+        #    prefabs.CreateSkeleton(self,i)
 
         prefabs.CreatePlayer(self)
 
