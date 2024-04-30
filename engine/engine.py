@@ -6,6 +6,7 @@ import engine.ecs as ecs
 from engine.constants import KEYDOWN, KEYUP, KEYPRESSED, KEYINACTIVE
 from engine.game import Game
 import time
+from sys import exit
 
 from engine.logging import Log, LOG_ALL, LOG_ERRORS
 from engine.scenes import splashscene
