@@ -83,15 +83,6 @@ class PhysicsSystem(EntitySystem):
                 bottomRightOverlap = tilemapRenderer.WorldToTilePosition((bodyBounds.right,bodyBounds.bottom))
                 overlappingTiles = tilemapRenderer.GetOverlappingTilesInTileSpace(topLeftOverlap,bottomRightOverlap)
 
-                for x in range(tilemapRenderer.tileMap.size[0]):
-                    for y in range(tilemapRenderer.tileMap.size[1]):
-                        c = (255,255,0)
-                        for t in overlappingTiles:
-                            if(tilemapRenderer.TileToWorldPosition((x,y)) == t[1]):
-                                c = (255,0,0)
-                        pygame.draw.rect(self.game.display,c, (tilemapRenderer.TileToWorldPosition((x,y))[0],tilemapRenderer.TileToWorldPosition((x,y))[1],16,16))
-
-
                 for tile in overlappingTiles:
                     if(tile[0] == -1):
                         continue
@@ -99,9 +90,6 @@ class PhysicsSystem(EntitySystem):
                         otherBounds = pygame.Rect(tile[1][0], tile[1][1], tilemapRenderer.tileMap.tileSize, tilemapRenderer.tileMap.tileSize)
                         self.HandlePhysicsCollision(body,bodyPos,otherBounds.center,bodyBounds,otherBounds)
 
-                        pygame.draw.rect(self.game.display,(0,0,0),otherBounds)
-
-            pygame.draw.rect(self.game.display,(0,0,255),(bodyBounds.x,bodyBounds.y,bodyBounds.w,bodyBounds.h))
             body._moveRequest = None
 
         pygame.display.update()
