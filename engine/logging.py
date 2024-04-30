@@ -1,4 +1,5 @@
 from datetime import datetime
+from sys import exit
 
 LOG_NOTHING = 0
 LOG_ERRORS = 1
@@ -19,4 +20,5 @@ def Log(message,level):
     if(LOG_LEVEL >= level):
         print(LogPrefix(level),datetime.now(),":",message)
         if(level == LOG_ERRORS):
+            raise Exception(message)
             exit(-1)
