@@ -106,26 +106,31 @@ class PhysicsSystem(EntitySystem):
             # Right
             if (body._moveRequest[0] > 0 and bodyPos[0] < otherPos[0] and abs(
                     bodyBounds.top - otherBounds.bottom) > 1 and abs(bodyBounds.bottom - otherBounds.top) > 1):
-                bodyPos[0] = otherBounds.left - bodyBounds.width // 2
+                bodyBounds.right = otherBounds.left+1 #+1 so they are touching not colliding
+                body.parentEntity.position[0] = bodyBounds.centerx
+                #bodyPos[0] = otherBounds.left - bodyBounds.width // 2
                 body.velocity[0] = 0
                 body.touchingDirections['right'] = True
             # Left
             elif (body._moveRequest[0] < 0 and bodyPos[0] > otherPos[0] and abs(
                     bodyBounds.top - otherBounds.bottom) > 1 and abs(bodyBounds.bottom - otherBounds.top) > 1):
-                bodyPos[0] = otherBounds.right + bodyBounds.width // 2
+                bodyBounds.left = otherBounds.right-1 #-1 so they are touching not colliding
+                body.parentEntity.position[0] = bodyBounds.centerx
                 body.velocity[0] = 0
                 body.touchingDirections['left'] = True
 
             # Bottom
             if (body._moveRequest[1] > 0 and bodyPos[1] < otherPos[1] and abs(
                     bodyBounds.left - otherBounds.right) > 1 and abs(bodyBounds.right - otherBounds.left) > 1):
-                bodyPos[1] = otherBounds.top - bodyBounds.height // 2
+                bodyBounds.bottom = otherBounds.top #+1 so they are touching not colliding
+                body.parentEntity.position[1] = bodyBounds.centery
                 body.velocity[1] = 0
                 body.touchingDirections['bottom'] = True
             # Top
             elif (body._moveRequest[1] < 0 and bodyPos[1] > otherPos[1] and abs(
                     bodyBounds.left - otherBounds.right) > 1 and abs(bodyBounds.right - otherBounds.left) > 1):
-                bodyPos[1] = otherBounds.bottom + bodyBounds.height // 2
+                bodyBounds.top = otherBounds.bottom #-1 so they are touching not colliding
+                body.parentEntity.position[1] = bodyBounds.centery
                 body.velocity[1] = 0
                 body.touchingDirections['top'] = True
         else:  # If not colliding with it, we see if it is touching
