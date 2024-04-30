@@ -9,6 +9,9 @@ from game.systems.NPCSystem import NPCComponent
 def CreatePlayer(scene):
     physicsComponent = physics.PhysicsComponent()
     physicsComponent.gravity = (0,250)
+    physicsComponent.bounds = [10,16]
+    physicsComponent.offset = (0,6)
+    physicsComponent.mapToSpriteOnStart = False
     scene.CreateEntity(name="Player",position=[0,0],components=[SpriteRenderer(None),playersystem.PlayerComponent(),physicsComponent])
 
 def CreateSkeleton(scene,i):

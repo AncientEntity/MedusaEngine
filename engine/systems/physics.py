@@ -9,6 +9,7 @@ class PhysicsComponent(Component):
     def __init__(self,bounds=[10,10]):
         super().__init__()
         self.bounds = bounds #centered on parent entity's position
+        self.offset = (0,0)
         self._moveRequest = None
         self.mapToSpriteOnStart = True
         self.touchingDirections = {'top':  False, 'bottom' : False, 'left' : False, 'right' : False}
@@ -63,7 +64,7 @@ class PhysicsSystem(EntitySystem):
                 if(body == other):
                     continue
 
-                bodyPos = body.parentEntity.position
+                bodyPos = [body.parentEntity.position[0]+body.offset[0],body.parentEntity.position[1]+body.offset[1]]
                 otherPos = other.parentEntity.position
                 bodyBounds = pygame.Rect(bodyPos[0]-body.bounds[0]//2,bodyPos[1]-body.bounds[1]//2,body.bounds[0],body.bounds[1])
                 otherBounds = pygame.Rect(otherPos[0]-other.bounds[0]//2,otherPos[1]-other.bounds[1]//2,other.bounds[0],other.bounds[1])
@@ -75,7 +76,7 @@ class PhysicsSystem(EntitySystem):
                 if(tilemapRenderer.tileMap == None):
                     continue
 
-                bodyPos = body.parentEntity.position
+                bodyPos = [body.parentEntity.position[0]+body.offset[0],body.parentEntity.position[1]+body.offset[1]]
                 bodyBounds = pygame.Rect(bodyPos[0]-body.bounds[0]//2,bodyPos[1]-body.bounds[1]//2,body.bounds[0],body.bounds[1])
                 topLeftOverlap = tilemapRenderer.WorldToTilePosition((bodyBounds.left,bodyBounds.top))
                 bottomRightOverlap = tilemapRenderer.WorldToTilePosition((bodyBounds.right,bodyBounds.bottom))
@@ -107,33 +108,32 @@ class PhysicsSystem(EntitySystem):
             if (body._moveRequest[0] > 0 and bodyPos[0] < otherPos[0] and abs(
                     bodyBounds.top - otherBounds.bottom) > 1 and abs(bodyBounds.bottom - otherBounds.top) > 1):
                 bodyBounds.right = otherBounds.left+1 #+1 so they are touching not colliding
-                body.parentEntity.position[0] = bodyBounds.centerx
-                #bodyPos[0] = otherBounds.left - bodyBounds.width // 2
+                body.parentEntity.position[0] = bodyBounds.centerx-body.offset[0]
                 body.velocity[0] = 0
                 body.touchingDirections['right'] = True
             # Left
             elif (body._moveRequest[0] < 0 and bodyPos[0] > otherPos[0] and abs(
                     bodyBounds.top - otherBounds.bottom) > 1 and abs(bodyBounds.bottom - otherBounds.top) > 1):
                 bodyBounds.left = otherBounds.right-1 #-1 so they are touching not colliding
-                body.parentEntity.position[0] = bodyBounds.centerx
+                body.parentEntity.position[0] = bodyBounds.centerx-body.offset[0]
                 body.velocity[0] = 0
                 body.touchingDirections['left'] = True
 
             # Bottom
             if (body._moveRequest[1] > 0 and bodyPos[1] < otherPos[1] and abs(
                     bodyBounds.left - otherBounds.right) > 1 and abs(bodyBounds.right - otherBounds.left) > 1):
-                bodyBounds.bottom = otherBounds.top #+1 so they are touching not colliding
-                body.parentEntity.position[1] = bodyBounds.centery
+                bodyBounds.bottom = otherBounds.top
+                body.parentEntity.position[1] = bodyBounds.centery-body.offset[1]
                 body.velocity[1] = 0
                 body.touchingDirections['bottom'] = True
             # Top
             elif (body._moveRequest[1] < 0 and bodyPos[1] > otherPos[1] and abs(
                     bodyBounds.left - otherBounds.right) > 1 and abs(bodyBounds.right - otherBounds.left) > 1):
-                bodyBounds.top = otherBounds.bottom #-1 so they are touching not colliding
-                body.parentEntity.position[1] = bodyBounds.centery
+                bodyBounds.top = otherBounds.bottom
+                body.parentEntity.position[1] = bodyBounds.centery-body.offset[1]
                 body.velocity[1] = 0
                 body.touchingDirections['top'] = True
-        else:  # If not colliding with it, we see if it is touching
+        else:
             if (abs(bodyBounds.left - otherBounds.right) <= 2):
                 body.touchingDirections['left'] = True
             if (abs(bodyBounds.right - otherBounds.left) <= 2):
