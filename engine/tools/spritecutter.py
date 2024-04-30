@@ -1,0 +1,1 @@
+#Todo a standalone utility that allows you to manually cut/create a sprite map as expected in spritesheet.py

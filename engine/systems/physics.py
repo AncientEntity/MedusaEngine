@@ -11,6 +11,11 @@ class PhysicsComponent(Component):
         self.bounds = bounds #centered on parent entity's position
         self._moveRequest = None
         self.mapToSpriteOnStart = True
+        self.touchingDirections = {'top':  False, 'bottom' : False, 'left' : False, 'right' : False}
+
+        self.gravity : tuple(float) = None #either None or a tuple like: (0,9.84)
+        self.velocity = [0,0]
+
     def Move(self,movement ):
         if(self._moveRequest == None):
             self._moveRequest = [0,0]
@@ -25,16 +30,32 @@ class PhysicsComponent(Component):
             return
         self.bounds = [sR.sprite.get_width(),sR.sprite.get_height()]
 
+    def ResetCollisionDirections(self):
+        self.touchingDirections['left'] = False
+        self.touchingDirections['right'] = False
+        self.touchingDirections['top'] = False
+        self.touchingDirections['bottom'] = False
+
 class PhysicsSystem(EntitySystem):
     def __init__(self):
         super().__init__([PhysicsComponent])
     def Update(self,currentScene : Scene):
         body : PhysicsComponent
+
+        #Physics Component Collision
         for body in currentScene.components[PhysicsComponent]:
+            if(body.gravity != None):
+                body.velocity[0] += body.gravity[0] * self.game.deltaTime
+                body.velocity[1] += body.gravity[1] * self.game.deltaTime
+            if(body.velocity[0] != 0 or body.velocity[1] != 0):
+                body.Move((body.velocity[0] * self.game.deltaTime,body.velocity[1] * self.game.deltaTime))
+
             if(body._moveRequest == None):
                 continue
             body.parentEntity.position[0] += body._moveRequest[0]
             body.parentEntity.position[1] += body._moveRequest[1]
+
+            body.ResetCollisionDirections()
 
             other : PhysicsComponent
             for other in currentScene.components[PhysicsComponent]:
@@ -46,20 +67,40 @@ class PhysicsSystem(EntitySystem):
                 bodyBounds = pygame.Rect(bodyPos[0]-body.bounds[0]//2,bodyPos[1]-body.bounds[1]//2,body.bounds[0],body.bounds[1])
                 otherBounds = pygame.Rect(otherPos[0]-other.bounds[0]//2,otherPos[1]-other.bounds[1]//2,other.bounds[0],other.bounds[1])
 
-                pygame.draw.rect(self.game.display,(0,255,0),bodyBounds)
-                pygame.draw.rect(self.game.display,(0,0,255),otherBounds)
-
+                #If colliding handle accordingly, otherwise we have an else statement below that detects touching.
                 if(bodyBounds.colliderect(otherBounds)):
                     #body and other are colliding.
+
+                    #Right
                     if (body._moveRequest[0] > 0 and bodyPos[0] < otherPos[0] and abs(bodyBounds.top - otherBounds.bottom) > 1 and abs(bodyBounds.bottom - otherBounds.top) > 1):
                         bodyPos[0] = otherBounds.left-bodyBounds.width//2
+                        body.velocity[0] = 0
+                        body.touchingDirections['right'] = True
+                    #Left
                     elif (body._moveRequest[0] < 0 and bodyPos[0] > otherPos[0] and abs(bodyBounds.top - otherBounds.bottom) > 1 and abs(bodyBounds.bottom - otherBounds.top) > 1):
                         bodyPos[0] = otherBounds.right+bodyBounds.width//2
+                        body.velocity[0] = 0
+                        body.touchingDirections['left'] = True
+
+                    #Bottom
                     if (body._moveRequest[1] > 0 and bodyPos[1] < otherPos[1] and abs(bodyBounds.left - otherBounds.right) > 1 and abs(bodyBounds.right - otherBounds.left) > 1):
                         bodyPos[1] = otherBounds.top-bodyBounds.height//2
+                        body.velocity[1] = 0
+                        body.touchingDirections['bottom'] = True
+                    #Top
                     elif (body._moveRequest[1] < 0 and bodyPos[1] > otherPos[1] and abs(bodyBounds.left - otherBounds.right) > 1 and abs(bodyBounds.right - otherBounds.left) > 1):
                         bodyPos[1] = otherBounds.bottom + bodyBounds.height // 2
-
+                        body.velocity[1] = 0
+                        body.touchingDirections['top'] = True
+                else: #If not colliding with it, we see if it is touching
+                    if (abs(bodyBounds.left - otherBounds.right) <= 2):
+                        body.touchingDirections['left'] = True
+                    if (abs(bodyBounds.right - otherBounds.left) <= 2):
+                        body.touchingDirections['right'] = True
+                    if (abs(bodyBounds.top - otherBounds.bottom) <= 2):
+                        body.touchingDirections['top'] = True
+                    if (abs(bodyBounds.bottom - otherBounds.top) <= 2):
+                        body.touchingDirections['bottom'] = True
             body._moveRequest = None
 
         pygame.display.update()

@@ -28,20 +28,19 @@ class PlayerSystem(EntitySystem):
     def OnEnable(self):
         for player in self.game.GetCurrentScene().components[PlayerComponent]:
             player.parentEntity.GetComponent(SpriteRenderer).sprite = player.idleAnim
-            RenderingSystem.instance.cameraPosition = player.parentEntity.position
     def Update(self, currentScene: Scene):
         for player in currentScene.components[PlayerComponent]:
             self.PlayerMovement(player)
+        RenderingSystem.instance.cameraPosition = player.parentEntity.position
     def PlayerMovement(self,player : PlayerComponent):
         moved = False
-        if (Input.KeyPressed(player.controls["up"])):
-            player.parentEntity.GetComponent(physics.PhysicsComponent).Move((0,-self.game.deltaTime * player.speed))
-            #player.parentEntity.position[1] -= self.game.deltaTime * player.speed
+        if (Input.KeyDown(player.controls["up"]) and player.parentEntity.GetComponent(physics.PhysicsComponent).touchingDirections['bottom']):
+            player.parentEntity.GetComponent(physics.PhysicsComponent).velocity[1] -= 150
             moved = True
-        elif(Input.KeyPressed(player.controls["down"])):
-            player.parentEntity.GetComponent(physics.PhysicsComponent).Move((0,self.game.deltaTime * player.speed))
-            #player.parentEntity.position[1] += self.game.deltaTime * player.speed
-            moved = True
+        #elif(Input.KeyPressed(player.controls["down"])):
+        #    player.parentEntity.GetComponent(physics.PhysicsComponent).Move((0,self.game.deltaTime * player.speed))
+        #    #player.parentEntity.position[1] += self.game.deltaTime * player.speed
+        #    moved = True
         if (Input.KeyPressed(player.controls["left"])):
             player.parentEntity.GetComponent(physics.PhysicsComponent).Move((-self.game.deltaTime * player.speed,0))
             #player.parentEntity.position[0] -= self.game.deltaTime * player.speed

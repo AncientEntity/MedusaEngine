@@ -7,9 +7,11 @@ from game.systems import playersystem
 from game.systems.NPCSystem import NPCComponent
 
 def CreatePlayer(scene):
-    scene.CreateEntity(name="Player",position=[80,50],components=[SpriteRenderer(None),playersystem.PlayerComponent(),physics.PhysicsComponent()])
+    physicsComponent = physics.PhysicsComponent()
+    physicsComponent.gravity = (0,250)
+    scene.CreateEntity(name="Player",position=[80,50],components=[SpriteRenderer(None),playersystem.PlayerComponent(),physicsComponent])
 
-def CreateSkeleton(scene):
+def CreateSkeleton(scene,i):
     npcComponent = NPCComponent()
 
     npcComponent.idleAnim = AnimatedSprite([assets.dungeonTileSet["skelet_idle_anim_f0"],assets.dungeonTileSet["skelet_idle_anim_f1"],assets.dungeonTileSet["skelet_idle_anim_f2"],assets.dungeonTileSet["skelet_idle_anim_f3"]],6)
@@ -19,4 +21,4 @@ def CreateSkeleton(scene):
         pass
     npcComponent.behaviourTick = SkeletonBehaviour
 
-    scene.CreateEntity("SkeletonEnemy",position=[random.randint(-500,500),random.randint(-500,500)],components=[SpriteRenderer(npcComponent.idleAnim),npcComponent,physics.PhysicsComponent()])
+    scene.CreateEntity("SkeletonEnemy",position=[i*16-160,200],components=[SpriteRenderer(npcComponent.idleAnim),npcComponent,physics.PhysicsComponent()])
