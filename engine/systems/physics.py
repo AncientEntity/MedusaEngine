@@ -1,3 +1,5 @@
+import time
+
 import pygame
 
 from engine.ecs import Component, EntitySystem, Scene
@@ -6,7 +8,7 @@ from engine.systems.renderer import SpriteRenderer, TilemapRenderer
 
 
 class PhysicsComponent(Component):
-    def __init__(self,bounds=[10,10]):
+    def __init__(self,bounds=[10,10],gravity=(0,0)):
         super().__init__()
         self.bounds = bounds #centered on parent entity's position
         self.offset = (0,0)
@@ -17,10 +19,10 @@ class PhysicsComponent(Component):
         self.mass = 1.0
 
         self.static = False #If static it wont be checked in the physics loop as the main body only as other body.
-        self.gravity : tuple(float) = None #either None or a tuple like: (0,9.84)
+        self.gravity : tuple(float) = gravity #either None or a tuple like: (0,9.84)
         self.velocity = [0,0]
 
-    def Move(self,movement ):
+    def Move(self,movement):
         if(self._moveRequest == None):
             self._moveRequest = [0,0]
         self._moveRequest[0] += movement[0]
@@ -40,10 +42,17 @@ class PhysicsComponent(Component):
         self.touchingDirections['top'] = False
         self.touchingDirections['bottom'] = False
 
+    def IsTouchingDirection(self,direction):
+        if(direction == 'down'):
+            direction = 'bottom'
+        elif(direction == 'up'):
+            direction = 'top'
+        return self.touchingDirections[direction]
+
 class PhysicsSystem(EntitySystem):
     def __init__(self):
         super().__init__([PhysicsComponent])
-        self.stepsPerFrame = 8
+        self.stepsPerFrame = 2
 
     def Update(self,currentScene : Scene):
         for i in range(self.stepsPerFrame):
@@ -58,9 +67,8 @@ class PhysicsSystem(EntitySystem):
                 continue
 
             #Add gravity
-            if(body.gravity != None):
-                body.velocity[0] += body.gravity[0] * stepTime
-                body.velocity[1] += body.gravity[1] * stepTime
+            self.ApplyGravity(body,stepTime)
+
             #Add velocity movement
             if(body.velocity[0] != 0 or body.velocity[1] != 0):
                 body.Move((body.velocity[0] * stepTime,body.velocity[1] * stepTime))
@@ -121,14 +129,14 @@ class PhysicsSystem(EntitySystem):
             # Right
             if (body._moveRequest[0] > 0 and bodyPos[0] < otherPos[0] and abs(
                     bodyBounds.top - otherBounds.bottom) > 1 and abs(bodyBounds.bottom - otherBounds.top) > 1):
-                bodyBounds.right = otherBounds.left+1 #+1 so they are touching not colliding
+                bodyBounds.right = otherBounds.left #+1 so they are touching not colliding
                 body.parentEntity.position[0] = bodyBounds.centerx-body.offset[0]
                 body.velocity[0] = 0
                 body.touchingDirections['right'] = True
             # Left
             elif (body._moveRequest[0] < 0 and bodyPos[0] > otherPos[0] and abs(
                     bodyBounds.top - otherBounds.bottom) > 1 and abs(bodyBounds.bottom - otherBounds.top) > 1):
-                bodyBounds.left = otherBounds.right-1 #-1 so they are touching not colliding
+                bodyBounds.left = otherBounds.right #-1 so they are touching not colliding
                 body.parentEntity.position[0] = bodyBounds.centerx-body.offset[0]
                 body.velocity[0] = 0
                 body.touchingDirections['left'] = True
@@ -150,11 +158,15 @@ class PhysicsSystem(EntitySystem):
 
                 body.touchingDirections['top'] = True
         else:
-            if (abs(bodyBounds.left - otherBounds.right) <= 2):
+            if (bodyBounds.left == otherBounds.right and bodyBounds.bottom >= otherBounds.bottom and bodyBounds.top <= otherBounds.top):
                 body.touchingDirections['left'] = True
-            if (abs(bodyBounds.right - otherBounds.left) <= 2):
+            if (bodyBounds.right == otherBounds.left and bodyBounds.bottom >= otherBounds.bottom and bodyBounds.top <= otherBounds.top):
                 body.touchingDirections['right'] = True
-            if (abs(bodyBounds.top - otherBounds.bottom) <= 2):
+            if (bodyBounds.top == otherBounds.bottom and bodyBounds.right >= otherBounds.left and bodyBounds.left <= otherBounds.right):
                 body.touchingDirections['top'] = True
-            if (abs(bodyBounds.bottom - otherBounds.top) <= 2):
+            if (bodyBounds.bottom == otherBounds.top and bodyBounds.right >= otherBounds.left and bodyBounds.left <= otherBounds.right):
                 body.touchingDirections['bottom'] = True
+    def ApplyGravity(self,body,stepTime):
+        if (body.gravity != None):
+            body.velocity[0] += body.gravity[0] * stepTime
+            body.velocity[1] += body.gravity[1] * stepTime

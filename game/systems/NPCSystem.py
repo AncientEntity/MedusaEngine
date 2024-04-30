@@ -1,13 +1,13 @@
-from engine.ecs import EntitySystem, Scene
+from engine.ecs import EntitySystem, Scene, Component
 from engine.systems.renderer import SpriteRenderer
 
 
-class NPCComponent:
+class NPCComponent(Component):
     def __init__(self):
         super().__init__()
         self.idleAnim = None
         self.runAnim = None
-        self.speed = 85
+        self.speed = 50
         self.behaviourTick = None #Function that takes in a NPCComponent
 
 class NPCSystem(EntitySystem):
