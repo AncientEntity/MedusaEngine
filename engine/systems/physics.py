@@ -77,13 +77,11 @@ class PhysicsSystem(EntitySystem):
 
                 bodyPos = body.parentEntity.position
                 bodyBounds = pygame.Rect(bodyPos[0]-body.bounds[0]//2,bodyPos[1]-body.bounds[1]//2,body.bounds[0],body.bounds[1])
-
-
                 topLeftOverlap = tilemapRenderer.WorldToTilePosition((bodyBounds.left,bodyBounds.top))
                 bottomRightOverlap = tilemapRenderer.WorldToTilePosition((bodyBounds.right,bodyBounds.bottom))
                 overlappingTiles = tilemapRenderer.GetOverlappingTilesInTileSpace(topLeftOverlap,bottomRightOverlap)
 
-                for tile in overlappingTiles:
+                for tile in overlappingTiles: #Only check overlapping tiles.
                     if(tile[0] == -1):
                         continue
                     if(tilemapRenderer.tileMap.tileSet[tile[0]].hasCollision):

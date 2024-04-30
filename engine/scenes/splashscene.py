@@ -8,9 +8,10 @@ from engine.systems.renderer import RenderingSystem, SpriteRenderer
 class EngineSplashScreenLoadNextScene(EntitySystem):
     def __init__(self):
         super().__init__()
-        self.timeLeft = 1
+        self.timeLeft = 1.5
     def Update(self, currentScene: Scene):
         self.timeLeft -= self.game.deltaTime
+        RenderingSystem.instance.backgroundColor = (255 * (self.timeLeft / 1.5),255 * (self.timeLeft / 1.5),255 * (self.timeLeft / 1.5))
         if(self.timeLeft <= 0):
             self.game.LoadScene(self.game._game.startingScene)
 
@@ -25,18 +26,12 @@ class EngineSplashScreenScene(Scene):
         super().Init()
         font = pygame.font.SysFont("Arial", 36, True, False)
         engineNameText = font.render("Powered by Catalyst Engine", True, (0, 0, 0))
-        engineNameEntity = Entity()
-        engineNameEntity.position = [self.game.display.get_width()//2,self.game.display.get_height()//6]
+        engineNameEntity = self.CreateEntity("Engine Name Text",[0,-200],[SpriteRenderer(engineNameText)])
         engineNameEntity.name = "Engine Name Text"
-        self.entities.append(engineNameEntity)
-        self.AddComponent(SpriteRenderer(engineNameEntity,engineNameText)) #Eventually we'll want a TextRenderer instead of using a SpriteRenderer.
 
         engineIcon = pygame.image.load("engine/art/logo.png")
         engineIcon = pygame.transform.scale(engineIcon,(engineIcon.get_width()*(self.game.display.get_width()//300),engineIcon.get_height()*(self.game.display.get_height()//300)))
-        engineIconEntity = Entity()
-        engineIconEntity.position = [self.game.display.get_width()//2,self.game.display.get_height()//2]
+        engineIconEntity = self.CreateEntity("Engine Icon",[0,0],[SpriteRenderer(engineIcon)])
         engineIconEntity.name = "Engine Icon"
-        self.entities.append(engineIconEntity)
-        self.AddComponent(SpriteRenderer(engineIconEntity,engineIcon))
 
 engineSplashScreenScene = EngineSplashScreenScene()

@@ -139,10 +139,10 @@ class RenderingSystem(EntitySystem):
         self._screenSize = None
         self._scaledScreenSize = None
         self._scaledHalfSize = None
-        self.debug = True
+        self.debug = False
 
-        RenderingSystem.instance = self
     def OnEnable(self):
+        RenderingSystem.instance = self
         self._screenSize = [self.game.display.get_width(),self.game.display.get_height()]
         self._scaledScreenSize = [self.game.display.get_width() // self.renderScale,self.game.display.get_height() // self.renderScale]
         self._scaledHalfSize = [self._scaledScreenSize[0]//2,self._scaledScreenSize[1]//2]
