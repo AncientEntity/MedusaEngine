@@ -100,7 +100,7 @@ class Tilemap:
             i = 0
             for x in range(spriteSheet.xCount):
                 for y in range(spriteSheet.yCount):
-                    self.tileSet[i] = Sprite(spriteSheet[(x,y)])
+                    self.tileSet[i] = Sprite(spriteSheet[(y,x)])
                     i += 1
         elif(spriteSheet.splitType == 'map'):
             for key,value in spriteSheet.sprites.items():

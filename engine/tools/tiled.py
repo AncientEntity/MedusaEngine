@@ -26,14 +26,9 @@ def TiledGetTileMapFromTiledJSON(mapFilePath, layerName, tileSpriteSheet : Sprit
     mapData, size = TiledGetRawMapData(mapFilePath, layerName)
 
     #Now split it up into rows as tiled stores it all in 1 massive array instead of a 2D array.
-    mapDataRowed = []
-    for i in range(size[0]):
-        row = []
-        for j in range(size[1]):
-            row.append(-1)
-        mapDataRowed.append(row)
 
     newMap = engine.systems.renderer.Tilemap(size)
+    mapDataRowed = newMap.map
     newMap.map = mapDataRowed
     newMap.SetTileSetFromSpriteSheet(tileSpriteSheet)
     mapDataIndex = 0
