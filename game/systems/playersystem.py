@@ -6,7 +6,7 @@ from engine.systems import physics
 from engine.systems.renderer import SpriteRenderer, RenderingSystem, AnimatedSprite
 from engine.tools.spritesheet import SpriteSheet
 from game import assets
-from game.scenes import levelscene, sidescrollingscene
+from game.scenes import sidescrollingscene
 from game.scenes.tiledtestscene import TiledTestScene
 
 
@@ -32,7 +32,7 @@ class PlayerSystem(EntitySystem):
     def Update(self, currentScene: Scene):
         for player in currentScene.components[PlayerComponent]:
             self.PlayerMovement(player)
-        RenderingSystem.instance.cameraPosition = player.parentEntity.position
+            RenderingSystem.instance.cameraPosition = player.parentEntity.position
     def PlayerMovement(self,player : PlayerComponent):
         moved = False
         if (Input.KeyDown(player.controls["up"]) and player.parentEntity.GetComponent(physics.PhysicsComponent).touchingDirections['bottom']):
@@ -59,5 +59,5 @@ class PlayerSystem(EntitySystem):
             player.parentEntity.GetComponent(SpriteRenderer).sprite = player.idleAnim
         if(Input.KeyDown(pygame.K_r)):
             self.game.LoadScene(sidescrollingscene.SideScrollingScene())
-        if (Input.KeyDown(pygame.K_t)):
+        if (Input.KeyDown(pygame.K_t) or player.parentEntity.position[1] >= 200):
             self.game.LoadScene(TiledTestScene())

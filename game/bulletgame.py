@@ -7,5 +7,5 @@ class BulletGame(Game):
     def __init__(self):
         super().__init__()
         self.name = "Bullet Game"
-        self.startingScene = SideScrollingScene()
+        self.startingScene = TiledTestScene()
         self.startingSplashEnabled = False

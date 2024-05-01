@@ -34,7 +34,7 @@ class SideScrollingScene(Scene):
                     #mapEntity.GetComponent(TilemapRenderer).tileMap.SetTile("floor_" + str(random.randint(1, 8)), x, y)
         for i in range(100):
             if(random.randint(0,100) <= 10):
-                prefabs.CreateSkeleton(self,i-10)
+                prefabs.CreateSkeleton(self).position=[-20,16*i-50]
         #prefabs.CreateSkeleton(self,0)
 
         p1 = prefabs.CreatePlayer(self)
