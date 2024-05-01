@@ -111,6 +111,7 @@ class TilemapRenderer(Component):
     def __init__(self,tileMap=None):
         super().__init__()
         self.tileMap = tileMap
+        self.physicsLayer = 0
     def WorldToRoundedPosition(self, worldPosition): #Rounds a world position to a world position where the tile is.
         return [(worldPosition[0]-self.parentEntity.position[0])//self.tileMap.tileSize*self.tileMap.tileSize,(worldPosition[1]-self.parentEntity.position[1])//self.tileMap.tileSize*self.tileMap.tileSize]
     def WorldToTilePosition(self,worldPosition):

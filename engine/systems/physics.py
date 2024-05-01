@@ -16,8 +16,11 @@ class PhysicsComponent(Component):
         self.mapToSpriteOnStart = True
         self.touchingDirections = {'top':  False, 'bottom' : False, 'left' : False, 'right' : False}
 
-        self.mass = 1.0
+        self.physicsLayer = 0
+        self.collidesWithLayers = [0]
+        self.triggersWithLayers = [0]
 
+        self.mass = 1.0
         self.static = False #If static it wont be checked in the physics loop as the main body only as other body.
         self.gravity : tuple(float) = gravity #either None or a tuple like: (0,9.84)
         self.velocity = [0,0]
@@ -86,7 +89,7 @@ class PhysicsSystem(EntitySystem):
             #Physics Component Collision
             other : PhysicsComponent
             for other in currentScene.components[PhysicsComponent]:
-                if(body == other):
+                if(body == other or (other.physicsLayer not in body.collidesWithLayers and other.physicsLayer not in body.triggersWithLayers)):
                     continue
 
                 bodyPos = [body.parentEntity.position[0]+body.offset[0],body.parentEntity.position[1]+body.offset[1]]
@@ -97,7 +100,7 @@ class PhysicsSystem(EntitySystem):
 
             #Tileset Collision
             for tilemapRenderer in currentScene.components[TilemapRenderer]:
-                if(tilemapRenderer.tileMap == None):
+                if(tilemapRenderer.tileMap == None or (other.physicsLayer not in body.collidesWithLayers and other.physicsLayer not in body.triggersWithLayers)):
                     continue
 
                 bodyPos = [body.parentEntity.position[0]+body.offset[0],body.parentEntity.position[1]+body.offset[1]]
@@ -124,50 +127,55 @@ class PhysicsSystem(EntitySystem):
                 body.MapToSpriteRenderer()
 
     def HandlePhysicsCollision(self,body : PhysicsComponent,bodyPos,bodyBounds,other : PhysicsComponent,otherPos,otherBounds):
+
+        bodyAndOtherCollides = other == None or other.physicsLayer in body.collidesWithLayers
+        bodyAndOtherTriggers = other == None or other.physicsLayer in body.collidesWithLayers
+
         #If colliding handle accordingly, otherwise we have an else statement below that detects touching.
         if (bodyBounds.colliderect(otherBounds)):
             # body and other are colliding.
 
-            # Right
-            if (body._moveRequest[0] > 0 and bodyPos[0] < otherPos[0] and abs(
-                    bodyBounds.top - otherBounds.bottom) > 1 and abs(bodyBounds.bottom - otherBounds.top) > 1):
-                bodyBounds.right = otherBounds.left #+1 so they are touching not colliding
-                body.parentEntity.position[0] = bodyBounds.centerx-body.offset[0]
-                body.velocity[0] = 0
-                body.touchingDirections['right'] = True
-                if(other != None):
-                    other.touchingDirections['left'] = True
-            # Left
-            elif (body._moveRequest[0] < 0 and bodyPos[0] > otherPos[0] and abs(
-                    bodyBounds.top - otherBounds.bottom) > 1 and abs(bodyBounds.bottom - otherBounds.top) > 1):
-                bodyBounds.left = otherBounds.right #-1 so they are touching not colliding
-                body.parentEntity.position[0] = bodyBounds.centerx-body.offset[0]
-                body.velocity[0] = 0
-                body.touchingDirections['left'] = True
-                if(other != None):
-                    other.touchingDirections['left'] = True
+            if(bodyAndOtherCollides):
+                # Right
+                if (body._moveRequest[0] > 0 and bodyPos[0] < otherPos[0] and abs(
+                        bodyBounds.top - otherBounds.bottom) > 1 and abs(bodyBounds.bottom - otherBounds.top) > 1):
+                    bodyBounds.right = otherBounds.left #+1 so they are touching not colliding
+                    body.parentEntity.position[0] = bodyBounds.centerx-body.offset[0]
+                    body.velocity[0] = 0
+                    body.touchingDirections['right'] = True
+                    if(other != None):
+                        other.touchingDirections['left'] = True
+                # Left
+                elif (body._moveRequest[0] < 0 and bodyPos[0] > otherPos[0] and abs(
+                        bodyBounds.top - otherBounds.bottom) > 1 and abs(bodyBounds.bottom - otherBounds.top) > 1):
+                    bodyBounds.left = otherBounds.right #-1 so they are touching not colliding
+                    body.parentEntity.position[0] = bodyBounds.centerx-body.offset[0]
+                    body.velocity[0] = 0
+                    body.touchingDirections['left'] = True
+                    if(other != None):
+                        other.touchingDirections['left'] = True
 
-            # Bottom
-            if (body._moveRequest[1] > 0 and bodyPos[1] < otherPos[1] and abs(
-                    bodyBounds.left - otherBounds.right) > 1 and abs(bodyBounds.right - otherBounds.left) > 1):
-                bodyBounds.bottom = otherBounds.top
-                body.parentEntity.position[1] = bodyBounds.centery-body.offset[1]
-                body.velocity[1] = 0
+                # Bottom
+                if (body._moveRequest[1] > 0 and bodyPos[1] < otherPos[1] and abs(
+                        bodyBounds.left - otherBounds.right) > 1 and abs(bodyBounds.right - otherBounds.left) > 1):
+                    bodyBounds.bottom = otherBounds.top
+                    body.parentEntity.position[1] = bodyBounds.centery-body.offset[1]
+                    body.velocity[1] = 0
 
-                body.touchingDirections['bottom'] = True
-                if(other != None):
-                    other.touchingDirections['top'] = True
-            # Top
-            elif (body._moveRequest[1] < 0 and bodyPos[1] > otherPos[1] and abs(
-                    bodyBounds.left - otherBounds.right) > 1 and abs(bodyBounds.right - otherBounds.left) > 1):
-                bodyBounds.top = otherBounds.bottom
-                body.parentEntity.position[1] = bodyBounds.centery-body.offset[1]
-                body.velocity[1] = 0
+                    body.touchingDirections['bottom'] = True
+                    if(other != None):
+                        other.touchingDirections['top'] = True
+                # Top
+                elif (body._moveRequest[1] < 0 and bodyPos[1] > otherPos[1] and abs(
+                        bodyBounds.left - otherBounds.right) > 1 and abs(bodyBounds.right - otherBounds.left) > 1):
+                    bodyBounds.top = otherBounds.bottom
+                    body.parentEntity.position[1] = bodyBounds.centery-body.offset[1]
+                    body.velocity[1] = 0
 
-                body.touchingDirections['top'] = True
-                if(other != None):
-                    other.touchingDirections['bottom'] = True
-        else:
+                    body.touchingDirections['top'] = True
+                    if(other != None):
+                        other.touchingDirections['bottom'] = True
+        elif(bodyAndOtherCollides and bodyAndOtherTriggers):
             if (bodyBounds.left == otherBounds.right and bodyBounds.bottom >= otherBounds.bottom and bodyBounds.top <= otherBounds.top):
                 body.touchingDirections['left'] = True
                 if(other != None):
