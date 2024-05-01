@@ -118,7 +118,7 @@ class TilemapRenderer(Component):
     def WorldToTilePosition(self,worldPosition):
         return [(worldPosition[0]-self.parentEntity.position[0]+(self.tileMap.size[0]//2*self.tileMap.tileSize))//self.tileMap.tileSize,(worldPosition[1]-self.parentEntity.position[1]+(self.tileMap.size[1]//2*self.tileMap.tileSize))//self.tileMap.tileSize]
     def TileToWorldPosition(self,tilePosition):
-        return [tilePosition[0]*self.tileMap.tileSize+self.parentEntity.position[0]-(self.tileMap.size[0]//2*self.tileMap.tileSize),tilePosition[1]*self.tileMap.tileSize+self.parentEntity.position[1]-(self.tileMap.size[1]//2*self.tileMap.tileSize)]
+        return [tilePosition[0]*self.tileMap.tileSize+self.parentEntity.position[0]-(self.tileMap.size[0]/2*self.tileMap.tileSize),tilePosition[1]*self.tileMap.tileSize+self.parentEntity.position[1]-(self.tileMap.size[1]/2*self.tileMap.tileSize)]
 
     def GetOverlappingTilesInTileSpace(self,topLeft,bottomRight):
         tiles = []
@@ -126,7 +126,7 @@ class TilemapRenderer(Component):
             for y in range(topLeft[1]-2,bottomRight[1]+2):
                 if(x >= 0 and y >= 0 and x < self.tileMap.size[0] and y < self.tileMap.size[1]):
                     worldPos = self.TileToWorldPosition((x,y))
-                    tiles.append([self.tileMap.map[x][y],(worldPos[0],worldPos[1]-self.tileMap.tileSize//2)])
+                    tiles.append([self.tileMap.map[x][y],(worldPos[0],worldPos[1])])
         return tiles
 
 
