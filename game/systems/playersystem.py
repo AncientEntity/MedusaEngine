@@ -38,18 +38,12 @@ class PlayerSystem(EntitySystem):
         if (Input.KeyDown(player.controls["up"]) and player.parentEntity.GetComponent(physics.PhysicsComponent).touchingDirections['bottom']):
             player.parentEntity.GetComponent(physics.PhysicsComponent).velocity[1] -= 150
             moved = True
-        #elif(Input.KeyPressed(player.controls["down"])):
-        #    player.parentEntity.GetComponent(physics.PhysicsComponent).Move((0,self.game.deltaTime * player.speed))
-        #    #player.parentEntity.position[1] += self.game.deltaTime * player.speed
-        #    moved = True
         if (Input.KeyPressed(player.controls["left"])):
             player.parentEntity.GetComponent(physics.PhysicsComponent).Move((-self.game.deltaTime * player.speed,0))
-            #player.parentEntity.position[0] -= self.game.deltaTime * player.speed
             player.parentEntity.GetComponent(SpriteRenderer).sprite.FlipX(True)
             moved = True
         elif(Input.KeyPressed(player.controls["right"])):
             player.parentEntity.GetComponent(physics.PhysicsComponent).Move((self.game.deltaTime * player.speed,0))
-            #player.parentEntity.position[0] += self.game.deltaTime * player.speed
             player.parentEntity.GetComponent(SpriteRenderer).sprite.FlipX(False)
             moved = True
         if(moved):
