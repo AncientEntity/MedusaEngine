@@ -1,5 +1,6 @@
 from engine.game import Game
 from game.scenes.sidescrollingscene import SideScrollingScene
+from game.scenes.tiledtestscene import TiledTestScene
 
 
 class BulletGame(Game):

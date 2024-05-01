@@ -30,7 +30,8 @@ class SideScrollingScene(Scene):
                 if(y == 9 or random.randint(0,100) <= 8):
                     mapEntity.GetComponent(TilemapRenderer).tileMap.SetTile("wall_left", x, y)
                 else:
-                    mapEntity.GetComponent(TilemapRenderer).tileMap.SetTile("floor_" + str(random.randint(1, 8)), x, y)
+                    pass
+                    #mapEntity.GetComponent(TilemapRenderer).tileMap.SetTile("floor_" + str(random.randint(1, 8)), x, y)
         for i in range(100):
             if(random.randint(0,100) <= 10):
                 prefabs.CreateSkeleton(self,i-10)

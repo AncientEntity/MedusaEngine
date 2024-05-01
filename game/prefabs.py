@@ -37,3 +37,4 @@ def CreateSkeleton(scene,i):
     t = scene.CreateEntity("SkeletonEnemy",position=[i*16-100,0],components=[SpriteRenderer(npcComponent.idleAnim),npcComponent,physics.PhysicsComponent(gravity=(0,250))])
     t.GetComponent(PhysicsComponent).collidesWithLayers = [1]
     t.GetComponent(PhysicsComponent).physicsLayer = 1
+    return t

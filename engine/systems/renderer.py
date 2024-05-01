@@ -26,7 +26,7 @@ class Sprite:
         elif(isinstance(filePathOrSurface,pygame.Surface)):
             self.sprite = filePathOrSurface
         self._flipX = False
-        self.hasCollision = False
+        self.ignoreCollision = False
     def GetSprite(self):
         return self.sprite
     def FlipX(self,flipped):
@@ -76,6 +76,7 @@ class AnimatedSprite(Sprite):
 class SpriteRenderer(Component):
     def __init__(self, sprite : Sprite or pygame.Surface):
         self.sprite = sprite
+
 
 class Tilemap:
     def __init__(self,size):
@@ -127,6 +128,7 @@ class TilemapRenderer(Component):
                     worldPos = self.TileToWorldPosition((x,y))
                     tiles.append([self.tileMap.map[x][y],(worldPos[0],worldPos[1]-self.tileMap.tileSize//2)])
         return tiles
+
 
 
 class RenderingSystem(EntitySystem):

@@ -100,7 +100,7 @@ class PhysicsSystem(EntitySystem):
 
             #Tileset Collision
             for tilemapRenderer in currentScene.components[TilemapRenderer]:
-                if(tilemapRenderer.tileMap == None or (other.physicsLayer not in body.collidesWithLayers and other.physicsLayer not in body.triggersWithLayers)):
+                if(tilemapRenderer.tileMap == None or (tilemapRenderer.physicsLayer not in body.collidesWithLayers and tilemapRenderer.physicsLayer not in body.triggersWithLayers)):
                     continue
 
                 bodyPos = [body.parentEntity.position[0]+body.offset[0],body.parentEntity.position[1]+body.offset[1]]
@@ -112,7 +112,7 @@ class PhysicsSystem(EntitySystem):
                 for tile in overlappingTiles: #Only check overlapping tiles.
                     if(tile[0] == -1):
                         continue
-                    if(tilemapRenderer.tileMap.tileSet[tile[0]].hasCollision):
+                    if(False == tilemapRenderer.tileMap.tileSet[tile[0]].ignoreCollision):
                         otherBounds = pygame.Rect(tile[1][0], tile[1][1], tilemapRenderer.tileMap.tileSize, tilemapRenderer.tileMap.tileSize)
                         self.HandlePhysicsCollision(body,bodyPos,bodyBounds,None,otherBounds.center,otherBounds)
 
