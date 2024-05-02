@@ -1,6 +1,6 @@
 <component name="ProjectRunConfigurationManager">
   <configuration default="false" name="run game" type="PythonConfigurationType" factoryName="Python">
-    <module name="PyBulletHell" />
+    <module name="MedusaEngine" />
     <option name="INTERPRETER_OPTIONS" value="" />
     <option name="PARENT_ENVS" value="true" />
     <envs>
