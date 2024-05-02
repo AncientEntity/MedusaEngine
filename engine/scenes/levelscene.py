@@ -55,8 +55,7 @@ class LevelScene(Scene):
         mapData = layer["data"]
         for y in range(size[1]):
             for x in range(size[0]):
-                newMap.SetTile(mapData[mapDataIndex] - 1, x,
-                               y)  # Decrement every value in mapData as tiled uses 0 as nothing but we use -1 as nothing.
+                newMap.SetTile(mapData[mapDataIndex] - 1, x, y)  # Decrement every value in mapData as tiled uses 0 as nothing but we use -1 as nothing.
                 mapDataIndex += 1
         # Put tilemap into a renderer
         tileMapRenderer = TilemapRenderer(newMap)

@@ -105,10 +105,10 @@ class PhysicsSystem(EntitySystem):
 
                 bodyPos = [body.parentEntity.position[0]+body.offset[0],body.parentEntity.position[1]+body.offset[1]]
                 bodyBounds = pygame.Rect(bodyPos[0]-body.bounds[0]//2,bodyPos[1]-body.bounds[1]//2,body.bounds[0],body.bounds[1])
+
                 topLeftOverlap = tilemapRenderer.WorldToTilePosition((bodyBounds.left,bodyBounds.top))
                 bottomRightOverlap = tilemapRenderer.WorldToTilePosition((bodyBounds.right,bodyBounds.bottom))
                 overlappingTiles = tilemapRenderer.GetOverlappingTilesInTileSpace(topLeftOverlap,bottomRightOverlap)
-
                 for tile in overlappingTiles: #Only check overlapping tiles.
                     if(tile[0] == -1):
                         continue
@@ -135,11 +135,14 @@ class PhysicsSystem(EntitySystem):
         if (bodyBounds.colliderect(otherBounds)):
             # body and other are colliding.
 
+            if(bodyAndOtherTriggers):
+                pass #todo: trigger logic
+
             if(bodyAndOtherCollides):
                 # Right
                 if (body._moveRequest[0] > 0 and bodyPos[0] < otherPos[0] and abs(
                         bodyBounds.top - otherBounds.bottom) > 1 and abs(bodyBounds.bottom - otherBounds.top) > 1):
-                    bodyBounds.right = otherBounds.left #+1 so they are touching not colliding
+                    bodyBounds.right = otherBounds.left
                     body.parentEntity.position[0] = bodyBounds.centerx-body.offset[0]
                     body.velocity[0] = 0
                     body.touchingDirections['right'] = True
@@ -148,7 +151,7 @@ class PhysicsSystem(EntitySystem):
                 # Left
                 elif (body._moveRequest[0] < 0 and bodyPos[0] > otherPos[0] and abs(
                         bodyBounds.top - otherBounds.bottom) > 1 and abs(bodyBounds.bottom - otherBounds.top) > 1):
-                    bodyBounds.left = otherBounds.right #-1 so they are touching not colliding
+                    bodyBounds.left = otherBounds.right
                     body.parentEntity.position[0] = bodyBounds.centerx-body.offset[0]
                     body.velocity[0] = 0
                     body.touchingDirections['left'] = True
@@ -175,7 +178,7 @@ class PhysicsSystem(EntitySystem):
                     body.touchingDirections['top'] = True
                     if(other != None):
                         other.touchingDirections['bottom'] = True
-        elif(bodyAndOtherCollides and bodyAndOtherTriggers):
+        elif(bodyAndOtherCollides):
             if (bodyBounds.left == otherBounds.right and bodyBounds.bottom >= otherBounds.bottom and bodyBounds.top <= otherBounds.top):
                 body.touchingDirections['left'] = True
                 if(other != None):

@@ -25,6 +25,12 @@ class Scene:
             self.AddComponent(component)
         return newEnt
 
+    def DeleteEntity(self,entity):
+        #Remove components from scene components
+        for component in entity.components:
+            self.RemoveComponent(component)
+        self.entities.remove(entity)
+
     def AddComponent(self, component):
         componentType = type(component)
         if (componentType not in self.components):
