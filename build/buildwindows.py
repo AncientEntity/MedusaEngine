@@ -2,7 +2,7 @@ from cx_Freeze import setup,Executable
 
 build_options = {"include_files" : ["engine","game"]}
 
-setup(name = "Unnamed PyBulletHell",
+setup(name = "Unnamed MedusaEngine Game",
       version = "0.1",
       description = "",
       options = {"build_exe" : build_options},
