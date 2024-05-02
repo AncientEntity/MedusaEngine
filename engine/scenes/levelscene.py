@@ -28,17 +28,18 @@ class LevelScene(Scene):
         self.Clear()
         self.layerObjects = []
 
-        tilemapRenderers = []
-        #Load tile layers
+        #Load Tile Layers
         for layer in self.mapJson["layers"]:
+            #Get layer offset (if it exists)
+            offset = [0, 0]
+            if ("offsetx" in layer and "offsety" in layer):
+                offset = [layer["offsetx"], layer["offsety"]]
+
             if("objects" in layer):
-                self.LoadObjectLayer(layer)
+                self.LoadObjectLayer(layer,offset)
             else:
                 #Tile Layer
-                tilemapRenderers.append(self.LoadTileLayer(layer))
-
-        #Create containing entity for all the tilemap layers
-        self.CreateEntity("WORLD", [0, 0], components=tilemapRenderers)
+                self.CreateEntity("WORLD-"+layer["name"], offset, components=[self.LoadTileLayer(layer)])
 
         self.LevelStart()
         super().Init()
@@ -72,10 +73,10 @@ class LevelScene(Scene):
             tileMapRenderer.physicsLayer = physicsLayer
         return tileMapRenderer
 
-    def LoadObjectLayer(self,layer): #todo here, must place down all objects found in objectMap and must put all objects into self.objects and make a function to get object(s) by name
+    def LoadObjectLayer(self,layer,offset): #todo here, must place down all objects found in objectMap and must put all objects into self.objects and make a function to get object(s) by name
         for object in layer["objects"]:
             self.layerObjects.append(object)
-            object["position"] = tiled.ObjectPositionToLocalPosition(object["x"],object["y"],self.mapJson)
+            object["position"] = tiled.ObjectPositionToLocalPosition(object["x"]+offset[0],object["y"]+offset[1],self.mapJson)
             if(object["name"] not in self.layerObjectsDict):
                 self.layerObjectsDict[object["name"]] = []
             self.layerObjectsDict[object["name"]].append(object)
