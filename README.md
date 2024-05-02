@@ -27,3 +27,11 @@ pygbag==0.9.1
 3. Configure a new Python Interpreter/Virtual Environment (venv) for the project (Python 3.11>=)
 4. Run `pip install -r requirements.txt` while in the venv (Inside PyCharm Terminal it should default to the venv automatically)
 5. Done! Try running the run configuration "run game" as there is an example game that should run.
+
+# Project Structure
+Below is the intended project structure but doesn't necessarily need to be followed.
+- `/build`: This directory contains build scripts and build outputs for the project. If you need to compile or build the project, you'll find the necessary scripts and configurations here.
+
+- `/engine`: This directory contains engine files. These files are responsible for the core functionality of the engine, such as rendering, physics, and audio.
+
+- `/game`: This directory contains the game files. Here you'll find the assets, scripts, and other resources that make up the game itself.
