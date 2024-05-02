@@ -96,7 +96,7 @@ class PhysicsSystem(EntitySystem):
                 otherPos = other.parentEntity.position
                 bodyBounds = pygame.Rect(bodyPos[0]-body.bounds[0]//2,bodyPos[1]-body.bounds[1]//2,body.bounds[0],body.bounds[1])
                 otherBounds = pygame.Rect(otherPos[0]-other.bounds[0]//2,otherPos[1]-other.bounds[1]//2,other.bounds[0],other.bounds[1])
-                self.HandlePhysicsCollision(body,bodyPos,bodyBounds,other,otherBounds.center,otherBounds)
+                self.HandlePhysicsCollision(body,bodyPos,bodyBounds,other,otherBounds.center,otherBounds,False)
 
             #Tileset Collision
             for tilemapRenderer in currentScene.components[TilemapRenderer]:
@@ -114,7 +114,7 @@ class PhysicsSystem(EntitySystem):
                         continue
                     if(False == tilemapRenderer.tileMap.tileSet[tile[0]].ignoreCollision):
                         otherBounds = pygame.Rect(tile[1][0], tile[1][1], tilemapRenderer.tileMap.tileSize, tilemapRenderer.tileMap.tileSize)
-                        self.HandlePhysicsCollision(body,bodyPos,bodyBounds,None,otherBounds.center,otherBounds)
+                        self.HandlePhysicsCollision(body,bodyPos,bodyBounds,None,otherBounds.center,otherBounds,tilemapRenderer.physicsLayer not in body.collidesWithLayers)
 
             body._moveRequest = None
 
@@ -126,9 +126,9 @@ class PhysicsSystem(EntitySystem):
             if(body.mapToSpriteOnStart):
                 body.MapToSpriteRenderer()
 
-    def HandlePhysicsCollision(self,body : PhysicsComponent,bodyPos,bodyBounds,other : PhysicsComponent,otherPos,otherBounds):
+    def HandlePhysicsCollision(self,body : PhysicsComponent,bodyPos,bodyBounds,other : PhysicsComponent,otherPos,otherBounds,onlyTrigger):
 
-        bodyAndOtherCollides = other == None or other.physicsLayer in body.collidesWithLayers
+        bodyAndOtherCollides = (other == None or other.physicsLayer in body.collidesWithLayers) and False == onlyTrigger
         bodyAndOtherTriggers = other == None or other.physicsLayer in body.collidesWithLayers
 
         #If colliding handle accordingly, otherwise we have an else statement below that detects touching.
@@ -139,6 +139,7 @@ class PhysicsSystem(EntitySystem):
                 pass #todo: trigger logic
 
             if(bodyAndOtherCollides):
+
                 # Right
                 if (body._moveRequest[0] > 0 and bodyPos[0] < otherPos[0] and abs(
                         bodyBounds.top - otherBounds.bottom) > 1 and abs(bodyBounds.bottom - otherBounds.top) > 1):

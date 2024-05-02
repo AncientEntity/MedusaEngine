@@ -1,3 +1,5 @@
+import random
+
 from engine.ecs import Scene
 from engine.systems import renderer, physics
 from engine.systems.renderer import TilemapRenderer, Tilemap
@@ -20,10 +22,11 @@ class LevelScene(Scene):
         self.worldTileset = worldTileset
 
         self.objectMap = objectMap
-        self.objects : dict = []
+        self.layerObjects : list = []
+        self.layerObjectsDict : dict = {}
     def Init(self):
         self.Clear()
-        self.objects = []
+        self.layerObjects = []
 
         tilemapRenderers = []
         #Load tile layers
@@ -67,15 +70,34 @@ class LevelScene(Scene):
 
     def LoadObjectLayer(self,layer): #todo here, must place down all objects found in objectMap and must put all objects into self.objects and make a function to get object(s) by name
         for object in layer["objects"]:
-            self.objects.append(object)
+            self.layerObjects.append(object)
+            object["position"] = tiled.ObjectPositionToLocalPosition(object["x"],object["y"],self.mapJson)
+            if(object["name"] not in self.layerObjectsDict):
+                self.layerObjectsDict[object["name"]] = []
+            self.layerObjectsDict[object["name"]].append(object)
             if(self.objectMap != None and object["name"] in self.objectMap):
                 objectInstance = self.objectMap[object["name"]](self) #Create objectInstance from creator function
-                objectInstance.position = tiled.ObjectPositionToLocalPosition(object["x"],object["y"],self.mapJson)
-
+                objectInstance.position = object["position"]
 
     def GetPropertyOfLayer(self,layer,propertyName):
         if("properties" in layer):
             for prop in layer["properties"]:
                 if(prop["name"] == propertyName):
                     return prop["value"]
+        return None
+
+    #Returns the first found tiled object.
+    def GetTiledObjectByName(self,objName):
+        if(objName in self.layerObjectsDict):
+            return self.layerObjectsDict[objName][0]
+        return None
+
+    #Returns all the tiled objects with name
+    def GetTiledObjectsByName(self, objName):
+        if(objName in self.layerObjectsDict):
+            return self.layerObjectsDict[objName]
+
+    def GetRandomTiledObjectByName(self,objName):
+        if(objName in self.layerObjectsDict):
+            return self.layerObjectsDict[objName][random.randint(0,len(self.layerObjectsDict[objName])-1)]
         return None

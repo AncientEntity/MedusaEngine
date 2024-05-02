@@ -14,6 +14,8 @@ def CreatePlayer(scene):
     physicsComponent.gravity = (0,250)
     physicsComponent.bounds = [10,16]
     physicsComponent.offset = (0,6)
+    physicsComponent.collidesWithLayers = [1]
+    physicsComponent.physicsLayer = 0
     physicsComponent.mapToSpriteOnStart = False
     return scene.CreateEntity(name="Player",position=[0,0],components=[SpriteRenderer(None),playersystem.PlayerComponent(),physicsComponent])
 
@@ -34,6 +36,7 @@ def CreateSkeleton(scene):
     npcComponent.behaviourTick = SkeletonBehaviour
 
     t = scene.CreateEntity("SkeletonEnemy",position=[0,0],components=[SpriteRenderer(npcComponent.idleAnim),npcComponent,physics.PhysicsComponent(gravity=(0,250))])
-    t.GetComponent(PhysicsComponent).collidesWithLayers = [1]
-    t.GetComponent(PhysicsComponent).physicsLayer = 1
+    t.GetComponent(PhysicsComponent).collidesWithLayers = [1,2]
+    t.GetComponent(PhysicsComponent).triggersWithLayers = [0]
+    t.GetComponent(PhysicsComponent).physicsLayer = 0
     return t
