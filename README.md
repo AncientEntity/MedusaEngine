@@ -2,6 +2,8 @@
 
 Medusa is a FOSS Python based game engine for creating 2D games in Python with Pygame. It's not intended to be packaged as a module but is meant to be embedded directly into your project files.
 
+Example Game: https://epocria.net/testing/
+
 # Requirements
 Python 3.11 or newer
 
