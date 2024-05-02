@@ -4,7 +4,6 @@ from engine.ecs import EntitySystem, Component, Scene
 from engine.engine import Input
 from engine.systems import physics
 from engine.systems.renderer import SpriteRenderer, RenderingSystem, AnimatedSprite
-from engine.tools.spritesheet import SpriteSheet
 from game import assets
 from game.scenes import sidescrollingscene
 from game.scenes.tiledtestscene import TiledTestScene

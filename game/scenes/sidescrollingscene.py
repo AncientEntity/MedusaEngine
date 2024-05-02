@@ -36,11 +36,7 @@ class SideScrollingScene(Scene):
         for i in range(100):
             if(random.randint(0,100) <= 10):
                 prefabs.CreateSkeleton(self).position=[16*i-50,-20]
-        #prefabs.CreateSkeleton(self,0)
 
         p1 = prefabs.CreatePlayer(self)
-        p1.GetComponent(PhysicsComponent).collidesWithLayers = [1]
-        #p2 = prefabs.CreatePlayer(self)
-        #p2.GetComponent(PlayerComponent).controls = {'up' : pygame.K_UP, 'down' : pygame.K_DOWN, 'left' : pygame.K_LEFT, 'right' : pygame.K_RIGHT}
 
         super().Init()

@@ -2,7 +2,7 @@ from engine.logging import *
 
 class Component:
     def __init__(self):
-        self.parentEntity = None
+        self.parentEntity : Entity = None
 
 
 

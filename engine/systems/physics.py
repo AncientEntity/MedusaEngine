@@ -1,5 +1,3 @@
-import time
-
 import pygame
 
 from engine.ecs import Component, EntitySystem, Scene
@@ -12,7 +10,6 @@ class PhysicsComponent(Component):
         super().__init__()
         self.bounds = bounds #centered on parent entity's position
         self.offset = (0,0)
-        self._moveRequest = None
         self.mapToSpriteOnStart = True
         self.touchingDirections = {'top':  False, 'bottom' : False, 'left' : False, 'right' : False}
 
@@ -24,6 +21,11 @@ class PhysicsComponent(Component):
         self.static = False #If static it wont be checked in the physics loop as the main body only as other body.
         self.gravity : tuple(float) = gravity #either None or a tuple like: (0,9.84)
         self.velocity = [0,0]
+
+        self._moveRequest = None #Move() adds to this so the physics calculations know what the object wants.
+        self._thisStepTriggeredWith = [] #List of other physics components that this collided with this frame.
+        self._lastStepTriggeredWith = [] #List of other physics components that this collided with last frame.
+        self._onTriggerStart = [] #List of functions that take in body : PhysicsComponent, other : PhysicsComponent. Runs when something 'first starts to trigger with self'
 
     def Move(self,movement):
         if(self._moveRequest == None):
@@ -66,6 +68,8 @@ class PhysicsSystem(EntitySystem):
 
         for body in currentScene.components[PhysicsComponent]:
             body.ResetCollisionDirections()
+            body._lastStepTriggeredWith = body._thisStepTriggeredWith
+            body._thisStepTriggeredWith = []
 
         #Physics Component Collision
         for body in currentScene.components[PhysicsComponent]:
@@ -129,14 +133,13 @@ class PhysicsSystem(EntitySystem):
     def HandlePhysicsCollision(self,body : PhysicsComponent,bodyPos,bodyBounds,other : PhysicsComponent,otherPos,otherBounds,onlyTrigger):
 
         bodyAndOtherCollides = (other == None or other.physicsLayer in body.collidesWithLayers) and False == onlyTrigger
-        bodyAndOtherTriggers = other == None or other.physicsLayer in body.collidesWithLayers
 
         #If colliding handle accordingly, otherwise we have an else statement below that detects touching.
         if (bodyBounds.colliderect(otherBounds)):
             # body and other are colliding.
 
-            if(bodyAndOtherTriggers):
-                pass #todo: trigger logic
+            #Handle Triggering
+            self.HandleTriggerPhysics(body,other)
 
             if(bodyAndOtherCollides):
 
@@ -184,19 +187,36 @@ class PhysicsSystem(EntitySystem):
                 body.touchingDirections['left'] = True
                 if(other != None):
                     other.touchingDirections['right'] = True
+                    self.HandleTriggerPhysics(body, other)
             if (bodyBounds.right == otherBounds.left and bodyBounds.bottom >= otherBounds.bottom and bodyBounds.top <= otherBounds.top):
                 body.touchingDirections['right'] = True
                 if(other != None):
                     other.touchingDirections['left'] = True
+                    self.HandleTriggerPhysics(body, other)
             if (bodyBounds.top == otherBounds.bottom and bodyBounds.right >= otherBounds.left and bodyBounds.left <= otherBounds.right):
                 body.touchingDirections['top'] = True
                 if(other != None):
                     other.touchingDirections['bottom'] = True
+                    self.HandleTriggerPhysics(body, other)
             if (bodyBounds.bottom == otherBounds.top and bodyBounds.right >= otherBounds.left and bodyBounds.left <= otherBounds.right):
                 body.touchingDirections['bottom'] = True
                 if(other != None):
                     other.touchingDirections['top'] = True
+                    self.HandleTriggerPhysics(body, other)
     def ApplyGravity(self,body,stepTime):
         if (body.gravity != None):
             body.velocity[0] += body.gravity[0] * stepTime
             body.velocity[1] += body.gravity[1] * stepTime
+
+    def HandleTriggerPhysics(self,body,other):
+        if (other != None):  # since we move body out of the way other will never detect it as a trigger. So we need them to both trigger.
+            if (other.physicsLayer in body.collidesWithLayers):
+                self.CheckTriggerStart(body, other)
+            if (body.physicsLayer in other.collidesWithLayers):
+                self.CheckTriggerStart(other, body)
+
+    def CheckTriggerStart(self,body1,body2):
+        if (body2 not in body1._lastStepTriggeredWith and body2 not in body1._thisStepTriggeredWith):
+            for triggerStartFunc in body1._onTriggerStart:
+                triggerStartFunc(body1, body2)
+        body1._thisStepTriggeredWith.append(body2)
