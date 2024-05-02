@@ -10,6 +10,5 @@ class TiledTestScene(LevelScene):
         super().__init__("game/art/tiled/testmap1.tmj",worldTileset, {"SKELETON" : prefabs.CreateSkeleton})
         self.systems.append(playersystem.PlayerSystem())
         self.systems.append(NPCSystem())
-    def Init(self):
-        super().Init()
+    def LevelStart(self):
         prefabs.CreatePlayer(self).position = self.GetRandomTiledObjectByName("SPAWN")["position"]

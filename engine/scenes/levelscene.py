@@ -40,7 +40,11 @@ class LevelScene(Scene):
         #Create containing entity for all the tilemap layers
         self.CreateEntity("WORLD", [0, 0], components=tilemapRenderers)
 
+        self.LevelStart()
         super().Init()
+
+    def LevelStart(self):
+        pass
 
     def LoadTileLayer(self,layer):
         size = (layer["width"], layer["height"])
