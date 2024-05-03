@@ -17,6 +17,7 @@ class PhysicsComponent(Component):
         self.collidesWithLayers = [0]
         self.triggersWithLayers = [0]
 
+        self.friction = [0.02,0]
         self.mass = 1.0
         self.static = False #If static it wont be checked in the physics loop as the main body only as other body.
         self.gravity : tuple(float) = gravity #either None or a tuple like: (0,9.84)
@@ -32,6 +33,10 @@ class PhysicsComponent(Component):
             self._moveRequest = [0,0]
         self._moveRequest[0] += movement[0]
         self._moveRequest[1] += movement[1]
+
+    def AddVelocity(self,impulse):
+        self.velocity[0] += impulse[0]
+        self.velocity[1] += impulse[1]
 
     #Makes bounds the same as the sprite's width/height
     def MapToSpriteRenderer(self):
@@ -81,6 +86,8 @@ class PhysicsSystem(EntitySystem):
 
             #Add velocity movement
             if(body.velocity[0] != 0 or body.velocity[1] != 0):
+                body.velocity[0] *= 1.0 - body.friction[0]
+                body.velocity[1] *= 1.0 - body.friction[1]
                 body.Move((body.velocity[0] * stepTime,body.velocity[1] * stepTime))
 
             #If we aren't moving the object then skip
@@ -147,31 +154,22 @@ class PhysicsSystem(EntitySystem):
                 if (body._moveRequest[0] > 0 and bodyPos[0] < otherPos[0] and abs(
                         bodyBounds.top - otherBounds.bottom) > 1 and abs(bodyBounds.bottom - otherBounds.top) > 1):
                     bodyBounds.right = otherBounds.left
-                    body.parentEntity.position[0] = bodyBounds.centerx-body.offset[0]
+                    body.velocity[0] = 0
+                    body.parentEntity.position[0] = bodyBounds.centerx - body.offset[0]
 
                     body.touchingDirections['right'] = True
-                    if(other != None and other.static == False and body.velocity[0] != 0):
+                    if(other != None):
                         other.touchingDirections['left'] = True
-                        body.velocity[0] = ((body.mass-other.mass)/(body.mass+other.mass))*body.velocity[0] + ((2*other.mass)/(body.mass+other.mass))*other.velocity[0]
-                        other.velocity[0] = ((2*body.mass)/(body.mass+other.mass))*body.velocity[0] - ((body.mass-other.mass)/(body.mass+other.mass))*other.velocity[0]
-                    else:
-                        body.velocity[0] = 0
-                        body.parentEntity.position[0] = bodyBounds.centerx - body.offset[0]
-
                 # Left
                 elif (body._moveRequest[0] < 0 and bodyPos[0] > otherPos[0] and abs(
                         bodyBounds.top - otherBounds.bottom) > 1 and abs(bodyBounds.bottom - otherBounds.top) > 1):
                     bodyBounds.left = otherBounds.right
-                    body.parentEntity.position[0] = bodyBounds.centerx-body.offset[0]
                     body.velocity[0] = 0
+                    body.parentEntity.position[0] = bodyBounds.centerx - body.offset[0]
+
                     body.touchingDirections['left'] = True
-                    if(other != None and other.static == False and body.velocity[0] != 0):
-                        other.touchingDirections['left'] = True
-                        body.velocity[0] = ((body.mass-other.mass)/(body.mass+other.mass))*body.velocity[0] + ((2*other.mass)/(body.mass+other.mass))*other.velocity[0]
-                        other.velocity[0] = ((2*body.mass)/(body.mass+other.mass))*body.velocity[0] - ((body.mass-other.mass)/(body.mass+other.mass))*other.velocity[0]
-                    else:
-                        body.velocity[0] = 0
-                        body.parentEntity.position[0] = bodyBounds.centerx - body.offset[0]
+                    if(other != None):
+                        other.touchingDirections['right'] = True
 
                 # Bottom
                 if (body._moveRequest[1] > 0 and bodyPos[1] < otherPos[1] and abs(
