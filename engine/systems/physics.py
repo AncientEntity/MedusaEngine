@@ -130,11 +130,9 @@ class PhysicsSystem(EntitySystem):
 
         pygame.display.update()
 
-    def OnEnable(self):
-        body : PhysicsComponent
-        for body in self.game.GetCurrentScene().components[PhysicsComponent]:
-            if(body.mapToSpriteOnStart):
-                body.MapToSpriteRenderer()
+    def OnNewComponent(self,component : Component):
+        if (type(component) == PhysicsComponent and component.mapToSpriteOnStart):
+            component.MapToSpriteRenderer()
 
     def HandlePhysicsCollision(self,body : PhysicsComponent,bodyPos,bodyBounds : pygame.FRect,other : PhysicsComponent,otherPos,otherBounds : pygame.FRect,onlyTrigger):
 

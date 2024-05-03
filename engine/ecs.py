@@ -5,7 +5,6 @@ class Component:
         self.parentEntity : Entity = None
 
 
-
 class Scene:
     def __init__(self):
         self.name = "Unnamed Scene"
@@ -13,6 +12,8 @@ class Scene:
         self.entities = []
         self.components = {}
         self.game = None
+
+        self._newComponentQueue = [] #Contains the list of components just added into the scene. For running EntitySystem.OnNewComponent on them.
 
     def CreateEntity(self,name,position,components):
         newEnt = Entity()
@@ -23,6 +24,7 @@ class Scene:
         for component in newEnt.components:
             component.parentEntity = newEnt
             self.AddComponent(component)
+            self._newComponentQueue.append(component)
         return newEnt
 
     def DeleteEntity(self,entity):
@@ -49,6 +51,10 @@ class Scene:
         return None
 
     def Update(self):
+        #Run OnNewComponent for each component in its related systems.
+        self.HandleNewComponents()
+
+        #Run each system's update.
         for system in self.systems:
             system.Update(self)
 
@@ -59,6 +65,13 @@ class Scene:
                 if (targetComponent not in self.components):
                     self.components[targetComponent] = []
             system.OnEnable()
+
+    def HandleNewComponents(self): #Runs OnNewComponent for each new component (just added to the scene) for every system that it relates to.
+        for startComp in self._newComponentQueue:
+            for system in self.systems:
+                if(type(startComp) in system.targetComponents):
+                    system.OnNewComponent(startComp)
+        self._newComponentQueue = []
 
     def Clear(self):
         self.components = {}
@@ -85,4 +98,7 @@ class EntitySystem:
         pass
 
     def OnEnable(self):
+        pass
+
+    def OnNewComponent(self,component : Component): #Called when a new component is created into the scene. (Used to initialize that component)
         pass
