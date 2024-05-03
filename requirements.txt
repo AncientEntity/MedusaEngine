@@ -1,0 +1,5 @@
+cx_Freeze==7.0.0
+cx_Logging==3.2.0
+lief==0.14.1
+pygame-ce==2.4.1
+pygbag==0.9.1  

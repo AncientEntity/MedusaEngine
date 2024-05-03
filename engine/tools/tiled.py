@@ -4,12 +4,14 @@ import json
 import engine.systems.renderer
 from engine.tools.spritesheet import SpriteSheet
 
-
-def TiledGetRawMapData(mapFilePath, layerName):
+def TiledGetRawMapData(mapFilePath):
     tileFile = open(mapFilePath, "r")
     fileData = tileFile.read()
     tileFile.close()
-    tileJson = json.loads(fileData)
+    return json.loads(fileData)
+
+def TiledGetRawMapDataLayer(mapFilePath, layerName):
+    tileJson = TiledGetRawMapData(mapFilePath)
 
     #Find layer and the map data within
     mapData = None
@@ -23,17 +25,12 @@ def TiledGetRawMapData(mapFilePath, layerName):
 
 def TiledGetTileMapFromTiledJSON(mapFilePath, layerName, tileSpriteSheet : SpriteSheet):
 
-    mapData, size = TiledGetRawMapData(mapFilePath, layerName)
+    mapData, size = TiledGetRawMapDataLayer(mapFilePath, layerName)
 
     #Now split it up into rows as tiled stores it all in 1 massive array instead of a 2D array.
-    mapDataRowed = []
-    for i in range(size[0]):
-        row = []
-        for j in range(size[1]):
-            row.append(-1)
-        mapDataRowed.append(row)
 
     newMap = engine.systems.renderer.Tilemap(size)
+    mapDataRowed = newMap.map
     newMap.map = mapDataRowed
     newMap.SetTileSetFromSpriteSheet(tileSpriteSheet)
     mapDataIndex = 0
@@ -56,11 +53,13 @@ def TiledGetObjectsFromTiledJSON(mapFilePath, layerName):
             break
 
     #Normalize a position entry relative to the tilemap (so 0,0 is the tilemaps position)
-    tileSize = tileJson["tilewidth"]
     for obj in objectList:
-        obj["position"] = [obj["x"]-tileSize*tileJson["width"]//2,obj["y"]-tileSize*tileJson["height"]//2]
+        obj["position"] = ObjectPositionToLocalPosition(obj["x"],obj["y"],tileJson)
 
     return objectList
+
+def ObjectPositionToLocalPosition(x,y,tileJson):
+    return [x-tileJson["tilewidth"]*tileJson["width"]//2,y-tileJson["tilewidth"]*tileJson["height"]//2]
 
 def TiledGetObjectByName(objectList, objectName):
     for obj in objectList:

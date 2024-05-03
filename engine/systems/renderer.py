@@ -16,7 +16,7 @@ def GetSprite(sprite):
     else:
         return sprite.GetSprite()
 
-class Sprite:
+class Sprite: #TODO sprite draw order implementation to control draw order.
     def __init__(self,filePathOrSurface : str or pygame.Surface):
         if(isinstance(filePathOrSurface,str)):
             if(filePathOrSurface != ""):
@@ -26,7 +26,7 @@ class Sprite:
         elif(isinstance(filePathOrSurface,pygame.Surface)):
             self.sprite = filePathOrSurface
         self._flipX = False
-        self.hasCollision = False
+        self.ignoreCollision = False
     def GetSprite(self):
         return self.sprite
     def FlipX(self,flipped):
@@ -77,6 +77,7 @@ class SpriteRenderer(Component):
     def __init__(self, sprite : Sprite or pygame.Surface):
         self.sprite = sprite
 
+
 class Tilemap:
     def __init__(self,size):
         self.size = size
@@ -99,7 +100,7 @@ class Tilemap:
             i = 0
             for x in range(spriteSheet.xCount):
                 for y in range(spriteSheet.yCount):
-                    self.tileSet[i] = Sprite(spriteSheet[(x,y)])
+                    self.tileSet[i] = Sprite(spriteSheet[(y,x)])
                     i += 1
         elif(spriteSheet.splitType == 'map'):
             for key,value in spriteSheet.sprites.items():
@@ -117,7 +118,7 @@ class TilemapRenderer(Component):
     def WorldToTilePosition(self,worldPosition):
         return [(worldPosition[0]-self.parentEntity.position[0]+(self.tileMap.size[0]//2*self.tileMap.tileSize))//self.tileMap.tileSize,(worldPosition[1]-self.parentEntity.position[1]+(self.tileMap.size[1]//2*self.tileMap.tileSize))//self.tileMap.tileSize]
     def TileToWorldPosition(self,tilePosition):
-        return [tilePosition[0]*self.tileMap.tileSize+self.parentEntity.position[0]-(self.tileMap.size[0]//2*self.tileMap.tileSize),tilePosition[1]*self.tileMap.tileSize+self.parentEntity.position[1]-(self.tileMap.size[1]//2*self.tileMap.tileSize)]
+        return [tilePosition[0]*self.tileMap.tileSize+self.parentEntity.position[0]-(self.tileMap.size[0]/2*self.tileMap.tileSize),tilePosition[1]*self.tileMap.tileSize+self.parentEntity.position[1]-(self.tileMap.size[1]/2*self.tileMap.tileSize)]
 
     def GetOverlappingTilesInTileSpace(self,topLeft,bottomRight):
         tiles = []
@@ -125,8 +126,9 @@ class TilemapRenderer(Component):
             for y in range(topLeft[1]-2,bottomRight[1]+2):
                 if(x >= 0 and y >= 0 and x < self.tileMap.size[0] and y < self.tileMap.size[1]):
                     worldPos = self.TileToWorldPosition((x,y))
-                    tiles.append([self.tileMap.map[x][y],(worldPos[0],worldPos[1]-self.tileMap.tileSize//2)])
+                    tiles.append([self.tileMap.map[x][y],(worldPos[0],worldPos[1])])
         return tiles
+
 
 
 class RenderingSystem(EntitySystem):

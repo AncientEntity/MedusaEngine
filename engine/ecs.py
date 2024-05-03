@@ -2,7 +2,7 @@ from engine.logging import *
 
 class Component:
     def __init__(self):
-        self.parentEntity = None
+        self.parentEntity : Entity = None
 
 
 
@@ -24,6 +24,12 @@ class Scene:
             component.parentEntity = newEnt
             self.AddComponent(component)
         return newEnt
+
+    def DeleteEntity(self,entity):
+        #Remove components from scene components
+        for component in entity.components:
+            self.RemoveComponent(component)
+        self.entities.remove(entity)
 
     def AddComponent(self, component):
         componentType = type(component)

@@ -52,10 +52,11 @@ class Engine:
         self.running = True
         self._lastTickStart = time.time()
         while self.running:
-            self.deltaTime = time.time() - self._lastTickStart
+            frameStartTime = time.time()
+            self.deltaTime = frameStartTime - self._lastTickStart
             if(self.deltaTime > self.maxDeltaTime): #Maximum delta time enforced to prevent unintended concequences of super high delta time.
                 self.deltaTime = self.maxDeltaTime
-            self._lastTickStart = time.time()
+            self._lastTickStart = frameStartTime
 
             #Game Loop
             self.InputTick()
@@ -66,7 +67,7 @@ class Engine:
         Log("Game Initializing",LOG_ALL)
         pygame.init()
         pygame.mixer.init()
-        self.display = pygame.display.set_mode((600,600))
+        self.display = pygame.display.set_mode((800,600))
         pygame.display.set_caption(self.gameName)
         self.LoadScene(self._currentScene)
 

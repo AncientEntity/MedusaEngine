@@ -2,7 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/.idea/PyBulletHell.iml" filepath="$PROJECT_DIR$/.idea/PyBulletHell.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/MedusaEngine.iml" filepath="$PROJECT_DIR$/.idea/MedusaEngine.iml" />
     </modules>
   </component>
 </project>
