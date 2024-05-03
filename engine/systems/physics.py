@@ -98,8 +98,8 @@ class PhysicsSystem(EntitySystem):
 
                 bodyPos = [body.parentEntity.position[0]+body.offset[0],body.parentEntity.position[1]+body.offset[1]]
                 otherPos = other.parentEntity.position
-                bodyBounds = pygame.Rect(bodyPos[0]-body.bounds[0]//2,bodyPos[1]-body.bounds[1]//2,body.bounds[0],body.bounds[1])
-                otherBounds = pygame.Rect(otherPos[0]-other.bounds[0]//2,otherPos[1]-other.bounds[1]//2,other.bounds[0],other.bounds[1])
+                bodyBounds = pygame.FRect(bodyPos[0]-body.bounds[0]/2,bodyPos[1]-body.bounds[1]/2,body.bounds[0],body.bounds[1])
+                otherBounds = pygame.FRect(otherPos[0]-other.bounds[0]/2,otherPos[1]-other.bounds[1]/2,other.bounds[0],other.bounds[1])
                 self.HandlePhysicsCollision(body,bodyPos,bodyBounds,other,otherBounds.center,otherBounds,False)
 
             #Tileset Collision
@@ -108,16 +108,16 @@ class PhysicsSystem(EntitySystem):
                     continue
 
                 bodyPos = [body.parentEntity.position[0]+body.offset[0],body.parentEntity.position[1]+body.offset[1]]
-                bodyBounds = pygame.Rect(bodyPos[0]-body.bounds[0]//2,bodyPos[1]-body.bounds[1]//2,body.bounds[0],body.bounds[1])
+                bodyBounds = pygame.FRect(bodyPos[0]-body.bounds[0]/2,bodyPos[1]-body.bounds[1]/2,body.bounds[0],body.bounds[1])
 
-                topLeftOverlap = tilemapRenderer.WorldToTilePosition((bodyBounds.left,bodyBounds.top))
-                bottomRightOverlap = tilemapRenderer.WorldToTilePosition((bodyBounds.right,bodyBounds.bottom))
+                topLeftOverlap = tilemapRenderer.WorldToTilePosition((int(bodyBounds.left),int(bodyBounds.top)))
+                bottomRightOverlap = tilemapRenderer.WorldToTilePosition((int(bodyBounds.right),int(bodyBounds.bottom)))
                 overlappingTiles = tilemapRenderer.GetOverlappingTilesInTileSpace(topLeftOverlap,bottomRightOverlap)
                 for tile in overlappingTiles: #Only check overlapping tiles.
                     if(tile[0] == -1):
                         continue
                     if(False == tilemapRenderer.tileMap.tileSet[tile[0]].ignoreCollision):
-                        otherBounds = pygame.Rect(tile[1][0], tile[1][1], tilemapRenderer.tileMap.tileSize, tilemapRenderer.tileMap.tileSize)
+                        otherBounds = pygame.FRect(tile[1][0], tile[1][1], tilemapRenderer.tileMap.tileSize, tilemapRenderer.tileMap.tileSize)
                         self.HandlePhysicsCollision(body,bodyPos,bodyBounds,None,otherBounds.center,otherBounds,tilemapRenderer.physicsLayer not in body.collidesWithLayers)
 
             body._moveRequest = None
@@ -130,7 +130,7 @@ class PhysicsSystem(EntitySystem):
             if(body.mapToSpriteOnStart):
                 body.MapToSpriteRenderer()
 
-    def HandlePhysicsCollision(self,body : PhysicsComponent,bodyPos,bodyBounds,other : PhysicsComponent,otherPos,otherBounds,onlyTrigger):
+    def HandlePhysicsCollision(self,body : PhysicsComponent,bodyPos,bodyBounds : pygame.FRect,other : PhysicsComponent,otherPos,otherBounds : pygame.FRect,onlyTrigger):
 
         bodyAndOtherCollides = (other == None or other.physicsLayer in body.collidesWithLayers) and False == onlyTrigger
 
