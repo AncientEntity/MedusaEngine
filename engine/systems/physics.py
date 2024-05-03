@@ -17,7 +17,7 @@ class PhysicsComponent(Component):
         self.collidesWithLayers = [0]
         self.triggersWithLayers = [0]
 
-        self.friction = [0.02,0]
+        self.friction = [5,0]
         self.mass = 1.0
         self.static = False #If static it wont be checked in the physics loop as the main body only as other body.
         self.gravity : tuple(float) = gravity #either None or a tuple like: (0,9.84)
@@ -86,8 +86,8 @@ class PhysicsSystem(EntitySystem):
 
             #Add velocity movement
             if(body.velocity[0] != 0 or body.velocity[1] != 0):
-                body.velocity[0] *= 1.0 - body.friction[0]
-                body.velocity[1] *= 1.0 - body.friction[1]
+                body.velocity[0] *= 1.0 - body.friction[0] * stepTime
+                body.velocity[1] *= 1.0 - body.friction[1] * stepTime
                 body.Move((body.velocity[0] * stepTime,body.velocity[1] * stepTime))
 
             #If we aren't moving the object then skip
