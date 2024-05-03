@@ -18,7 +18,8 @@ def CreatePlayer(scene):
     physicsComponent.physicsLayer = 0
     physicsComponent.mapToSpriteOnStart = False
     def TriggersSomething(self,other):
-        scene.DeleteEntity(other.parentEntity)
+        if(other.parentEntity.name != "Player"):
+            scene.DeleteEntity(other.parentEntity)
     physicsComponent._onTriggerStart.append(TriggersSomething)
 
     return scene.CreateEntity(name="Player",position=[0,0],components=[SpriteRenderer(None),playersystem.PlayerComponent(),physicsComponent])

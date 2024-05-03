@@ -148,10 +148,16 @@ class PhysicsSystem(EntitySystem):
                         bodyBounds.top - otherBounds.bottom) > 1 and abs(bodyBounds.bottom - otherBounds.top) > 1):
                     bodyBounds.right = otherBounds.left
                     body.parentEntity.position[0] = bodyBounds.centerx-body.offset[0]
-                    body.velocity[0] = 0
+
                     body.touchingDirections['right'] = True
-                    if(other != None):
+                    if(other != None and other.static == False and body.velocity[0] != 0):
                         other.touchingDirections['left'] = True
+                        body.velocity[0] = ((body.mass-other.mass)/(body.mass+other.mass))*body.velocity[0] + ((2*other.mass)/(body.mass+other.mass))*other.velocity[0]
+                        other.velocity[0] = ((2*body.mass)/(body.mass+other.mass))*body.velocity[0] - ((body.mass-other.mass)/(body.mass+other.mass))*other.velocity[0]
+                    else:
+                        body.velocity[0] = 0
+                        body.parentEntity.position[0] = bodyBounds.centerx - body.offset[0]
+
                 # Left
                 elif (body._moveRequest[0] < 0 and bodyPos[0] > otherPos[0] and abs(
                         bodyBounds.top - otherBounds.bottom) > 1 and abs(bodyBounds.bottom - otherBounds.top) > 1):
@@ -159,29 +165,43 @@ class PhysicsSystem(EntitySystem):
                     body.parentEntity.position[0] = bodyBounds.centerx-body.offset[0]
                     body.velocity[0] = 0
                     body.touchingDirections['left'] = True
-                    if(other != None):
+                    if(other != None and other.static == False and body.velocity[0] != 0):
                         other.touchingDirections['left'] = True
+                        body.velocity[0] = ((body.mass-other.mass)/(body.mass+other.mass))*body.velocity[0] + ((2*other.mass)/(body.mass+other.mass))*other.velocity[0]
+                        other.velocity[0] = ((2*body.mass)/(body.mass+other.mass))*body.velocity[0] - ((body.mass-other.mass)/(body.mass+other.mass))*other.velocity[0]
+                    else:
+                        body.velocity[0] = 0
+                        body.parentEntity.position[0] = bodyBounds.centerx - body.offset[0]
 
                 # Bottom
                 if (body._moveRequest[1] > 0 and bodyPos[1] < otherPos[1] and abs(
                         bodyBounds.left - otherBounds.right) > 1 and abs(bodyBounds.right - otherBounds.left) > 1):
                     bodyBounds.bottom = otherBounds.top
-                    body.parentEntity.position[1] = bodyBounds.centery-body.offset[1]
-                    body.velocity[1] = 0
 
                     body.touchingDirections['bottom'] = True
-                    if(other != None):
+                    if(other != None and other.static == False and body.velocity[1] != 0):
                         other.touchingDirections['top'] = True
+                        body.velocity[1] = ((body.mass-other.mass)/(body.mass+other.mass))*body.velocity[1] + ((2*other.mass)/(body.mass+other.mass))*other.velocity[1]
+                        other.velocity[1] = ((2*body.mass)/(body.mass+other.mass))*body.velocity[1] - ((body.mass-other.mass)/(body.mass+other.mass))*other.velocity[1]
+                    else:
+                        body.velocity[1] = 0
+                        body.parentEntity.position[1] = bodyBounds.centery - body.offset[1]
+
                 # Top
                 elif (body._moveRequest[1] < 0 and bodyPos[1] > otherPos[1] and abs(
                         bodyBounds.left - otherBounds.right) > 1 and abs(bodyBounds.right - otherBounds.left) > 1):
                     bodyBounds.top = otherBounds.bottom
-                    body.parentEntity.position[1] = bodyBounds.centery-body.offset[1]
-                    body.velocity[1] = 0
 
                     body.touchingDirections['top'] = True
-                    if(other != None):
+                    if(other != None and other.static == False and body.velocity[1] != 0):
                         other.touchingDirections['bottom'] = True
+                        body.velocity[1] = ((body.mass-other.mass)/(body.mass+other.mass))*body.velocity[1] + ((2*other.mass)/(body.mass+other.mass))*other.velocity[1]
+                        other.velocity[1] = ((2 * body.mass) / (body.mass + other.mass)) * body.velocity[1] - (
+                                    (body.mass - other.mass) / (body.mass + other.mass)) * other.velocity[1]
+                    else:
+                        body.velocity[1] = 0
+                        body.parentEntity.position[1] = bodyBounds.centery - body.offset[1]
+
         elif(bodyAndOtherCollides):
             if (bodyBounds.left == otherBounds.right and bodyBounds.bottom >= otherBounds.bottom and bodyBounds.top <= otherBounds.top):
                 body.touchingDirections['left'] = True
