@@ -35,3 +35,11 @@ Below is the intended project structure but doesn't necessarily need to be follo
 - `/engine`: This directory contains engine files. These files are responsible for the core functionality of the engine, such as rendering, physics, and audio.
 
 - `/game`: This directory contains the game files. Here you'll find the assets, scripts, and other resources that make up the game itself.
+
+# Gifs
+
+![python_EA7pzBiGDy](https://github.com/AncientEntity/MedusaEngine/assets/22735861/2d6d4a19-3c53-4a3e-b414-f3aecea981dd)
+
+![python_BFsRluECuz](https://github.com/AncientEntity/MedusaEngine/assets/22735861/7ff670b8-0db8-4f6b-bd8f-63489d57ac3c)
+
+
