@@ -33,15 +33,16 @@ class Scene:
             self.RemoveComponent(component)
         self.entities.remove(entity)
 
-    def AddComponent(self, component):
+    def AddComponent(self, component : Component):
         componentType = type(component)
         if (componentType not in self.components):
             self.components[componentType] = []
         self.components[componentType].append(component)
 
-    def RemoveComponent(self, component):
+    def RemoveComponent(self, component : Component):
         componentType = type(component)
         if (componentType in self.components):
+            self.HandleDeleteComponent(component)
             self.components[componentType].remove(component)
 
     def GetSystemByClass(self,systemType : type):
@@ -73,6 +74,11 @@ class Scene:
                     system.OnNewComponent(startComp)
         self._newComponentQueue = []
 
+    def HandleDeleteComponent(self,component : Component):
+        for system in self.systems:
+            if(type(component) in system.targetComponents):
+                system.OnDestroyComponent(component)
+
     def Clear(self):
         self.components = {}
         self.entities = []
@@ -101,4 +107,7 @@ class EntitySystem:
         pass
 
     def OnNewComponent(self,component : Component): #Called when a new component is created into the scene. (Used to initialize that component)
+        pass
+
+    def OnDestroyComponent(self, component : Component): #Called when an existing component is destroyed (Use for deinitializing it from the systems involved)
         pass

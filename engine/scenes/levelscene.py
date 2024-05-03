@@ -24,6 +24,10 @@ class LevelScene(Scene):
         self.tileMapLayers : list[TilemapRenderer] = []
         self.worldTileset = worldTileset
 
+        # Layer0 will have draw order of firstLayerDrawOrder, then Layer1 will have firstLayerDrawOrder+1 and so on.
+        #However, YOU CAN OVERRIDE firstLayerDrawOrder by having drawOrder as a variable property in the map.
+        self.firstLayerDrawOrder = -1000
+
         self.objectMap = objectMap
         self.layerObjects : list = []
         self.layerObjectsDict : dict = {}
@@ -34,6 +38,7 @@ class LevelScene(Scene):
         self.triggers = []
 
         #Load Tile Layers
+        drawOrder = self.firstLayerDrawOrder
         for layer in self.mapJson["layers"]:
             #Get layer offset (if it exists)
             offset = [0, 0]
@@ -44,7 +49,13 @@ class LevelScene(Scene):
                 self.LoadObjectLayer(layer,offset)
             else:
                 #Tile Layer
-                self.CreateEntity("WORLD-"+layer["name"], offset, components=[self.LoadTileLayer(layer)])
+
+                finalDrawOrder = self.GetPropertyOfLayer(layer,"drawOrder")
+                if(finalDrawOrder == None):
+                    finalDrawOrder = drawOrder
+
+                self.CreateEntity("WORLD-"+layer["name"], offset, components=[self.LoadTileLayer(layer,finalDrawOrder)])
+                drawOrder += 1
 
         self.LevelStart()
         super().Init()
@@ -52,7 +63,7 @@ class LevelScene(Scene):
     def LevelStart(self):
         pass
 
-    def LoadTileLayer(self,layer):
+    def LoadTileLayer(self,layer,drawOrder):
         size = (layer["width"], layer["height"])
         tileSize = self.mapJson["tilewidth"]
 
@@ -76,6 +87,7 @@ class LevelScene(Scene):
             tileMapRenderer.physicsLayer = -1
         else:
             tileMapRenderer.physicsLayer = physicsLayer
+        tileMapRenderer.drawOrder = drawOrder
         return tileMapRenderer
 
     def LoadObjectLayer(self,layer,offset): #todo here, must place down all objects found in objectMap and must put all objects into self.objects and make a function to get object(s) by name

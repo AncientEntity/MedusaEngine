@@ -8,7 +8,7 @@ from engine.game import Game
 import time
 from sys import exit
 
-from engine.logging import Log, LOG_ALL, LOG_ERRORS
+from engine.logging import Log, LOG_ALL, LOG_ERRORS, LOG_INFO
 from engine.scenes import splashscene
 
 
@@ -32,7 +32,7 @@ class Engine:
 
         self.LoadGame() #Loads self._game into the engine
     def LoadGame(self):
-        Log("Loading game into engine",LOG_ALL)
+        Log("Loading game into engine",LOG_INFO)
         self.gameName = self._game.name
         if(self._game.startingScene == None):
             Log("Game has no starting scene",LOG_ERRORS)
@@ -43,10 +43,10 @@ class Engine:
             self._currentScene = splashscene.engineSplashScreenScene
         else:
             self._currentScene = self._game.startingScene
-        Log("Finished loading game into engine",LOG_ALL)
+        Log("Finished loading game into engine",LOG_INFO)
 
     async def Start(self):
-        Log("Game Starting",LOG_ALL)
+        Log("Game Starting",LOG_INFO)
         self.Init()
 
         self.running = True
@@ -64,14 +64,14 @@ class Engine:
 
             await asyncio.sleep(0)
     def Init(self):
-        Log("Game Initializing",LOG_ALL)
+        Log("Game Initializing",LOG_INFO)
         pygame.init()
         pygame.mixer.init()
         self.display = pygame.display.set_mode((800,600))
         pygame.display.set_caption(self.gameName)
         self.LoadScene(self._currentScene)
 
-        Log("Game Initialized",LOG_ALL)
+        Log("Game Initialized",LOG_INFO)
 
     def InputTick(self):
 
@@ -112,11 +112,11 @@ class Engine:
         self._currentScene = scene
         self._currentScene.game = self
         self._currentScene.Init()
-        Log("Loading scene: "+scene.name,LOG_ALL)
+        Log("Loading scene: "+scene.name,LOG_INFO)
     def GetCurrentScene(self):
         return self._currentScene
     def Quit(self):
-        Log("Game Quitting",LOG_ALL)
+        Log("Game Quitting",LOG_INFO)
         exit(0)
 
 class Input:

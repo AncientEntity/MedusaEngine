@@ -15,7 +15,7 @@ def CreatePlayer(scene):
     physicsComponent.bounds = [10,16]
     physicsComponent.offset = (0,6)
     physicsComponent.collidesWithLayers = [1]
-    physicsComponent.triggersWithLayers = []
+    physicsComponent.triggersWithLayers = [0]
     physicsComponent.physicsLayer = 0
     physicsComponent.mapToSpriteOnStart = False
     def TriggersSomething(self,other):

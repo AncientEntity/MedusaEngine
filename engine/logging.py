@@ -4,12 +4,13 @@ from sys import exit
 LOG_NOTHING = 0
 LOG_ERRORS = 1
 LOG_WARNINGS = 2
-LOG_ALL = 3
+LOG_INFO = 3
+LOG_ALL = 4
 
 LOG_LEVEL = 3
 
 def LogPrefix(level):
-    if(level == LOG_ALL):
+    if(level == LOG_ALL or level == LOG_INFO):
         return "[Logging]"
     elif(level == LOG_WARNINGS):
         return "[Warning]"
