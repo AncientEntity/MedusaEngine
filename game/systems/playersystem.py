@@ -22,7 +22,7 @@ class PlayerSystem(EntitySystem):
     def PlayerMovement(self,player : PlayerComponent):
         moved = False
         if (Input.KeyDown(player.controls["up"]) and player.parentEntity.GetComponent(physics.PhysicsComponent).touchingDirections['bottom']):
-            player.parentEntity.GetComponent(physics.PhysicsComponent).velocity[1] -= 150
+            player.parentEntity.GetComponent(physics.PhysicsComponent).velocity[1] -= 200
             moved = True
         if (Input.KeyPressed(player.controls["left"])):
             player.parentEntity.GetComponent(physics.PhysicsComponent).AddVelocity((-self.game.deltaTime * player.speed,0))

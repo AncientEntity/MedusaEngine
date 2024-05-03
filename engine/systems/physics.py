@@ -16,6 +16,7 @@ class PhysicsComponent(Component):
         self.physicsLayer = 0
         self.collidesWithLayers = [0]
         self.triggersWithLayers = [0]
+        self.onTriggerStart = [] #List of functions that take in body : PhysicsComponent, other : PhysicsComponent. Runs when something 'first starts to trigger with self'
 
         self.friction = [5,0]
         self.mass = 1.0
@@ -26,8 +27,6 @@ class PhysicsComponent(Component):
         self._moveRequest = None #Move() adds to this so the physics calculations know what the object wants.
         self._thisStepTriggeredWith = [] #List of other physics components that this collided with this frame.
         self._lastStepTriggeredWith = [] #List of other physics components that this collided with last frame.
-        self._onTriggerStart = [] #List of functions that take in body : PhysicsComponent, other : PhysicsComponent. Runs when something 'first starts to trigger with self'
-
     def Move(self,movement):
         if(self._moveRequest == None):
             self._moveRequest = [0,0]
@@ -228,13 +227,13 @@ class PhysicsSystem(EntitySystem):
 
     def HandleTriggerPhysics(self,body,other):
         if (other != None):  # since we move body out of the way other will never detect it as a trigger. So we need them to both trigger.
-            if (other.physicsLayer in body.collidesWithLayers):
+            if (other.physicsLayer in body.triggersWithLayers):
                 self.CheckTriggerStart(body, other)
-            if (body.physicsLayer in other.collidesWithLayers):
+            if (body.physicsLayer in other.triggersWithLayers):
                 self.CheckTriggerStart(other, body)
 
     def CheckTriggerStart(self,body1,body2):
         if (body2 not in body1._lastStepTriggeredWith and body2 not in body1._thisStepTriggeredWith):
-            for triggerStartFunc in body1._onTriggerStart:
+            for triggerStartFunc in body1.onTriggerStart:
                 triggerStartFunc(body1, body2)
         body1._thisStepTriggeredWith.append(body2)
