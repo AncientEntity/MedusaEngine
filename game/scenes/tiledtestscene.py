@@ -15,6 +15,6 @@ class TiledTestScene(LevelScene):
         self.systems.append(NPCSystem())
     def LevelStart(self):
         prefabs.CreatePlayer(self).position = self.GetRandomTiledObjectByName("SPAWN")["position"]
-        p2 = prefabs.CreatePlayer(self)
-        p2.position = self.GetRandomTiledObjectByName("SPAWN")["position"]
-        p2.GetComponent(PlayerComponent).controls = {'up' : pygame.K_UP, 'down' : pygame.K_DOWN, 'left' : pygame.K_LEFT, 'right' : pygame.K_RIGHT}
+        #p2 = prefabs.CreatePlayer(self)
+        #p2.position = self.GetRandomTiledObjectByName("SPAWN")["position"]
+        #p2.GetComponent(PlayerComponent).controls = {'up' : pygame.K_UP, 'down' : pygame.K_DOWN, 'left' : pygame.K_LEFT, 'right' : pygame.K_RIGHT}

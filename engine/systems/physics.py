@@ -200,23 +200,23 @@ class PhysicsSystem(EntitySystem):
                         body.velocity[1] = 0
                         body.parentEntity.position[1] = bodyBounds.centery - body.offset[1]
 
-        elif(bodyAndOtherCollides):
-            if (bodyBounds.left == otherBounds.right and bodyBounds.bottom >= otherBounds.bottom and bodyBounds.top <= otherBounds.top):
+        else:
+            if (bodyBounds.left == otherBounds.right and round(bodyBounds.bottom) >= round(otherBounds.bottom) and round(bodyBounds.top) <= round(otherBounds.top)):
                 body.touchingDirections['left'] = True
                 if(other != None):
                     other.touchingDirections['right'] = True
                     self.HandleTriggerPhysics(body, other)
-            if (bodyBounds.right == otherBounds.left and bodyBounds.bottom >= otherBounds.bottom and bodyBounds.top <= otherBounds.top):
+            if (bodyBounds.right == otherBounds.left and round(bodyBounds.bottom) >= round(otherBounds.bottom) and round(bodyBounds.top) <= round(otherBounds.top)):
                 body.touchingDirections['right'] = True
                 if(other != None):
                     other.touchingDirections['left'] = True
                     self.HandleTriggerPhysics(body, other)
-            if (bodyBounds.top == otherBounds.bottom and bodyBounds.right >= otherBounds.left and bodyBounds.left <= otherBounds.right):
+            if (bodyBounds.top == otherBounds.bottom and round(bodyBounds.right) >= round(otherBounds.left) and round(bodyBounds.left) <= round(otherBounds.right)):
                 body.touchingDirections['top'] = True
                 if(other != None):
                     other.touchingDirections['bottom'] = True
                     self.HandleTriggerPhysics(body, other)
-            if (bodyBounds.bottom == otherBounds.top and bodyBounds.right >= otherBounds.left and bodyBounds.left <= otherBounds.right):
+            if (bodyBounds.bottom == otherBounds.top and round(bodyBounds.right) >= round(otherBounds.left) and round(bodyBounds.left) <= round(otherBounds.right)):
                 body.touchingDirections['bottom'] = True
                 if(other != None):
                     other.touchingDirections['top'] = True
