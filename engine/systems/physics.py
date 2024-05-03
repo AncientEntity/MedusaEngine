@@ -27,6 +27,7 @@ class PhysicsComponent(Component):
         self._moveRequest = None #Move() adds to this so the physics calculations know what the object wants.
         self._thisStepTriggeredWith = [] #List of other physics components that this collided with this frame.
         self._lastStepTriggeredWith = [] #List of other physics components that this collided with last frame.
+
     def Move(self,movement):
         if(self._moveRequest == None):
             self._moveRequest = [0,0]
@@ -79,7 +80,6 @@ class PhysicsSystem(EntitySystem):
         for body in currentScene.components[PhysicsComponent]:
             if(body.static): #If static do not check for collisions with others, as it should be stationary.
                 continue
-
             #Add gravity
             self.ApplyGravity(body,stepTime)
 
@@ -99,7 +99,7 @@ class PhysicsSystem(EntitySystem):
             #Physics Component Collision
             other : PhysicsComponent
             for other in currentScene.components[PhysicsComponent]:
-                if(body == other or (other.physicsLayer not in body.collidesWithLayers and other.physicsLayer not in body.triggersWithLayers)):
+                if(body == other or self.DoBodiesInteract(body,other) == False):
                     continue
 
                 bodyPos = [body.parentEntity.position[0]+body.offset[0],body.parentEntity.position[1]+body.offset[1]]
@@ -237,3 +237,6 @@ class PhysicsSystem(EntitySystem):
             for triggerStartFunc in body1.onTriggerStart:
                 triggerStartFunc(body1, body2)
         body1._thisStepTriggeredWith.append(body2)
+
+    def DoBodiesInteract(self,body1 : PhysicsComponent,body2 : PhysicsComponent):
+        return body1.physicsLayer in body2.collidesWithLayers or body1.physicsLayer in body2.triggersWithLayers or body2.physicsLayer in body1.collidesWithLayers or body2.physicsLayer in body1.triggersWithLayers

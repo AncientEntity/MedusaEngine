@@ -15,11 +15,11 @@ def CreatePlayer(scene):
     physicsComponent.bounds = [10,16]
     physicsComponent.offset = (0,6)
     physicsComponent.collidesWithLayers = [1]
-    physicsComponent.triggersWithLayers = [0]
+    physicsComponent.triggersWithLayers = []
     physicsComponent.physicsLayer = 0
     physicsComponent.mapToSpriteOnStart = False
     def TriggersSomething(self,other):
-        if(other.parentEntity.name != "Player"):
+        if(other.parentEntity.name == "SkeletonEnemy"):
             scene.DeleteEntity(other.parentEntity)
     physicsComponent.onTriggerStart.append(TriggersSomething)
 
@@ -45,4 +45,5 @@ def CreateSkeleton(scene):
     t.GetComponent(PhysicsComponent).collidesWithLayers = [1,2]
     t.GetComponent(PhysicsComponent).triggersWithLayers = [0,2]
     t.GetComponent(PhysicsComponent).physicsLayer = 0
+    t.GetComponent(PhysicsComponent).MapToSpriteRenderer()
     return t

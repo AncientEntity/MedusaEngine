@@ -1,7 +1,10 @@
 import random
 
+from pygame import FRect
+
 from engine.ecs import Scene
 from engine.systems import renderer, physics
+from engine.systems.physics import PhysicsComponent
 from engine.systems.renderer import TilemapRenderer, Tilemap
 from engine.tools.spritesheet import SpriteSheet
 import engine.tools.tiled as tiled
@@ -24,9 +27,11 @@ class LevelScene(Scene):
         self.objectMap = objectMap
         self.layerObjects : list = []
         self.layerObjectsDict : dict = {}
+        self.triggers : list = []
     def Init(self):
         self.Clear()
         self.layerObjects = []
+        self.triggers = []
 
         #Load Tile Layers
         for layer in self.mapJson["layers"]:
@@ -77,12 +82,35 @@ class LevelScene(Scene):
         for object in layer["objects"]:
             self.layerObjects.append(object)
             object["position"] = tiled.ObjectPositionToLocalPosition(object["x"]+offset[0],object["y"]+offset[1],self.mapJson)
+            if("width" in object and "height" in object and object["width"] > 0 and object["height"] > 0):
+                object["rect"] = FRect(object["position"][0],object["position"][1],object["width"],object["height"])
+                self.CreateTriggerEntityFromObject(object)
             if(object["name"] not in self.layerObjectsDict):
                 self.layerObjectsDict[object["name"]] = []
             self.layerObjectsDict[object["name"]].append(object)
             if(self.objectMap != None and object["name"] in self.objectMap):
                 objectInstance = self.objectMap[object["name"]](self) #Create objectInstance from creator function
                 objectInstance.position = object["position"]
+
+    def CreateTriggerEntityFromObject(self,object):
+        triggerPhysics = PhysicsComponent()
+        triggerPhysics.collidesWithLayers = []
+
+        triggersWithLayers = []
+        for layerID in self.GetPropertyOfLayer(object,"triggersLayer").split(","):
+            triggersWithLayers.append(int(layerID))
+
+        triggerPhysics.triggersWithLayers = triggersWithLayers
+        triggerPhysics.physicsLayer = self.GetPropertyOfLayer(object,"physicsLayer")
+        triggerPhysics.mapToSpriteOnStart = False
+        triggerPhysics.bounds = (object["rect"].width,object["rect"].height)
+
+        #Instead of subtracting half width/height we add since Tiled object["position"] is top left
+        worldPosition = [object["position"][0]+object["width"]/2.0,object["position"][1]+object["height"]/2.0]
+
+        trigger = self.CreateEntity("WORLD-Trigger-"+object["name"],worldPosition,components=[triggerPhysics])
+        object["trigger"] = triggerPhysics
+        self.triggers.append(trigger)
 
     def GetPropertyOfLayer(self,layer,propertyName):
         if("properties" in layer):
@@ -101,6 +129,12 @@ class LevelScene(Scene):
     def GetTiledObjectsByName(self, objName):
         if(objName in self.layerObjectsDict):
             return self.layerObjectsDict[objName]
+
+    def GetTriggerByName(self,triggerName):
+        obj = self.GetTiledObjectByName(triggerName)
+        if(obj != None and "trigger" in obj):
+            return obj["trigger"]
+        return None
 
     def GetRandomTiledObjectByName(self,objName):
         if(objName in self.layerObjectsDict):
