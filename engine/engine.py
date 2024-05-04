@@ -70,6 +70,8 @@ class Engine:
         pygame.mixer.init()
         self.display = pygame.display.set_mode((800,600))
         pygame.display.set_caption(self.gameName)
+        if(self._game.icon != None):
+            pygame.display.set_icon(self._game.icon)
         self.LoadScene(self._currentScene)
 
         Log("Game Initialized",LOG_INFO)
