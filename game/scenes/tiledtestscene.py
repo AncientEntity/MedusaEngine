@@ -1,3 +1,5 @@
+import random
+
 from engine.scenes.levelscene import LevelScene
 from game import prefabs
 from game.assets import worldTileset
@@ -13,11 +15,15 @@ class TiledTestScene(LevelScene):
         self.player = None
     def LevelStart(self):
         self.player = prefabs.CreatePlayer(self)
-        self.player.position = self.GetRandomTiledObjectByName("SPAWN")["position"]
+        self.player.position = self.GetRandomTiledObjectByName("SPAWN")["position"][:]
 
         def SpawnEnemyAbovePlayer(s,o):
             if(o.parentEntity.name == "Player"):
                 newSkeleton = prefabs.CreateSkeleton(self)
                 newSkeleton.position = [self.player.position[0], self.player.position[1] - 100]
+
+        for i in range(5):
+            p = prefabs.CreateParticleTestPrefab(self)
+            p.position = self.GetRandomTiledObjectByName("SPAWN")["position"][:]
 
         self.GetTriggerByName("TEST TRIGGER").onTriggerStart.append(SpawnEnemyAbovePlayer)

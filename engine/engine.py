@@ -24,6 +24,7 @@ class Engine:
 
         self._lastTickStart = 0
         self.deltaTime = 0
+        self.frameStartTime = 0
         self.maxDeltaTime = 0.1 #Maximum delta time enforced to prevent unintended concequences of super high delta time.
 
         self._inputStates = {}
@@ -52,11 +53,11 @@ class Engine:
         self.running = True
         self._lastTickStart = time.time()
         while self.running:
-            frameStartTime = time.time()
-            self.deltaTime = frameStartTime - self._lastTickStart
+            self.frameStartTime = time.time()
+            self.deltaTime = self.frameStartTime - self._lastTickStart
             if(self.deltaTime > self.maxDeltaTime): #Maximum delta time enforced to prevent unintended concequences of super high delta time.
                 self.deltaTime = self.maxDeltaTime
-            self._lastTickStart = frameStartTime
+            self._lastTickStart = self.frameStartTime
 
             #Game Loop
             self.InputTick()

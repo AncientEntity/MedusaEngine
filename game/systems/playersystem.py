@@ -20,7 +20,7 @@ class PlayerSystem(EntitySystem):
             RenderingSystem.instance.cameraPosition = player.parentEntity.position
     def PlayerMovement(self,player : PlayerComponent):
         moved = False
-        if (Input.KeyDown(player.controls["up"]) and player.parentEntity.GetComponent(physics.PhysicsComponent).touchingDirections['bottom']):
+        if (Input.KeyPressed(player.controls["up"]) and player.parentEntity.GetComponent(physics.PhysicsComponent).touchingDirections['bottom']):
             player.parentEntity.GetComponent(physics.PhysicsComponent).velocity[1] -= 200
             moved = True
         if (Input.KeyPressed(player.controls["left"])):

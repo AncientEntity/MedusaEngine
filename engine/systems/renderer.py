@@ -2,6 +2,7 @@ import math
 
 import pygame.display
 
+from engine.components.rendering.particlecomponent import ParticleEmitterComponent, Particle
 from engine.components.rendering.renderercomponent import RendererComponent
 from engine.components.rendering.spriterenderer import SpriteRenderer
 from engine.components.rendering.tilemaprenderer import TilemapRenderer
@@ -16,7 +17,7 @@ def CenterToTopLeftPosition(centerPosition, surface : pygame.Surface):
 class RenderingSystem(EntitySystem):
     instance = None
     def __init__(self):
-        super().__init__([SpriteRenderer,TilemapRenderer])
+        super().__init__([SpriteRenderer,TilemapRenderer,ParticleEmitterComponent])
         self.cameraPosition = [0,0]
         self.renderScale = 3
         self.backgroundColor = (255,255,255)
@@ -35,11 +36,11 @@ class RenderingSystem(EntitySystem):
         self._scaledHalfSize = [self._scaledScreenSize[0]//2,self._scaledScreenSize[1]//2]
         self._renderTarget = pygame.Surface(self._scaledScreenSize)
 
-    def OnNewComponent(self,component : Component):
+    def OnNewComponent(self,component : RendererComponent):
         self.InsertIntoSortedRenderOrder(component)
         Log("Added "+component.parentEntity.name + " to rendering order."+str(component.drawOrder),LOG_ALL)
 
-    def OnDestroyComponent(self, component : Component):
+    def OnDestroyComponent(self, component : RendererComponent):
         indexOfComponent = self._sortedRenderOrder.index(component)
         if(indexOfComponent != -1):
             self._sortedRenderOrder.pop(indexOfComponent)
@@ -73,6 +74,8 @@ class RenderingSystem(EntitySystem):
                 self.RenderSpriteRenderer(renderer)
             elif(isinstance(renderer,TilemapRenderer)):
                 self.RenderTileMapRenderer(renderer)
+            elif(isinstance(renderer,ParticleEmitterComponent)):
+                self.RenderParticleEmitter(renderer)
 
         #Finally blit the render target onto the final display.
         self.game.display.blit(pygame.transform.scale(self._renderTarget,(self._screenSize[0],self._screenSize[1])),(0,0))
@@ -123,6 +126,40 @@ class RenderingSystem(EntitySystem):
 
                 targetSprite = GetSprite(tileMapRenderer.tileMap.tileSet[tileMapRenderer.tileMap.map[x][y]])
                 self._renderTarget.blit(targetSprite, leftAnchoredScreenPosition)
+
+    def RenderParticleEmitter(self,emitter : ParticleEmitterComponent):
+        if(emitter.sprite == None):
+            return
+
+        #See if a new particle should spawn, if so create it.
+        for i in range(int((self.game.frameStartTime - emitter._lastParticleSpawnTime) * emitter.particlesPerSecond)):
+            if (len(emitter._activeParticles) >= emitter.maxParticles):
+                break
+            emitter.NewParticle()
+            emitter._lastParticleSpawnTime = self.game.frameStartTime
+
+        #Now simulate and render all particles
+        particle : Particle
+        for particle in emitter._activeParticles[:]:
+            #Simulate
+            particle.lifeTime -= self.game.deltaTime
+            if(particle.lifeTime <= 0):
+                emitter._activeParticles.remove(particle)
+                continue
+
+            particle.velocity[0] += particle.gravity[0] * self.game.deltaTime
+            particle.velocity[1] += particle.gravity[1] * self.game.deltaTime
+
+            particle.position[0] += particle.velocity[0] * self.game.deltaTime
+            particle.position[1] += particle.velocity[1] * self.game.deltaTime
+
+
+            #Render
+            if (self.IsOnScreenRect(pygame.Rect(particle.position[0], particle.position[1], particle.sprite.get_width(), particle.sprite.get_height()))):
+                finalSprite = GetSprite(particle.sprite)
+                self._renderTarget.blit(finalSprite,self.FinalPositionOfSprite(particle.position,finalSprite))
+
+
 
     def WorldToScreenPosition(self,position):
         return [position[0] - self.cameraPosition[0] + self._scaledHalfSize[0], position[1] - self.cameraPosition[1] + self._scaledHalfSize[1]]

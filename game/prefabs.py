@@ -1,5 +1,6 @@
 import random
 
+from engine.components.rendering.particlecomponent import ParticleEmitterComponent, Particle
 from engine.datatypes.sprites import AnimatedSprite
 from engine.ecs import Entity
 from engine.engine import Engine
@@ -46,5 +47,14 @@ def CreateSkeleton(scene):
     t.GetComponent(PhysicsComponent).collidesWithLayers = [1,2]
     t.GetComponent(PhysicsComponent).triggersWithLayers = [0,2]
     t.GetComponent(PhysicsComponent).physicsLayer = 0
-    t.GetComponent(PhysicsComponent).MapToSpriteRenderer()
+    t.GetComponent(PhysicsComponent).mapToSpriteOnStart = False
+    t.GetComponent(PhysicsComponent).bounds = [10,16]
     return t
+
+def CreateParticleTestPrefab(scene):
+    particleComponent = ParticleEmitterComponent()
+
+
+    particleComponent.SetSpriteColor((random.randint(100,255),random.randint(0,50),random.randint(0,50)))
+
+    return scene.CreateEntity("PARTICLE",[0,0],components=[particleComponent])
