@@ -1,4 +1,3 @@
-from engine.logging import *
 
 class Component:
     def __init__(self):

@@ -1,10 +1,11 @@
 import random
 
+from engine.datatypes.sprites import AnimatedSprite
 from engine.ecs import Entity
 from engine.engine import Engine
 from engine.systems import physics
 from engine.systems.physics import PhysicsComponent
-from engine.systems.renderer import SpriteRenderer, AnimatedSprite
+from engine.systems.renderer import SpriteRenderer
 from game import assets
 from game.systems import playersystem
 from game.systems.NPCSystem import NPCComponent

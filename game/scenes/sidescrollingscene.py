@@ -1,17 +1,15 @@
 import pygame
 
-from engine import ecs
-from engine.ecs import Entity, Scene
-from engine.systems import renderer, physics
 import random
 
-from engine.systems.physics import PhysicsComponent
-from engine.systems.renderer import TilemapRenderer, SpriteRenderer, AnimatedSprite
-from engine.tools.spritesheet import SpriteSheet
+from engine.components.rendering.tilemaprenderer import Tilemap
+from engine.ecs import Scene
+from engine.systems import physics, renderer
+from engine.systems.renderer import TilemapRenderer
 from game import prefabs
 from game.assets import dungeonTileSet
 from game.systems import playersystem
-from game.systems.NPCSystem import NPCComponent, NPCSystem
+from game.systems.NPCSystem import NPCSystem
 from game.systems.playersystem import PlayerComponent
 
 
@@ -21,7 +19,7 @@ class SideScrollingScene(Scene):
         self.systems = [renderer.RenderingSystem(),playersystem.PlayerSystem(),physics.PhysicsSystem(),NPCSystem()]
     def Init(self):
         self.Clear()
-        mapEntity = self.CreateEntity(name="Map Entity",position=[0,0],components=[TilemapRenderer(renderer.Tilemap([50,11]))])
+        mapEntity = self.CreateEntity(name="Map Entity",position=[0,0],components=[TilemapRenderer(Tilemap([50,11]))])
         mapEntity.GetComponent(TilemapRenderer).tileMap.tileSize = 16
         mapEntity.GetComponent(TilemapRenderer).tileMap.SetTileSetFromSpriteSheet(dungeonTileSet)
         mapEntity.GetComponent(TilemapRenderer).physicsLayer = 1

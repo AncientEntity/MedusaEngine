@@ -1,10 +1,9 @@
 import pygame
 
-from engine.ecs import EntitySystem, Component, Scene
+from engine.ecs import EntitySystem, Scene
 from engine.engine import Input
 from engine.systems import physics
-from engine.systems.renderer import SpriteRenderer, RenderingSystem, AnimatedSprite
-from game import assets
+from engine.systems.renderer import SpriteRenderer, RenderingSystem
 from game.components.playercomponent import PlayerComponent
 from game.scenes import sidescrollingscene
 from game.scenes.tiledtestscene import TiledTestScene

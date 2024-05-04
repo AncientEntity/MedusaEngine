@@ -1,5 +1,4 @@
 from engine.ecs import EntitySystem, Scene, Component
-from engine.systems.renderer import SpriteRenderer
 
 
 class NPCComponent(Component):

@@ -1,7 +1,7 @@
 #Engine splash screen scene
 import pygame.font
 
-from engine.ecs import Scene, Entity, EntitySystem
+from engine.ecs import Scene, EntitySystem
 from engine.systems.renderer import RenderingSystem, SpriteRenderer
 
 #This loads the starting scene of the game after X seconds

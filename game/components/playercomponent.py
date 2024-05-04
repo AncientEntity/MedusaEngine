@@ -1,7 +1,7 @@
+from engine.datatypes.sprites import AnimatedSprite
 from engine.ecs import Component
 import pygame
 
-from engine.systems.renderer import AnimatedSprite
 from game import assets
 
 

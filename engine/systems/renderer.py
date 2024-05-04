@@ -2,140 +2,16 @@ import math
 
 import pygame.display
 
+from engine.components.rendering.renderercomponent import RendererComponent
+from engine.components.rendering.spriterenderer import SpriteRenderer
+from engine.components.rendering.tilemaprenderer import TilemapRenderer
+from engine.datatypes.sprites import GetSprite
 from engine.ecs import EntitySystem, Scene, Component
-from engine.logging import Log, LOG_ERRORS, LOG_ALL
-from engine.tools.spritesheet import SpriteSheet
-import time
+from engine.logging import Log, LOG_ALL
+
 
 def CenterToTopLeftPosition(centerPosition, surface : pygame.Surface):
     return [centerPosition[0]-surface.get_width()//2,centerPosition[1]-surface.get_height()//2]
-
-def GetSprite(sprite):
-    if(isinstance(sprite,pygame.Surface)):
-        return sprite
-    else:
-        return sprite.GetSprite()
-
-class Sprite: #TODO sprite draw order implementation to control draw order.
-    def __init__(self,filePathOrSurface : str or pygame.Surface):
-        if(isinstance(filePathOrSurface,str)):
-            if(filePathOrSurface != ""):
-                self.sprite = pygame.image.load(filePathOrSurface)
-            else:
-                self.sprite = None
-        elif(isinstance(filePathOrSurface,pygame.Surface)):
-            self.sprite = filePathOrSurface
-        self._flipX = False
-        self.ignoreCollision = False
-    def GetSprite(self):
-        return self.sprite
-    def FlipX(self,flipped):
-        if(flipped == self._flipX):
-            return
-
-        self._flipX = flipped
-        if(isinstance(self.sprite,pygame.Surface)):
-            self.sprite = pygame.transform.flip(self.sprite,True,False)
-        else:
-            self.sprite.FlipX(flipped)
-    def get_width(self):
-        return self.sprite.get_width()
-    def get_height(self):
-        return self.sprite.get_height()
-
-class AnimatedSprite(Sprite):
-    def __init__(self,sprites,fps):
-        super().__init__("")
-        self.timer = 0
-        self.sprites = sprites
-        self.fps = fps
-        self.lastTime = time.time()
-    def GetSprite(self):
-        self.timer += (time.time() - self.lastTime)
-        self.lastTime = time.time()
-        targetSprite = self.sprites[int((self.timer * self.fps) % len(self.sprites))]
-        if isinstance(targetSprite, pygame.Surface):
-            return targetSprite
-        elif(isinstance(targetSprite,Sprite)):
-            return targetSprite.GetSprite()
-    def FlipX(self,flipped):
-        if(flipped == self._flipX):
-            return
-
-        self._flipX = flipped
-        for i in range(len(self.sprites)):
-            if(isinstance(self.sprites[i],pygame.Surface)):
-                self.sprites[i] = pygame.transform.flip(self.sprites[i],True,False)
-            else:
-                self.sprites[i].FlipX(flipped)
-    def get_width(self):
-        return self.GetSprite().get_width()
-    def get_height(self):
-        return self.GetSprite().get_height()
-
-class RendererComponent(Component):
-    def __init__(self):
-        super().__init__()
-        self.drawOrder = 0
-
-class SpriteRenderer(RendererComponent):
-    def __init__(self, sprite : Sprite or pygame.Surface):
-        super().__init__()
-        self.sprite = sprite
-
-
-class Tilemap:
-    def __init__(self,size):
-        self.size = size
-        self.tileSize = 50
-        self.map = []
-        self.tileSet : dict = dict() #{0: Sprite, 1 : Sprite, 2 : Sprite} or {"orc_1" : Sprite, "orc_2" : Sprite} etc dont put surfaces in
-
-        for x in range(self.size[0]):
-            xRow = []
-            for i in range(self.size[1]):
-                xRow.append(-1)
-            self.map.append(xRow)
-    def SetTile(self,tileID : int, x,y):
-        if(x < self.size[0] and y < self.size[1] and (tileID in self.tileSet or tileID == -1)):
-            self.map[x][y] = tileID
-        else:
-            Log("Invalid spot to set tile or invalid tileID."+str(tileID),LOG_ERRORS)
-    def SetTileSetFromSpriteSheet(self,spriteSheet : SpriteSheet):
-        if(spriteSheet.splitType == 'size'):
-            i = 0
-            for x in range(spriteSheet.xCount):
-                for y in range(spriteSheet.yCount):
-                    self.tileSet[i] = Sprite(spriteSheet[(y,x)])
-                    i += 1
-        elif(spriteSheet.splitType == 'map'):
-            for key,value in spriteSheet.sprites.items():
-                self.tileSet[key] = Sprite(value)
-        else:
-            Log("Unknown sprite sheet split type: ",spriteSheet.splitType,LOG_ERRORS)
-
-class TilemapRenderer(RendererComponent):
-    def __init__(self,tileMap=None):
-        super().__init__()
-        self.tileMap = tileMap
-        self.physicsLayer = 0
-    def WorldToRoundedPosition(self, worldPosition): #Rounds a world position to a world position where the tile is.
-        return [(worldPosition[0]-self.parentEntity.position[0])//self.tileMap.tileSize*self.tileMap.tileSize,(worldPosition[1]-self.parentEntity.position[1])//self.tileMap.tileSize*self.tileMap.tileSize]
-    def WorldToTilePosition(self,worldPosition):
-        return [(worldPosition[0]-self.parentEntity.position[0]+(self.tileMap.size[0]//2*self.tileMap.tileSize))//self.tileMap.tileSize,(worldPosition[1]-self.parentEntity.position[1]+(self.tileMap.size[1]//2*self.tileMap.tileSize))//self.tileMap.tileSize]
-    def TileToWorldPosition(self,tilePosition):
-        return [tilePosition[0]*self.tileMap.tileSize+self.parentEntity.position[0]-(self.tileMap.size[0]/2*self.tileMap.tileSize),tilePosition[1]*self.tileMap.tileSize+self.parentEntity.position[1]-(self.tileMap.size[1]/2*self.tileMap.tileSize)]
-
-    def GetOverlappingTilesInTileSpace(self,topLeft,bottomRight):
-        tiles = []
-        for x in range(topLeft[0]-2,bottomRight[0]+2):
-            for y in range(topLeft[1]-2,bottomRight[1]+2):
-                if(x >= 0 and y >= 0 and x < self.tileMap.size[0] and y < self.tileMap.size[1]):
-                    worldPos = self.TileToWorldPosition((x,y))
-                    tiles.append([self.tileMap.map[x][y],(worldPos[0],worldPos[1])])
-        return tiles
-
-
 
 class RenderingSystem(EntitySystem):
     instance = None

@@ -2,7 +2,7 @@
 #More info: https://www.mapeditor.org/
 import json
 import engine.systems.renderer
-from engine.tools.spritesheet import SpriteSheet
+from engine.datatypes.spritesheet import SpriteSheet
 
 def TiledGetRawMapData(mapFilePath):
     tileFile = open(mapFilePath, "r")

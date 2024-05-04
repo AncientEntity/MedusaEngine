@@ -2,13 +2,12 @@ import random
 
 from pygame import FRect
 
+from engine.components.rendering.tilemaprenderer import Tilemap, TilemapRenderer
 from engine.ecs import Scene
 from engine.systems import renderer, physics
 from engine.systems.physics import PhysicsComponent
-from engine.systems.renderer import TilemapRenderer, Tilemap
-from engine.tools.spritesheet import SpriteSheet
+from engine.datatypes.spritesheet import SpriteSheet
 import engine.tools.tiled as tiled
-from game import prefabs
 
 
 class LevelScene(Scene):
