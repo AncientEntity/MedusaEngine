@@ -101,7 +101,10 @@ class LevelScene(Scene):
             self.layerObjectsDict[object["name"]].append(object)
             if(self.objectMap != None and object["name"] in self.objectMap):
                 objectInstance = self.objectMap[object["name"]](self) #Create objectInstance from creator function
-                objectInstance.position = object["position"]
+                objectInstance.position = object["position"][:]
+
+            if(object["name"] == "CAMERA"):
+                self.GetSystemByClass(renderer.RenderingSystem).cameraPosition = object["position"][:]
 
     def CreateTriggerEntityFromObject(self,object):
         triggerPhysics = PhysicsComponent()
