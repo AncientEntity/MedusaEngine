@@ -8,7 +8,7 @@ from engine.game import Game
 import time
 from sys import exit
 
-from engine.logging import Log, LOG_ALL, LOG_ERRORS, LOG_INFO
+from engine.logging import Log, LOG_ALL, LOG_ERRORS, LOG_INFO, LOG_WARNINGS
 from engine.scenes import splashscene
 
 
@@ -30,6 +30,8 @@ class Engine:
         self._inputStates = {}
         self.scroll = 0
         Engine._instance = self
+
+        self._queuedScene = None # LoadScene sets this, and the update loop will swap scenes if this isn't none.
 
         self.LoadGame() #Loads self._game into the engine
     def LoadGame(self):
@@ -58,6 +60,10 @@ class Engine:
             if(self.deltaTime > self.maxDeltaTime): #Maximum delta time enforced to prevent unintended concequences of super high delta time.
                 self.deltaTime = self.maxDeltaTime
             self._lastTickStart = self.frameStartTime
+
+            #Check if there is a queued scene, if so swap to it.
+            if(self._queuedScene != None):
+                self._LoadQueuedScene()
 
             #Game Loop
             self.InputTick()
@@ -110,12 +116,17 @@ class Engine:
         return self.IsKeyState(key,KEYDOWN)
     def KeyUp(self,key : int) -> bool:
         return self.IsKeyState(key,KEYUP)
-
     def LoadScene(self, scene : ecs.Scene):
-        self._currentScene = scene
+        if(self._queuedScene != None):
+            Log("Scene queuing on top of another scene. Before: "+self._queuedScene.name+", now: "+scene,LOG_WARNINGS)
+        self._queuedScene = scene
+        Log("Queued scene: "+scene.name,LOG_INFO)
+    def _LoadQueuedScene(self):
+        Log("Loading scene: "+self._queuedScene.name,LOG_INFO)
+        self._currentScene = self._queuedScene
+        self._queuedScene = None
         self._currentScene.game = self
         self._currentScene.Init()
-        Log("Loading scene: "+scene.name,LOG_INFO)
     def GetCurrentScene(self):
         return self._currentScene
     def Quit(self):
