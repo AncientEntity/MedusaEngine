@@ -53,7 +53,8 @@ class LevelScene(Scene):
                 if(finalDrawOrder == None):
                     finalDrawOrder = drawOrder
 
-                self.CreateEntity("WORLD-"+layer["name"], offset, components=[self.LoadTileLayer(layer,finalDrawOrder)])
+                layerEnt = self.CreateEntity("WORLD-"+layer["name"], offset, components=[self.LoadTileLayer(layer,finalDrawOrder)])
+                self.tileMapLayers.append(layerEnt)
                 drawOrder += 1
 
         self.LevelStart()
