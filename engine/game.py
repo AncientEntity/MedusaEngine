@@ -7,3 +7,4 @@ class Game:
         self.startingScene : Scene = None
         self.startingSplashEnabled = True
         self.icon = None
+        self.windowSize : tuple(int) = (800,600)
