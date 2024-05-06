@@ -74,7 +74,7 @@ class Engine:
         Log("Game Initializing",LOG_INFO)
         pygame.init()
         pygame.mixer.init()
-        self.display = pygame.display.set_mode((800,600))
+        self.display = pygame.display.set_mode(self._game.windowSize)
         pygame.display.set_caption(self.gameName)
         if(self._game.icon != None):
             pygame.display.set_icon(self._game.icon)
