@@ -64,7 +64,7 @@ class Scene:
             for targetComponent in system.targetComponents:
                 if (targetComponent not in self.components):
                     self.components[targetComponent] = []
-            system.OnEnable()
+            system.OnEnable(self) #Pass self into on enable (which is the scene)
 
     def HandleNewComponents(self): #Runs OnNewComponent for each new component (just added to the scene) for every system that it relates to.
         for startComp in self._newComponentQueue:
@@ -102,7 +102,7 @@ class EntitySystem:
     def Update(self, currentScene: Scene):
         pass
 
-    def OnEnable(self):
+    def OnEnable(self, currentScene : Scene):
         pass
 
     def OnNewComponent(self,component : Component): #Called when a new component is created into the scene. (Used to initialize that component)
