@@ -3,7 +3,8 @@ import random
 from pygame import FRect
 
 from engine.components.rendering.tilemaprenderer import Tilemap, TilemapRenderer
-from engine.ecs import Scene
+from engine.ecs import Scene, Entity
+from engine.logging import LOG_WARNINGS, Log
 from engine.systems import renderer, physics
 from engine.systems.physics import PhysicsComponent
 from engine.datatypes.spritesheet import SpriteSheet
@@ -21,6 +22,7 @@ class LevelScene(Scene):
         self.systems = [renderer.RenderingSystem(),physics.PhysicsSystem()]
         self.mapJson = tiled.TiledGetRawMapData(tiledFilePath)
         self.tileMapLayers : list[TilemapRenderer] = []
+        self.tileMapLayersByName : dict = {}
         self.worldTileset = worldTileset
 
         # Layer0 will have draw order of firstLayerDrawOrder, then Layer1 will have firstLayerDrawOrder+1 and so on.
@@ -55,6 +57,7 @@ class LevelScene(Scene):
 
                 layerEnt = self.CreateEntity("WORLD-"+layer["name"], offset, components=[self.LoadTileLayer(layer,finalDrawOrder)])
                 self.tileMapLayers.append(layerEnt)
+                self.tileMapLayersByName[layer["name"]] = layerEnt
                 drawOrder += 1
 
         self.LevelStart()
@@ -155,3 +158,11 @@ class LevelScene(Scene):
         if(objName in self.layerObjectsDict):
             return self.layerObjectsDict[objName][random.randint(0,len(self.layerObjectsDict[objName])-1)]
         return None
+
+    def SetTile(self,x,y,layerName,tileIDOrName):
+        if(layerName not in self.tileMapLayersByName):
+            Log("Couldn't find the layer with name: "+layerName,LOG_WARNINGS)
+            return
+
+        layerObj : Entity = self.tileMapLayersByName[layerName]
+        layerObj.GetComponent(TilemapRenderer).tileMap.SetTile(tileIDOrName,x,y) #cache TileMapRenderers instead as GetComponent is slow.

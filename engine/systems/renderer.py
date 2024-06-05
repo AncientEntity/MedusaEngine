@@ -5,6 +5,7 @@ import pygame.display
 from engine.components.rendering.particlecomponent import ParticleEmitterComponent, Particle
 from engine.components.rendering.renderercomponent import RendererComponent
 from engine.components.rendering.spriterenderer import SpriteRenderer
+from engine.components.rendering.textrenderer import TextRenderer
 from engine.components.rendering.tilemaprenderer import TilemapRenderer
 from engine.datatypes.sprites import GetSprite
 from engine.ecs import EntitySystem, Scene, Component
@@ -17,7 +18,7 @@ def CenterToTopLeftPosition(centerPosition, surface : pygame.Surface):
 class RenderingSystem(EntitySystem):
     instance = None
     def __init__(self):
-        super().__init__([SpriteRenderer,TilemapRenderer,ParticleEmitterComponent])
+        super().__init__([SpriteRenderer,TilemapRenderer,ParticleEmitterComponent,TextRenderer])
         self.cameraPosition = [0,0]
         self.renderScale = 3
         self.backgroundColor = (255,255,255)
@@ -27,9 +28,9 @@ class RenderingSystem(EntitySystem):
         self._scaledHalfSize = None
         self.debug = False
 
-        self._sortedRenderOrder : list = [] #Sorted list of related components (ie SpriteRenderer). Sorted by sort order.
+        self._sortedDrawOrder : list = [] #Sorted list of related components (ie SpriteRenderer). Sorted by sort order.
 
-    def OnEnable(self):
+    def OnEnable(self, currentScene : Scene):
         RenderingSystem.instance = self
         self._screenSize = [self.game.display.get_width(),self.game.display.get_height()]
         self._scaledScreenSize = [self.game.display.get_width() // self.renderScale,self.game.display.get_height() // self.renderScale]
@@ -41,41 +42,43 @@ class RenderingSystem(EntitySystem):
         Log("Added "+component.parentEntity.name + " to rendering order."+str(component.drawOrder),LOG_ALL)
 
     def OnDestroyComponent(self, component : RendererComponent):
-        indexOfComponent = self._sortedRenderOrder.index(component)
+        indexOfComponent = self._sortedDrawOrder.index(component)
         if(indexOfComponent != -1):
-            self._sortedRenderOrder.pop(indexOfComponent)
+            self._sortedDrawOrder.pop(indexOfComponent)
             Log("Removed "+component.parentEntity.name+" from rendering order.",LOG_ALL)
 
     def InsertIntoSortedRenderOrder(self,component : RendererComponent):
         # If _sortedRenderOrder is empty, just simply add and exit.
-        if(len(self._sortedRenderOrder) == 0):
-            self._sortedRenderOrder.append(component)
+        if(len(self._sortedDrawOrder) == 0):
+            self._sortedDrawOrder.append(component)
             return
 
         #Otherwise sort component into _sortedRenderOrder with basic insertion sort.
 
-        existingComponent : RendererComponent = self._sortedRenderOrder[0]
+        existingComponent : RendererComponent = self._sortedDrawOrder[0]
         i = 0
         while(existingComponent.drawOrder < component.drawOrder):
             i += 1
-            if(i == len(self._sortedRenderOrder)):
-                self._sortedRenderOrder.append(component)
+            if(i == len(self._sortedDrawOrder)):
+                self._sortedDrawOrder.append(component)
                 return
-            existingComponent = self._sortedRenderOrder[i]
-        self._sortedRenderOrder.insert(i,component)
+            existingComponent = self._sortedDrawOrder[i]
+        self._sortedDrawOrder.insert(i, component)
 
     def Update(self,currentScene : Scene):
         self._renderTarget.fill(self.backgroundColor)
         self.cameraPosition = [math.floor(self.cameraPosition[0]),math.floor(self.cameraPosition[1])]
 
         #Loop through sorted render order and render everything out.
-        for renderer in self._sortedRenderOrder:
-            if(isinstance(renderer,SpriteRenderer)):
-                self.RenderSpriteRenderer(renderer)
-            elif(isinstance(renderer,TilemapRenderer)):
-                self.RenderTileMapRenderer(renderer)
-            elif(isinstance(renderer,ParticleEmitterComponent)):
-                self.RenderParticleEmitter(renderer)
+        for component in self._sortedDrawOrder:
+            if(isinstance(component,SpriteRenderer)):
+                self.RenderSpriteRenderer(component)
+            elif(isinstance(component,TilemapRenderer)):
+                self.RenderTileMapRenderer(component)
+            elif(isinstance(component,ParticleEmitterComponent)):
+                self.RenderParticleEmitter(component)
+            elif(isinstance(component, TextRenderer)):
+                self.RenderTextRenderer(component)
 
         #Finally blit the render target onto the final display.
         self.game.display.blit(pygame.transform.scale(self._renderTarget,(self._screenSize[0],self._screenSize[1])),(0,0))
@@ -159,7 +162,26 @@ class RenderingSystem(EntitySystem):
                 finalSprite = GetSprite(particle.sprite)
                 self._renderTarget.blit(finalSprite,self.FinalPositionOfSprite(particle.position,finalSprite))
 
+    def RenderTextRenderer(self,textRenderer : TextRenderer):
+        if (textRenderer._render == None):
+            return
 
+        actualSprite = textRenderer._render
+        # Validate if we found an actual sprite
+        if (actualSprite == None):
+            return
+
+        renderPosition = textRenderer.parentEntity.position
+        if(textRenderer.screenSpace == True):
+            #if in screen space convert to screen space
+            renderPosition = self.WorldToScreenPosition(renderPosition)
+        else:
+            # If in world space, verify what is being drawn is on the screen
+            if (False == self.IsOnScreenSprite(actualSprite, textRenderer.parentEntity.position)):
+                return
+            renderPosition = self.FinalPositionOfSprite(renderPosition, actualSprite)
+
+        self._renderTarget.blit(actualSprite, [renderPosition[0] - textRenderer._render.get_width()//2,renderPosition[1] - textRenderer._render.get_height()//2])
 
     def WorldToScreenPosition(self,position):
         return [position[0] - self.cameraPosition[0] + self._scaledHalfSize[0], position[1] - self.cameraPosition[1] + self._scaledHalfSize[1]]
