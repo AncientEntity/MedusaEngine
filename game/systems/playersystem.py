@@ -11,7 +11,7 @@ from game.scenes.tiledtestscene import TiledTestScene
 class PlayerSystem(EntitySystem):
     def __init__(self):
         super().__init__([PlayerComponent])
-    def OnEnable(self):
+    def OnEnable(self, currentScene : Scene):
         for player in self.game.GetCurrentScene().components[PlayerComponent]:
             player.parentEntity.GetComponent(SpriteRenderer).sprite = player.idleAnim
     def Update(self, currentScene: Scene):
