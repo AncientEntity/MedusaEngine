@@ -3,7 +3,6 @@ from engine.datatypes.sprites import Sprite
 from engine.logging import Log, LOG_ERRORS
 from engine.datatypes.spritesheet import SpriteSheet
 
-
 class Tilemap:
     def __init__(self,size):
         self.size = size
@@ -54,4 +53,12 @@ class TilemapRenderer(RendererComponent):
                     worldPos = self.TileToWorldPosition((x,y))
                     tiles.append([self.tileMap.map[x][y],(worldPos[0],worldPos[1])])
         return tiles
+
+    #Returns the 2D index of a tile from a point, or None when it is outside of the bounds.
+    def GetTileIndexAtPoint(self,x,y):
+        tilePosition = self.WorldToTilePosition((x,y))
+        print(x,y,tilePosition)
+        if(tilePosition[0] < 0 or tilePosition[1] < 0 or tilePosition[0] >= self.tileMap.size[0] or tilePosition[1] >= self.tileMap.size[1]):
+            return None #Outside bounds
+        return tilePosition
 
