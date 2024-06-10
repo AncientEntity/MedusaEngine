@@ -11,6 +11,7 @@ from game.scenes.tiledtestscene import TiledTestScene
 class PlayerSystem(EntitySystem):
     def __init__(self):
         super().__init__([PlayerComponent])
+        self.tintTest = -1
     def OnEnable(self, currentScene : Scene):
         for player in self.game.GetCurrentScene().components[PlayerComponent]:
             player.parentEntity.GetComponent(SpriteRenderer).sprite = player.idleAnim
@@ -18,6 +19,14 @@ class PlayerSystem(EntitySystem):
         for player in currentScene.components[PlayerComponent]:
             self.PlayerMovement(player)
             RenderingSystem.instance.cameraPosition = player.parentEntity.position
+
+            if self.tintTest % 120 == 0:
+                import random
+                r = (random.randint(0, 255), random.randint(0, 255), random.randint(0, 255), random.randint(0, 255))
+                player.idleAnim.SetTint(r)
+                player.runAnim.SetTint(r)
+        if(self.tintTest >= 0):
+            self.tintTest += 1
     def PlayerMovement(self,player : PlayerComponent):
         moved = False
         if (Input.KeyPressed(player.controls["up"]) and player.parentEntity.GetComponent(physics.PhysicsComponent).touchingDirections['bottom']):
