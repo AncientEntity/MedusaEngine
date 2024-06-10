@@ -30,6 +30,9 @@ class RenderingSystem(EntitySystem):
 
         self._sortedDrawOrder : list = [] #Sorted list of related components (ie SpriteRenderer). Sorted by sort order.
 
+        self.worldMousePosition = (0,0)
+        self.screenMousePosition = (0,0)
+
     def OnEnable(self, currentScene : Scene):
         RenderingSystem.instance = self
         self._screenSize = [self.game.display.get_width(),self.game.display.get_height()]
@@ -68,6 +71,9 @@ class RenderingSystem(EntitySystem):
     def Update(self,currentScene : Scene):
         self._renderTarget.fill(self.backgroundColor)
         self.cameraPosition = [math.floor(self.cameraPosition[0]),math.floor(self.cameraPosition[1])]
+
+        self.screenMousePosition = (pygame.mouse.get_pos()[0],pygame.mouse.get_pos()[1])
+        self.worldMousePosition = ((self.screenMousePosition[0]-self.cameraPosition[0])//self.renderScale-self._scaledHalfSize[0],(self.screenMousePosition[1]-self.cameraPosition[1])//self.renderScale-self._scaledHalfSize[0])
 
         #Loop through sorted render order and render everything out.
         for component in self._sortedDrawOrder:
