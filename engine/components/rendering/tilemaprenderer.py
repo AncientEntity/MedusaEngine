@@ -55,9 +55,8 @@ class TilemapRenderer(RendererComponent):
         return tiles
 
     #Returns the 2D index of a tile from a point, or None when it is outside of the bounds.
-    def GetTileIndexAtPoint(self,x,y):
+    def GetTileIndexAtWorldPoint(self, x, y):
         tilePosition = self.WorldToTilePosition((x,y))
-        print(x,y,tilePosition)
         if(tilePosition[0] < 0 or tilePosition[1] < 0 or tilePosition[0] >= self.tileMap.size[0] or tilePosition[1] >= self.tileMap.size[1]):
             return None #Outside bounds
         return tilePosition

@@ -32,5 +32,4 @@ class UISystem(EntitySystem):
         self._tileMapLayer = currentScene.tileMapLayersByName["Tile Layer 1"].GetComponent(TilemapRenderer)
 
     def Update(self, currentScene: Scene):
-        tileIndex = self._tileMapLayer.GetTileIndexAtPoint(self._renderer.worldMousePosition[0],self._renderer.worldMousePosition[1])
-        #print(tileIndex)
+        tileIndex = self._tileMapLayer.GetTileIndexAtWorldPoint(self._renderer.worldMousePosition[0], self._renderer.worldMousePosition[1])
