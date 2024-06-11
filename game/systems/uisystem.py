@@ -3,6 +3,7 @@ import pygame
 from engine.components.rendering.textrenderer import TextRenderer
 from engine.components.rendering.tilemaprenderer import TilemapRenderer
 from engine.ecs import EntitySystem, Scene
+from engine.engine import Input
 from engine.scenes.levelscene import LevelScene
 from engine.systems import renderer
 from engine.systems.renderer import RenderingSystem
@@ -13,6 +14,7 @@ class UISystem(EntitySystem):
         super().__init__()
         self._tileMapLayer : TilemapRenderer = None
         self._renderer : RenderingSystem = None
+        self.previousHoverIndex = (0,0)
     def OnEnable(self, currentScene : LevelScene):
         self.mainFont = pygame.font.Font("game\\art\\PixeloidMono-d94EV.ttf",10)
 
@@ -29,7 +31,14 @@ class UISystem(EntitySystem):
         self.nextOrderText.GetComponent(TextRenderer).SetAntialiased(False)
 
         self._renderer = currentScene.GetSystemByClass(RenderingSystem)
-        self._tileMapLayer = currentScene.tileMapLayersByName["Tile Layer 1"].GetComponent(TilemapRenderer)
+        self._tileMapLayer = currentScene.tileMapLayersByName["Main"].GetComponent(TilemapRenderer)
 
-    def Update(self, currentScene: Scene):
-        tileIndex = self._tileMapLayer.GetTileIndexAtWorldPoint(self._renderer.worldMousePosition[0], self._renderer.worldMousePosition[1])
+    def Update(self, currentScene: LevelScene):
+        currentHoverIndex = self._tileMapLayer.GetTileIndexAtWorldPoint(self._renderer.worldMousePosition[0], self._renderer.worldMousePosition[1])
+        if currentHoverIndex != None:
+            currentScene.SetTile(self.previousHoverIndex[0], self.previousHoverIndex[1], "HoverLayer", -1)
+            self.previousHoverIndex = currentHoverIndex
+            if(Input.MouseButtonPressed(0)):
+                currentScene.SetTile(self.previousHoverIndex[0],self.previousHoverIndex[1],"HoverLayer",6)
+            else:
+                currentScene.SetTile(self.previousHoverIndex[0],self.previousHoverIndex[1],"HoverLayer",5)
