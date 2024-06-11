@@ -4,6 +4,7 @@ from engine.ecs import EntitySystem, Scene
 from engine.engine import Input
 from engine.systems import physics
 from engine.systems.renderer import SpriteRenderer, RenderingSystem
+from game import prefabs
 from game.components.playercomponent import PlayerComponent
 from game.scenes import sidescrollingscene
 from game.scenes.tiledtestscene import TiledTestScene
@@ -27,6 +28,14 @@ class PlayerSystem(EntitySystem):
                 player.runAnim.SetTint(r)
         if(self.tintTest >= 0):
             self.tintTest += 1
+        if Input.KeyPressed(pygame.K_g):
+            newSkeleton = prefabs.CreateSkeleton(currentScene)
+            newSkeleton.position = [player.parentEntity.position[0],player.parentEntity.position[1]-100]
+        if Input.KeyDown(pygame.K_q):
+            if(self.tintTest == -1):
+                self.tintTest = 0
+            else:
+                self.tintTest = -1
     def PlayerMovement(self,player : PlayerComponent):
         moved = False
         if (Input.KeyPressed(player.controls["up"]) and player.parentEntity.GetComponent(physics.PhysicsComponent).touchingDirections['bottom']):
