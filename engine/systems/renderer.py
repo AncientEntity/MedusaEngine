@@ -7,7 +7,7 @@ from engine.components.rendering.renderercomponent import RendererComponent
 from engine.components.rendering.spriterenderer import SpriteRenderer
 from engine.components.rendering.textrenderer import TextRenderer
 from engine.components.rendering.tilemaprenderer import TilemapRenderer
-from engine.datatypes.sprites import GetSprite
+from engine.datatypes.sprites import GetSprite, Sprite
 from engine.ecs import EntitySystem, Scene, Component
 from engine.logging import Log, LOG_ALL
 
@@ -94,22 +94,26 @@ class RenderingSystem(EntitySystem):
         if (spriteRenderer.sprite == None):
             return
 
-        actualSprite = GetSprite(spriteRenderer.sprite)
+        tailSprite : Sprite  = GetSprite(spriteRenderer.sprite,True)
+        spriteSurface = tailSprite.GetSprite()
         # Validate if we found an actual sprite
-        if (actualSprite == None):
+        if (spriteSurface == None):
             return
 
         # Verify what is being drawn is on the screen
-        if (False == self.IsOnScreenSprite(actualSprite, spriteRenderer.parentEntity.position)):
+        if (False == self.IsOnScreenSprite(spriteSurface, spriteRenderer.parentEntity.position)):
             return
 
-        finalPosition = self.FinalPositionOfSprite(spriteRenderer.parentEntity.position, actualSprite)
-        self._renderTarget.blit(actualSprite, finalPosition)
+        finalPosition = self.FinalPositionOfSprite(spriteRenderer.parentEntity.position, spriteSurface)
+        self._renderTarget.blit(spriteSurface, finalPosition)
+        if(tailSprite.tint):
+            self._renderTarget.fill(color=tailSprite.tint,rect=(finalPosition[0],finalPosition[1],spriteSurface.get_width(),
+                                                                spriteSurface.get_width()),special_flags=pygame.BLEND_ADD)
 
         if (self.debug):  # If debug draw bounds of spriterenderers
             pygame.draw.rect(self._renderTarget, (255, 0, 0),
-                             pygame.Rect(finalPosition[0] - 1, finalPosition[1], actualSprite.get_width(),
-                                         actualSprite.get_height()), width=1)
+                             pygame.Rect(finalPosition[0] - 1, finalPosition[1], spriteSurface.get_width(),
+                                         spriteSurface.get_height()), width=1)
 
     def RenderTileMapRenderer(self,tileMapRenderer : TilemapRenderer):
         if (tileMapRenderer.tileMap == None or tileMapRenderer.tileMap.tileSet == None):
@@ -133,8 +137,13 @@ class RenderingSystem(EntitySystem):
                                     tileMapRenderer.tileMap.tileSize))):
                     continue
 
-                targetSprite = GetSprite(tileMapRenderer.tileMap.tileSet[tileMapRenderer.tileMap.map[x][y]])
-                self._renderTarget.blit(targetSprite, leftAnchoredScreenPosition)
+                tailSprite : Sprite = GetSprite(tileMapRenderer.tileMap.tileSet[tileMapRenderer.tileMap.map[x][y]],True)
+                spriteSurface = tailSprite.GetSprite()
+                self._renderTarget.blit(spriteSurface, leftAnchoredScreenPosition)
+                if (tailSprite.tint):
+                    self._renderTarget.fill(color=tailSprite.tint, rect=(
+                    leftAnchoredScreenPosition[0], leftAnchoredScreenPosition[1], spriteSurface.get_width(), spriteSurface.get_width()),
+                                            special_flags=pygame.BLEND_ADD)
 
     def RenderParticleEmitter(self,emitter : ParticleEmitterComponent):
         if(emitter.sprite == None):

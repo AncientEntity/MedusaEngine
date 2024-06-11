@@ -135,9 +135,19 @@ class Engine:
 
 class Input:
     #Input class functions accessible via Input.KeyPressed, KeyDown, KeyUp
+
+    @staticmethod
     def KeyPressed(key):
         return Engine._instance.KeyPressed(key)
+    @staticmethod
     def KeyDown(key):
         return Engine._instance.KeyDown(key)
+    @staticmethod
     def KeyUp(key):
         return Engine._instance.KeyUp(key)
+
+
+    #todo proper mouse inputs (mouse up/down)
+    @staticmethod
+    def MouseButtonPressed(index):
+        return pygame.mouse.get_pressed()[index]

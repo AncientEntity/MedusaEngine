@@ -21,10 +21,13 @@ class Sprite: #TODO sprite draw order implementation to control draw order.
                 self._unmodifiedSprite = None
         elif(isinstance(filePathOrSurface,pygame.Surface)):
             self._unmodifiedSprite = filePathOrSurface
+        self.sprite = None  # Set in self.RefreshSprite ran at bottom of __init__.
+
         self._flipX = False
         self.ignoreCollision = False
         self.tint = None
-        self.sprite = None # Set in self.RefreshSprite ran below.
+        self._rotation = None
+
         self.RefreshSprite()
 
     #Regenerates self.sprite from self._unmodifiedSprite based on modifiers such as self.tint
@@ -34,19 +37,23 @@ class Sprite: #TODO sprite draw order implementation to control draw order.
 
         self.sprite = self._unmodifiedSprite.copy()
 
+        #todo render offset (where you can have an offset and it repeats). ex: if you have a conveyor belt sprite you can 'repeat' it with an offset.
+
         #Handle tint
         if(self.tint != None):
             self.sprite.fill(self.tint,special_flags=pygame.BLEND_ADD)
-
-        #Handle rotation todo unimplemented
 
         #Handle FlipX
         if(self._flipX):
             self.sprite = pygame.transform.flip(self.sprite, True, False)
 
+        #Handle rotation
+        if(self._rotation):
+            self.sprite = pygame.transform.rotate(self.sprite,self._rotation)
+
     def GetSprite(self):
         return self.sprite
-    def FlipX(self,flipped):
+    def SetFlipX(self, flipped):
         if(self._flipX == flipped):
             return
 
@@ -59,6 +66,13 @@ class Sprite: #TODO sprite draw order implementation to control draw order.
 
         self.tint = tint
         self.RefreshSprite()
+    def SetRotation(self,rotation):
+        if(self._rotation == rotation):
+            return
+
+        self._rotation = rotation
+        self.RefreshSprite()
+
     def get_width(self):
         return self.sprite.get_width()
     def get_height(self):
@@ -81,6 +95,16 @@ class AnimatedSprite(Sprite):
     def AddSprites(self,sprites):
         for sprite in sprites:
             self.AddSprite(sprite)
+    def ReplaceSprite(self,sprite,index):
+        if(isinstance(sprite,pygame.Surface)):
+            self._sprites[index] = Sprite(sprite)
+        else:
+            self._sprites[index] = sprite
+    def InsertSprite(self,sprite,index):
+        if(isinstance(sprite,pygame.Surface)):
+            self._sprites.insert(index, Sprite(sprite))
+        else:
+            self._sprites.insert(index,sprite)
 
     def GetSprite(self):
         self.timer += (time.time() - self.lastTime)
@@ -90,7 +114,7 @@ class AnimatedSprite(Sprite):
             return targetSprite
         elif(isinstance(targetSprite,Sprite)):
             return targetSprite.GetSprite()
-    def FlipX(self,flipped):
+    def SetFlipX(self, flipped):
         if(self._flipX == flipped):
             return
 
@@ -99,11 +123,13 @@ class AnimatedSprite(Sprite):
             if(isinstance(self._sprites[i], pygame.Surface)):
                 self._sprites[i] = pygame.transform.flip(self._sprites[i], True, False)
             else:
-                self._sprites[i].FlipX(flipped)
+                self._sprites[i].SetFlipX(flipped)
     def SetTint(self,tint):
         for sprite in self._sprites:
             sprite.SetTint(tint)
-
+    def SetRotation(self,rotation):
+        for sprite in self._sprites:
+            sprite.SetRotation(rotation)
     def get_width(self):
         return self.GetSprite().get_width()
     def get_height(self):
