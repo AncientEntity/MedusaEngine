@@ -47,5 +47,3 @@ class UISystem(EntitySystem):
                     currentScene.SetTile(currentHoverIndex[0],currentHoverIndex[1],"Objects",CONVEYORSPRITE)
                 else:
                     currentScene.SetTile(currentHoverIndex[0],currentHoverIndex[1],"HoverLayer",5)
-        self._tileMapLayer.tileMap.tileSet[CONVEYORSPRITE]._renderOffset[0] += 1
-        self._tileMapLayer.tileMap.tileSet[CONVEYORSPRITE].RefreshSprite()
