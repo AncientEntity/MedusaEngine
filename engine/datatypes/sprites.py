@@ -35,7 +35,7 @@ class Sprite: #TODO sprite draw order implementation to control draw order.
         if(self._unmodifiedSprite == None):
             return
 
-        self.sprite = pygame.Surface(self._unmodifiedSprite.get_size())#self._unmodifiedSprite.copy()
+        self.sprite = self._unmodifiedSprite.copy()
 
         #todo render offset (where you can have an offset and it repeats). ex: if you have a conveyor belt sprite you can 'repeat' it with an offset.
 
