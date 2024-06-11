@@ -146,6 +146,8 @@ class Input:
     def KeyUp(key):
         return Engine._instance.KeyUp(key)
 
+
+    #todo proper mouse inputs (mouse up/down)
     @staticmethod
     def MouseButtonPressed(index):
         return pygame.mouse.get_pressed()[index]

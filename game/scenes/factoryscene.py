@@ -12,5 +12,3 @@ class TinyFactoryScene(LevelScene):
         super().__init__("game\\tiled\\factorymap.tmj", SpriteSheet("game\\art\\tilset.png",16), None)
         self.systems.append(UISystem())
         self.GetSystemByClass(renderer.RenderingSystem).renderScale = 2
-    def LevelStart(self):
-        self.SetTile(5,5,"Tile Layer 1",8)

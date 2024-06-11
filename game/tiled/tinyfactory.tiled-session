@@ -10,10 +10,10 @@
     "fileStates": {
         "factorymap.tmx": {
             "scale": 3.143382352941176,
-            "selectedLayer": 0,
+            "selectedLayer": 1,
             "viewCenter": {
-                "x": 128.2058479532164,
-                "y": 136.1590643274854
+                "x": 127.25146198830407,
+                "y": 135.2046783625731
             }
         },
         "factorytileset.tsx": {

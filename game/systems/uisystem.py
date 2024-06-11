@@ -8,6 +8,8 @@ from engine.scenes.levelscene import LevelScene
 from engine.systems import renderer
 from engine.systems.renderer import RenderingSystem
 
+CONVEYORSPRITE = 1
+
 
 class UISystem(EntitySystem):
     def __init__(self):
@@ -38,7 +40,12 @@ class UISystem(EntitySystem):
         if currentHoverIndex != None:
             currentScene.SetTile(self.previousHoverIndex[0], self.previousHoverIndex[1], "HoverLayer", -1)
             self.previousHoverIndex = currentHoverIndex
-            if(Input.MouseButtonPressed(0)):
-                currentScene.SetTile(self.previousHoverIndex[0],self.previousHoverIndex[1],"HoverLayer",6)
-            else:
-                currentScene.SetTile(self.previousHoverIndex[0],self.previousHoverIndex[1],"HoverLayer",5)
+
+            if(currentHoverIndex[0] >= 1 and currentHoverIndex[1] >= 1 and currentHoverIndex[0] <= 14 and currentHoverIndex[1] <= 14):
+                if(Input.MouseButtonPressed(0)):
+                    currentScene.SetTile(currentHoverIndex[0],currentHoverIndex[1],"HoverLayer",6)
+                    currentScene.SetTile(currentHoverIndex[0],currentHoverIndex[1],"Objects",CONVEYORSPRITE)
+                else:
+                    currentScene.SetTile(currentHoverIndex[0],currentHoverIndex[1],"HoverLayer",5)
+        self._tileMapLayer.tileMap.tileSet[CONVEYORSPRITE]._renderOffset[0] += 1
+        self._tileMapLayer.tileMap.tileSet[CONVEYORSPRITE].RefreshSprite()
