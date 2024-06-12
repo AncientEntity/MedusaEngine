@@ -94,8 +94,7 @@ class RenderingSystem(EntitySystem):
         if (spriteRenderer.sprite == None):
             return
 
-        tailSprite : Sprite  = GetSprite(spriteRenderer.sprite,True)
-        spriteSurface = tailSprite.GetSprite()
+        spriteSurface = GetSprite(spriteRenderer.sprite)
         # Validate if we found an actual sprite
         if (spriteSurface == None):
             return
@@ -106,9 +105,6 @@ class RenderingSystem(EntitySystem):
 
         finalPosition = self.FinalPositionOfSprite(spriteRenderer.parentEntity.position, spriteSurface)
         self._renderTarget.blit(spriteSurface, finalPosition)
-        if(tailSprite.tint):
-            self._renderTarget.fill(color=tailSprite.tint,rect=(finalPosition[0],finalPosition[1],spriteSurface.get_width(),
-                                                                spriteSurface.get_width()),special_flags=pygame.BLEND_ADD)
 
         if (self.debug):  # If debug draw bounds of spriterenderers
             pygame.draw.rect(self._renderTarget, (255, 0, 0),

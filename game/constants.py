@@ -1,0 +1,7 @@
+
+
+FirstConveyorSprite = 4
+
+PLACING_CONVEYOR = 1
+PLACING_ENTRANCE = 2
+PLACING_EXIT = 3

@@ -24,6 +24,12 @@
          "id":1,
          "name":"Main",
          "opacity":1,
+         "properties":[
+                {
+                 "name":"drawOrder",
+                 "type":"int",
+                 "value":-100
+                }],
          "type":"tilelayer",
          "visible":true,
          "width":16,
@@ -52,6 +58,12 @@
          "id":3,
          "name":"Objects",
          "opacity":1,
+         "properties":[
+                {
+                 "name":"drawOrder",
+                 "type":"int",
+                 "value":-99
+                }],
          "type":"tilelayer",
          "visible":true,
          "width":16,
@@ -80,6 +92,12 @@
          "id":2,
          "name":"HoverLayer",
          "opacity":1,
+         "properties":[
+                {
+                 "name":"drawOrder",
+                 "type":"int",
+                 "value":-98
+                }],
          "type":"tilelayer",
          "visible":true,
          "width":16,
@@ -108,6 +126,12 @@
          "id":4,
          "name":"PreviewLayer",
          "opacity":0.5,
+         "properties":[
+                {
+                 "name":"drawOrder",
+                 "type":"int",
+                 "value":-97
+                }],
          "type":"tilelayer",
          "visible":true,
          "width":16,

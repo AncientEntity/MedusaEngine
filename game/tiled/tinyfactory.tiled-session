@@ -9,11 +9,11 @@
     ],
     "fileStates": {
         "factorymap.tmx": {
-            "scale": 2,
+            "scale": 1.5,
             "selectedLayer": 3,
             "viewCenter": {
-                "x": 95,
-                "y": 137.5
+                "x": 140,
+                "y": 155.33333333333331
             }
         },
         "factorytileset.tsx": {
@@ -32,6 +32,7 @@
         "factorymap.tmx"
     ],
     "project": "tinyfactory.tiled-project",
+    "property.type": "int",
     "recentFiles": [
         "factorymap.tmx"
     ],

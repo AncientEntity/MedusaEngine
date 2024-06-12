@@ -7,8 +7,7 @@ from engine.engine import Input
 from engine.scenes.levelscene import LevelScene
 from engine.systems import renderer
 from engine.systems.renderer import RenderingSystem
-
-CONVEYORSPRITE = 4
+from game.constants import FirstConveyorSprite, PLACING_CONVEYOR
 
 
 class UISystem(EntitySystem):
@@ -18,12 +17,16 @@ class UISystem(EntitySystem):
         self._renderer : RenderingSystem = None
         self.previousHoverIndex = (0,0)
         self.placeRotation = 0
+        self.currentlyPlacing = PLACING_CONVEYOR
+        self.money = 1000
     def OnEnable(self, currentScene : LevelScene):
         self.mainFont = pygame.font.Font("game/art/PixeloidMono-d94EV.ttf",10)
 
-        self.moneyText = currentScene.CreateEntity("MoneyText",[-90,-128],components=[TextRenderer("$1000",self.mainFont)])
-        self.moneyText.GetComponent(TextRenderer).SetColor((255,255,255))
-        self.moneyText.GetComponent(TextRenderer).SetAntialiased(False)
+        self.moneyText = TextRenderer("$1000",self.mainFont)
+
+        self.moneyTextEnt = currentScene.CreateEntity("MoneyText",[-90,-128],components=[self.moneyText])
+        self.moneyTextEnt.GetComponent(TextRenderer).SetColor((255,255,255))
+        self.moneyTextEnt.GetComponent(TextRenderer).SetAntialiased(False)
 
         self.levelText = currentScene.CreateEntity("LevelText",[-30,-128],components=[TextRenderer("Level: 15",self.mainFont)])
         self.levelText.GetComponent(TextRenderer).SetColor((255,255,255))
@@ -48,10 +51,19 @@ class UISystem(EntitySystem):
             if(currentHoverIndex[0] >= 1 and currentHoverIndex[1] >= 1 and currentHoverIndex[0] <= 14 and currentHoverIndex[1] <= 14):
                 if(Input.MouseButtonPressed(0)):
                     currentScene.SetTile(currentHoverIndex,"HoverLayer",10)
-                    currentScene.SetTile(currentHoverIndex,"Objects",CONVEYORSPRITE+self.placeRotation % 4)
+                    if((FirstConveyorSprite + 4 >= currentScene.GetTile(currentHoverIndex,"Objects") >= FirstConveyorSprite) == False):
+                        currentScene.SetTile(currentHoverIndex,"Objects", FirstConveyorSprite + self.placeRotation % 4)
+                        self.money -= 5
+                        self.moneyText.SetText("$"+str(self.money))
+                elif(Input.MouseButtonPressed(2)):
+                    currentScene.SetTile(currentHoverIndex,"HoverLayer",10)
+                    if((FirstConveyorSprite + 4 >= currentScene.GetTile(currentHoverIndex,"Objects") >= FirstConveyorSprite)):
+                        currentScene.SetTile(currentHoverIndex,"Objects", -1)
+                        self.money += 2
+                        self.moneyText.SetText("$"+str(self.money))
                 else:
                     currentScene.SetTile(currentHoverIndex,"HoverLayer",9)
-                    currentScene.SetTile(currentHoverIndex,"PreviewLayer",CONVEYORSPRITE+self.placeRotation % 4)
+                    currentScene.SetTile(currentHoverIndex,"PreviewLayer", FirstConveyorSprite + self.placeRotation % 4)
 
         if(Input.KeyDown(pygame.K_r)):
             self.placeRotation += 1

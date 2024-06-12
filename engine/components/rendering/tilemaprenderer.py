@@ -20,6 +20,8 @@ class Tilemap:
             self.map[x][y] = tileID
         else:
             Log("Invalid spot to set tile or invalid tileID."+str(tileID),LOG_ERRORS)
+    def GetTileID(self,x,y):
+        return self.map[x][y]
     def SetTileSetFromSpriteSheet(self,spriteSheet : SpriteSheet,alpha=255):
         if(spriteSheet.splitType == 'size'):
             for x in range(spriteSheet.xCount):
@@ -61,4 +63,3 @@ class TilemapRenderer(RendererComponent):
         if(tilePosition[0] < 0 or tilePosition[1] < 0 or tilePosition[0] >= self.tileMap.size[0] or tilePosition[1] >= self.tileMap.size[1]):
             return None #Outside bounds
         return tilePosition
-
