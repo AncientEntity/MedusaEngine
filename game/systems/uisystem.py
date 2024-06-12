@@ -8,7 +8,7 @@ from engine.scenes.levelscene import LevelScene
 from engine.systems import renderer
 from engine.systems.renderer import RenderingSystem
 
-CONVEYORSPRITE = 1
+CONVEYORSPRITE = 4
 
 
 class UISystem(EntitySystem):
@@ -17,8 +17,9 @@ class UISystem(EntitySystem):
         self._tileMapLayer : TilemapRenderer = None
         self._renderer : RenderingSystem = None
         self.previousHoverIndex = (0,0)
+        self.placeRotation = 0
     def OnEnable(self, currentScene : LevelScene):
-        self.mainFont = pygame.font.Font("game\\art\\PixeloidMono-d94EV.ttf",10)
+        self.mainFont = pygame.font.Font("game/art/PixeloidMono-d94EV.ttf",10)
 
         self.moneyText = currentScene.CreateEntity("MoneyText",[-90,-128],components=[TextRenderer("$1000",self.mainFont)])
         self.moneyText.GetComponent(TextRenderer).SetColor((255,255,255))
@@ -36,14 +37,21 @@ class UISystem(EntitySystem):
         self._tileMapLayer = currentScene.tileMapLayersByName["Main"].GetComponent(TilemapRenderer)
 
     def Update(self, currentScene: LevelScene):
+        self.WorldInteraction(currentScene)
+    def WorldInteraction(self, currentScene : LevelScene):
         currentHoverIndex = self._tileMapLayer.GetTileIndexAtWorldPoint(self._renderer.worldMousePosition[0], self._renderer.worldMousePosition[1])
         if currentHoverIndex != None:
-            currentScene.SetTile(self.previousHoverIndex[0], self.previousHoverIndex[1], "HoverLayer", -1)
+            currentScene.SetTile(self.previousHoverIndex, "HoverLayer", -1)
+            currentScene.SetTile(self.previousHoverIndex,"PreviewLayer",-1)
             self.previousHoverIndex = currentHoverIndex
 
             if(currentHoverIndex[0] >= 1 and currentHoverIndex[1] >= 1 and currentHoverIndex[0] <= 14 and currentHoverIndex[1] <= 14):
                 if(Input.MouseButtonPressed(0)):
-                    currentScene.SetTile(currentHoverIndex[0],currentHoverIndex[1],"HoverLayer",6)
-                    currentScene.SetTile(currentHoverIndex[0],currentHoverIndex[1],"Objects",CONVEYORSPRITE)
+                    currentScene.SetTile(currentHoverIndex,"HoverLayer",10)
+                    currentScene.SetTile(currentHoverIndex,"Objects",CONVEYORSPRITE+self.placeRotation % 4)
                 else:
-                    currentScene.SetTile(currentHoverIndex[0],currentHoverIndex[1],"HoverLayer",5)
+                    currentScene.SetTile(currentHoverIndex,"HoverLayer",9)
+                    currentScene.SetTile(currentHoverIndex,"PreviewLayer",CONVEYORSPRITE+self.placeRotation % 4)
+
+        if(Input.KeyDown(pygame.K_r)):
+            self.placeRotation += 1

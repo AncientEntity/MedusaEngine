@@ -20,13 +20,14 @@ class Tilemap:
             self.map[x][y] = tileID
         else:
             Log("Invalid spot to set tile or invalid tileID."+str(tileID),LOG_ERRORS)
-    def SetTileSetFromSpriteSheet(self,spriteSheet : SpriteSheet):
+    def SetTileSetFromSpriteSheet(self,spriteSheet : SpriteSheet,alpha=255):
         if(spriteSheet.splitType == 'size'):
-            i = 0
             for x in range(spriteSheet.xCount):
                 for y in range(spriteSheet.yCount):
-                    self.tileSet[i] = Sprite(spriteSheet[(y,x)])
-                    i += 1
+                    hashIndex = y*spriteSheet.xCount+x
+                    self.tileSet[hashIndex] = Sprite(spriteSheet[(x,y)])
+                    self.tileSet[hashIndex].SetAlpha(alpha)
+
         elif(spriteSheet.splitType == 'map'):
             for key,value in spriteSheet.sprites.items():
                 self.tileSet[key] = Sprite(value)

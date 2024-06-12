@@ -27,6 +27,7 @@ class Sprite: #TODO sprite draw order implementation to control draw order.
         self.ignoreCollision = False
         self.tint = None
         self._rotation = None
+        self._alpha = None # When None it is 255. fully opaque.
 
         self.RefreshSprite()
 
@@ -42,6 +43,10 @@ class Sprite: #TODO sprite draw order implementation to control draw order.
         #Handle tint
         if(self.tint != None):
             self.sprite.fill(self.tint,special_flags=pygame.BLEND_ADD)
+
+        #Handle alpha
+        if(self._alpha != None):
+            self.sprite.set_alpha(self._alpha)
 
         #Handle FlipX
         if(self._flipX):
@@ -71,6 +76,12 @@ class Sprite: #TODO sprite draw order implementation to control draw order.
             return
 
         self._rotation = rotation
+        self.RefreshSprite()
+    def SetAlpha(self,alpha):
+        if(self._alpha == alpha):
+            return
+
+        self._alpha = alpha
         self.RefreshSprite()
 
     def get_width(self):
