@@ -19,7 +19,7 @@ class LevelScene(Scene):
     #            ie "SPAWN": CreatePlayer, where CreatePlayer is a function that takes in a Scene (self) and returns an Entity
     def __init__(self, tiledFilePath : str, worldTileset : SpriteSheet, objectMap : dict):
         super().__init__()
-        self.systems = [renderer.RenderingSystem(),physics.PhysicsSystem()]
+        self.systems = [renderer.RenderingSystem()]
         self.mapJson = tiled.TiledGetRawMapData(tiledFilePath)
         self.tileMapLayers : list[TilemapRenderer] = []
         self.tileMapLayersByName : dict = {}
