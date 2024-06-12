@@ -12,11 +12,15 @@ class GeneratorSystem(EntitySystem):
     def Update(self,currentScene : Scene):
         generator : GeneratorComponent
         for generator in currentScene.components[GeneratorComponent]:
+            if(generator.lastItem != None and generator.lastItem.position[0] == generator.parentEntity.position[0] and generator.lastItem.position[1] == generator.parentEntity.position[1]):
+                continue
+
             if(time.time() - generator.lastCreatedItem >= generator.spawnTimer):
                 generator.lastCreatedItem = time.time()
-                newItem = CreateItem(currentScene,generator.itemID)
-                newItem.position = generator.parentEntity.position[:]
-                print("Spawn Item:",newItem.position)
+                generator.lastItem = CreateItem(currentScene,generator.itemID)
+                generator.lastItem.position = generator.parentEntity.position[:]
+                print(generator.itemID)
+
 
 
     def OnEnable(self, currentScene : Scene):

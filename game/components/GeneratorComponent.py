@@ -6,4 +6,5 @@ class GeneratorComponent(Component):
         super().__init__()
         self.itemID = random.randint(0,8)
         self.lastCreatedItem = time.time()
-        self.spawnTimer = 1
+        self.spawnTimer = 0.7
+        self.lastItem = None
