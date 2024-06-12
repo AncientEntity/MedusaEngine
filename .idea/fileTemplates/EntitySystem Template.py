@@ -1,7 +1,7 @@
 from engine.ecs import EntitySystem, Scene, Component
 
 
-class TemplateSystem(EntitySystem):
+class ${NAME}(EntitySystem):
     def __init__(self):
         super().__init__([]) #Put target components here
 
