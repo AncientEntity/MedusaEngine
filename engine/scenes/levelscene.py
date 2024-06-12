@@ -77,7 +77,7 @@ class LevelScene(Scene):
         newMap.tileSize = tileSize
         mapDataRowed = newMap.map
         newMap.map = mapDataRowed
-        newMap.SetTileSetFromSpriteSheet(self.worldTileset)
+        newMap.SetTileSetFromSpriteSheet(self.worldTileset, layer['opacity'] * 255)
         mapDataIndex = 0
         mapData = layer["data"]
         for y in range(size[1]):
@@ -159,10 +159,18 @@ class LevelScene(Scene):
             return self.layerObjectsDict[objName][random.randint(0,len(self.layerObjectsDict[objName])-1)]
         return None
 
-    def SetTile(self,x,y,layerName,tileIDOrName):
+    def SetTile(self,pos,layerName,tileIDOrName):
         if(layerName not in self.tileMapLayersByName):
             Log("Couldn't find the layer with name: "+layerName,LOG_WARNINGS)
             return
 
         layerObj : Entity = self.tileMapLayersByName[layerName]
-        layerObj.GetComponent(TilemapRenderer).tileMap.SetTile(tileIDOrName,x,y) #cache TileMapRenderers instead as GetComponent is slow.
+        layerObj.GetComponent(TilemapRenderer).tileMap.SetTile(tileIDOrName,pos[0],pos[1]) #todo cache TileMapRenderers instead as GetComponent is slow.
+
+    def GetTile(self,pos,layerName):
+        if(layerName not in self.tileMapLayersByName):
+            Log("Couldn't find the layer with name: "+layerName,LOG_WARNINGS)
+            return
+
+        layerObj : Entity = self.tileMapLayersByName[layerName]
+        return layerObj.GetComponent(TilemapRenderer).tileMap.GetTileID(pos[0],pos[1]) #todo cache TileMapRenderers instead as GetComponent is slow.
