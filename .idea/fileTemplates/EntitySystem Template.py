@@ -1,4 +1,4 @@
-from engine.ecs import EntitySystem, Scene
+from engine.ecs import EntitySystem, Scene, Component
 
 
 class TemplateSystem(EntitySystem):
