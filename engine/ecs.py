@@ -2,7 +2,8 @@
 class Component:
     def __init__(self):
         self.parentEntity : Entity = None
-
+    def GetComponent(self,component):
+        return self.parentEntity.GetComponent(component)
 
 class Scene:
     def __init__(self):
