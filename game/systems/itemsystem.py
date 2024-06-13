@@ -48,7 +48,7 @@ class ItemSystem(EntitySystem):
         if(targetX):
             item.parentEntity.position[0] = item.parentEntity.position[0] - (8 * self.game.deltaTime) * (item.parentEntity.position[0] - (roundedPosition[0]))
 
-        if(self.MinDistanceToConsumer(item) <= 5):
+        if(self.MinDistanceToConsumer(item) <= 8):
             currentScene.DeleteEntity(item.parentEntity)
 
     def OnEnable(self, currentScene: Scene):

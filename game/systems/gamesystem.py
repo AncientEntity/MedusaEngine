@@ -80,7 +80,8 @@ class GameSystem(EntitySystem):
                         currentScene.SetTile(currentHoverIndex,"Objects",self.GetPlacingTileIndex())
                 elif(Input.MouseButtonPressed(2)):
                     currentScene.SetTile(currentHoverIndex,"HoverLayer",10)
-
+                    if (currentScene.GetTile(currentHoverIndex, "Objects") != -1):
+                        currentScene.SetTile(currentHoverIndex,"Objects",-1)
                 else:
                     currentScene.SetTile(currentHoverIndex,"HoverLayer",9)
                     currentScene.SetTile(currentHoverIndex,"PreviewLayer", self.GetPlacingTileIndex())

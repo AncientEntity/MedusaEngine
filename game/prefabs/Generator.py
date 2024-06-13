@@ -10,7 +10,7 @@ from game.prefabs.Item import itemSpriteSheet
 def CreateGenerator(scene : LevelScene):
     tilePosition = [random.randint(1,14),random.randint(1,14)]
     attempts = 50
-    while(scene.GetTile(tilePosition,"GeneratorLayer") != -1 and scene.GetTile(tilePosition,"Objects") != -1):
+    while(scene.GetTile(tilePosition,"GeneratorLayer") != -1 or scene.GetTile(tilePosition,"Objects") != -1):
         tilePosition = [random.randint(1, 14), random.randint(1, 14)]
         attempts -= 1
         if(attempts <= 0):
@@ -28,7 +28,7 @@ def CreateGenerator(scene : LevelScene):
 def CreateConsumer(scene : LevelScene, wantedItem):
     tilePosition = [random.randint(1,14),random.randint(1,14)]
     attempts = 50
-    while(scene.GetTile(tilePosition,"GeneratorLayer") != -1 and scene.GetTile(tilePosition,"Objects") != -1):
+    while(scene.GetTile(tilePosition,"GeneratorLayer") != -1 or scene.GetTile(tilePosition,"Objects") != -1):
         tilePosition = [random.randint(1, 14), random.randint(1, 14)]
         attempts -= 1
         if(attempts <= 0):
