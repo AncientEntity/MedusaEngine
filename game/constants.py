@@ -1,7 +1,5 @@
+from game.datatypes.Placeable import Placeable
 
-
-FirstConveyorSprite = 4
-
-PLACING_CONVEYOR = 1
-PLACING_ENTRANCE = 2
-PLACING_EXIT = 3
+ConveyorPlaceable = Placeable("Conveyor Belt", [4,5,6,7],2)
+UndergroundEntrance = Placeable("Underground Entrance", [2],5)
+UndergroundExit = Placeable("Underground Exit", [3],5)

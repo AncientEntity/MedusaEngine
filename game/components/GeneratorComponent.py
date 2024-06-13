@@ -1,10 +1,11 @@
 from engine.ecs import Component
-import random, time
+import random
+
 
 class GeneratorComponent(Component):
-    def __init__(self):
+    def __init__(self,targetItem):
         super().__init__()
-        self.itemID = random.randint(0,8)
-        self.lastCreatedItem = time.time()
+        self.itemID = targetItem
         self.spawnTimer = 0.7
+        self.lastCreatedItem = 0
         self.lastItem = None

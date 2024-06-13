@@ -6,4 +6,7 @@ from pygame import Surface
 class SpriteRenderer(RendererComponent):
     def __init__(self, sprite : Sprite or Surface):
         super().__init__()
-        self.sprite = sprite
+        if(isinstance(sprite,Surface)):
+            self.sprite = Sprite(sprite)
+        else:
+            self.sprite = sprite

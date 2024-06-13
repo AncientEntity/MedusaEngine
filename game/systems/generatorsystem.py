@@ -1,4 +1,5 @@
 from engine.ecs import EntitySystem, Scene, Component
+from game.components.ConsumerComponent import ConsumerComponent
 from game.components.GeneratorComponent import GeneratorComponent
 import time
 
@@ -19,7 +20,6 @@ class GeneratorSystem(EntitySystem):
                 generator.lastCreatedItem = time.time()
                 generator.lastItem = CreateItem(currentScene,generator.itemID)
                 generator.lastItem.position = generator.parentEntity.position[:]
-                print(generator.itemID)
 
 
 
