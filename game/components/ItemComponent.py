@@ -6,3 +6,5 @@ class ItemComponent(Component):
         super().__init__()
         self.itemID = id
         self.worth = 1
+        self.reappearTime = None
+        self.reappearPosition = None
