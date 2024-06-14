@@ -61,11 +61,13 @@ class TilemapRenderer(RendererComponent):
             return None #Outside bounds
         return tilePosition
 
-    def GetOverlappingTilesInTileSpace(self,topLeft,bottomRight):
+    def GetOverlappingTilesInTileSpace(self,topLeft,bottomRight, ignoreEmptyTiles=True):
         tiles = []
         for x in range(topLeft[0]-2,bottomRight[0]+2):
             for y in range(topLeft[1]-2,bottomRight[1]+2):
                 if(x >= 0 and y >= 0 and x < self.tileMap.size[0] and y < self.tileMap.size[1]):
+                    if(ignoreEmptyTiles and self.tileMap.map[x][y] == -1):
+                        continue
                     worldPos = self.TileIndexToWorldPosition((x, y))
                     tiles.append([self.tileMap.map[x][y],(worldPos[0],worldPos[1])])
         return tiles
