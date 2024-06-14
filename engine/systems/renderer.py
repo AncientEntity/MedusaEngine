@@ -70,7 +70,7 @@ class RenderingSystem(EntitySystem):
 
     def Update(self,currentScene : Scene):
         self._renderTarget.fill(self.backgroundColor)
-        self.cameraPosition = [math.floor(self.cameraPosition[0]),math.floor(self.cameraPosition[1])]
+        self.cameraPosition = [self.cameraPosition[0],self.cameraPosition[1]]
 
         self.screenMousePosition = (pygame.mouse.get_pos()[0],pygame.mouse.get_pos()[1])
         self.worldMousePosition = (round((self.screenMousePosition[0]-self.cameraPosition[0]-self._screenSize[0]/2)/self.renderScale),
