@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ExportableFileTemplateSettings">
+    <default_templates>
+      <template name="Component Template.py" reformat="false" live-template-enabled="false" />
+      <template name="EntitySystem Template.py" reformat="false" live-template-enabled="false" />
+      <template name="LevelScene Template.py" reformat="false" live-template-enabled="false" />
+      <template name="Prefab Template.py" reformat="false" live-template-enabled="false" />
+    </default_templates>
+  </component>
+</project>
