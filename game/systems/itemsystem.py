@@ -7,6 +7,8 @@ from game.components.ItemComponent import ItemComponent
 from game.constants import ConveyorPlaceable
 import random
 
+from game.systems.gamesystem import GameSystem
+
 
 class ItemSystem(EntitySystem):
     def __init__(self):
@@ -47,8 +49,11 @@ class ItemSystem(EntitySystem):
         if(targetX):
             item.parentEntity.position[0] = item.parentEntity.position[0] - (8 * self.game.deltaTime) * (item.parentEntity.position[0] - (roundedPosition[0]))
 
-        if(self.MinDistanceToConsumer(item) <= 8):
+        nearbyConsumer = self.GetNearbyConsumer(item)
+        if(nearbyConsumer):
             currentScene.DeleteEntity(item.parentEntity)
+            if(nearbyConsumer.itemID == item.itemID):
+                currentScene.GetSystemByClass(GameSystem).AddMoney(item.worth)
 
     def OnEnable(self, currentScene: Scene):
         self.objectLayer = currentScene.tileMapLayersByName["Objects"].GetComponent(TilemapRenderer)
@@ -61,11 +66,13 @@ class ItemSystem(EntitySystem):
         if(isinstance(component,ConsumerComponent)):
             self.consumers.remove(component)
 
-    def MinDistanceToConsumer(self,item):
-        minDistance = 999999
+    def GetNearbyConsumer(self,item):
+        minDistance = 10
+        nearest = None
         consumer : ConsumerComponent
         for consumer in self.consumers:
             d = Distance(item.parentEntity.position,consumer.parentEntity.position)
             if(d < minDistance):
                 minDistance = d
-        return minDistance
+                nearest = consumer
+        return nearest

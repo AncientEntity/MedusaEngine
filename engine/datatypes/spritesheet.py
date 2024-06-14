@@ -43,10 +43,13 @@ class SpriteSheet:
     def SplitFramesBasedOnSize(self):
         self.xCount = self.fullSize[0] // self.spriteSize
         self.yCount = self.fullSize[1] // self.spriteSize
-        for x in range(self.xCount):
-            for y in range(self.yCount):
+        i = 0
+        for y in range(self.yCount):
+            for x in range(self.xCount):
                 subSprite = self.full.subsurface(pygame.Rect(x * self.spriteSize, y * self.spriteSize, self.spriteSize, self.spriteSize))
-                self.sprites[str(x) + ":" + str(y)] = subSprite
+                self.sprites[str(x) + ":" + str(y)] = subSprite # Add it to the hashtable as a tuple (x,y)
+                self.sprites[i] = subSprite                     # But also add it as the ID. This can be helpful as 2 methods of looking up
+                i += 1                                          # And the memory usage shouldn't be a concern
                 print("[SpriteSheet] Loaded sprite from spritesheet(" + self.spriteFile + "): " + str(x) + ", " + str(y))
     def __getitem__(self,item : tuple or str) -> pygame.Surface:
         if(type(item) == tuple):

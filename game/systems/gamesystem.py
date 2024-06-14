@@ -1,12 +1,13 @@
 import pygame
 
+from engine.components.rendering.spriterenderer import SpriteRenderer
 from engine.components.rendering.textrenderer import TextRenderer
 from engine.components.rendering.tilemaprenderer import TilemapRenderer
 from engine.ecs import EntitySystem
 from engine.engine import Input
 from engine.scenes.levelscene import LevelScene
 from engine.systems.renderer import RenderingSystem
-from game.constants import ConveyorPlaceable, UndergroundEntrance, UndergroundExit
+from game.constants import ConveyorPlaceable, UndergroundEntrance, UndergroundExit, worldSpriteSheet
 from game.datatypes.Placeable import Placeable
 from game.prefabs.Generator import CreateGenerator
 
@@ -45,6 +46,9 @@ class GameSystem(EntitySystem):
         self.nextOrderTextEnt.GetComponent(TextRenderer).SetColor((255,255,255))
         self.nextOrderTextEnt.GetComponent(TextRenderer).SetAntialiased(False)
 
+        self.placementPreviewRenderer = SpriteRenderer(worldSpriteSheet[ConveyorPlaceable.tiles[0]])
+        self.placementPreviewIcon = currentScene.CreateEntity("PlacementPreviewIcon",[100,118],components=[self.placementPreviewRenderer])
+
         self._renderer = currentScene.GetSystemByClass(RenderingSystem)
         self._tileMapLayer = currentScene.tileMapLayersByName["Main"].GetComponent(TilemapRenderer)
 
@@ -64,7 +68,6 @@ class GameSystem(EntitySystem):
 
     def WorldInteraction(self, currentScene : LevelScene):
         currentHoverIndex = self._tileMapLayer.WorldPointToTileIndexSafe(self._renderer.worldMousePosition)
-        print(currentHoverIndex)
         if currentHoverIndex != None:
             currentScene.SetTile(self.previousHoverIndex, "HoverLayer", -1)
             currentScene.SetTile(self.previousHoverIndex,"PreviewLayer",-1)
@@ -86,6 +89,7 @@ class GameSystem(EntitySystem):
                 else:
                     currentScene.SetTile(currentHoverIndex,"HoverLayer",9)
                     currentScene.SetTile(currentHoverIndex,"PreviewLayer", self.GetPlacingTileIndex())
+                    self.placementPreviewRenderer.sprite = worldSpriteSheet[self.GetPlacingTileIndex()]
 
 
     def Controls(self):
