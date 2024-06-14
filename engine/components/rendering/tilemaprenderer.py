@@ -41,25 +41,31 @@ class TilemapRenderer(RendererComponent):
         super().__init__()
         self.tileMap = tileMap
         self.physicsLayer = 0
-    def WorldToRoundedPosition(self, worldPosition): #Rounds a world position to a world position where the tile is.
-        return [(worldPosition[0]-self.parentEntity.position[0])//self.tileMap.tileSize*self.tileMap.tileSize,(worldPosition[1]-self.parentEntity.position[1])//self.tileMap.tileSize*self.tileMap.tileSize]
-    def WorldToTilePosition(self,worldPosition):
-        return [(worldPosition[0]-self.parentEntity.position[0]+(self.tileMap.size[0]//2*self.tileMap.tileSize))//self.tileMap.tileSize,(worldPosition[1]-self.parentEntity.position[1]+(self.tileMap.size[1]//2*self.tileMap.tileSize))//self.tileMap.tileSize]
-    def TileToWorldPosition(self,tilePosition):
-        return [tilePosition[0]*self.tileMap.tileSize+self.parentEntity.position[0]-(self.tileMap.size[0]/2*self.tileMap.tileSize),tilePosition[1]*self.tileMap.tileSize+self.parentEntity.position[1]-(self.tileMap.size[1]/2*self.tileMap.tileSize)]
+    def WorldPositionToTileIndex(self, worldPosition):
+        unrounded = ((worldPosition[0]-self.parentEntity.position[0])/self.tileMap.tileSize+self.tileMap.size[0]/2,
+                (worldPosition[1]-self.parentEntity.position[1])/self.tileMap.tileSize+self.tileMap.size[1]/2)
+        return [int(unrounded[0]),int(unrounded[1])]
+    def TileIndexToWorldPosition(self, tilePosition, centered=False):
+        uncentered = [tilePosition[0]*self.tileMap.tileSize+self.parentEntity.position[0]-((self.tileMap.size[0])/2*self.tileMap.tileSize),
+                tilePosition[1]*self.tileMap.tileSize+self.parentEntity.position[1]-((self.tileMap.size[1])/2*self.tileMap.tileSize)]
+        uncentered[0] = round(uncentered[0])
+        uncentered[1] = round(uncentered[1])
+        if(centered):
+            return [uncentered[0]+self.tileMap.tileSize/2,uncentered[1]+self.tileMap.tileSize/2]
+        else:
+            return uncentered
+    #Returns the 2D index of a tile from a point, or None when it is outside of the bounds.
+    def WorldPointToTileIndexSafe(self,pos):
+        tilePosition = self.WorldPositionToTileIndex(pos)
+        if(tilePosition[0] < 0 or tilePosition[1] < 0 or tilePosition[0] >= self.tileMap.size[0] or tilePosition[1] >= self.tileMap.size[1]):
+            return None #Outside bounds
+        return tilePosition
 
     def GetOverlappingTilesInTileSpace(self,topLeft,bottomRight):
         tiles = []
         for x in range(topLeft[0]-2,bottomRight[0]+2):
             for y in range(topLeft[1]-2,bottomRight[1]+2):
                 if(x >= 0 and y >= 0 and x < self.tileMap.size[0] and y < self.tileMap.size[1]):
-                    worldPos = self.TileToWorldPosition((x,y))
+                    worldPos = self.TileIndexToWorldPosition((x, y))
                     tiles.append([self.tileMap.map[x][y],(worldPos[0],worldPos[1])])
         return tiles
-
-    #Returns the 2D index of a tile from a point, or None when it is outside of the bounds.
-    def GetTileIndexAtWorldPoint(self, x, y):
-        tilePosition = self.WorldToTilePosition((x,y))
-        if(tilePosition[0] < 0 or tilePosition[1] < 0 or tilePosition[0] >= self.tileMap.size[0] or tilePosition[1] >= self.tileMap.size[1]):
-            return None #Outside bounds
-        return tilePosition

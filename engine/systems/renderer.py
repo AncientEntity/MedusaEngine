@@ -36,8 +36,8 @@ class RenderingSystem(EntitySystem):
     def OnEnable(self, currentScene : Scene):
         RenderingSystem.instance = self
         self._screenSize = [self.game.display.get_width(),self.game.display.get_height()]
-        self._scaledScreenSize = [self.game.display.get_width() // self.renderScale,self.game.display.get_height() // self.renderScale]
-        self._scaledHalfSize = [self._scaledScreenSize[0]//2,self._scaledScreenSize[1]//2]
+        self._scaledScreenSize = [self.game.display.get_width() / self.renderScale,self.game.display.get_height() / self.renderScale]
+        self._scaledHalfSize = [self._scaledScreenSize[0]/2,self._scaledScreenSize[1]/2]
         self._renderTarget = pygame.Surface(self._scaledScreenSize)
 
     def OnNewComponent(self,component : RendererComponent):
@@ -73,7 +73,8 @@ class RenderingSystem(EntitySystem):
         self.cameraPosition = [math.floor(self.cameraPosition[0]),math.floor(self.cameraPosition[1])]
 
         self.screenMousePosition = (pygame.mouse.get_pos()[0],pygame.mouse.get_pos()[1])
-        self.worldMousePosition = ((self.screenMousePosition[0]-self.cameraPosition[0])//self.renderScale-self._scaledHalfSize[0],(self.screenMousePosition[1]-self.cameraPosition[1])//self.renderScale-self._scaledHalfSize[0])
+        self.worldMousePosition = (round((self.screenMousePosition[0]-self.cameraPosition[0]-self._screenSize[0]/2)/self.renderScale),
+                                   round((self.screenMousePosition[1]-self.cameraPosition[1]-self._screenSize[1]/2)/self.renderScale))
 
         #Loop through sorted render order and render everything out.
         for component in self._sortedDrawOrder:

@@ -63,7 +63,8 @@ class GameSystem(EntitySystem):
 
 
     def WorldInteraction(self, currentScene : LevelScene):
-        currentHoverIndex = self._tileMapLayer.GetTileIndexAtWorldPoint(self._renderer.worldMousePosition[0], self._renderer.worldMousePosition[1])
+        currentHoverIndex = self._tileMapLayer.WorldPointToTileIndexSafe(self._renderer.worldMousePosition)
+        print(currentHoverIndex)
         if currentHoverIndex != None:
             currentScene.SetTile(self.previousHoverIndex, "HoverLayer", -1)
             currentScene.SetTile(self.previousHoverIndex,"PreviewLayer",-1)

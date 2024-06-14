@@ -19,13 +19,12 @@ class ItemSystem(EntitySystem):
     def Update(self, currentScene: LevelScene):
         item : ItemComponent
         for item in currentScene.components[ItemComponent]:
-            roundedPosition = [item.parentEntity.position[0] // 16 * 16+8,item.parentEntity.position[1] // 16 * 16]
-            itemTileIndex = self.objectLayer.GetTileIndexAtWorldPoint(roundedPosition[0],roundedPosition[1])
+            itemTileIndex = self.objectLayer.WorldPointToTileIndexSafe((item.parentEntity.position[0],item.parentEntity.position[1]))
             if(itemTileIndex == None):
                 continue
             overlappingTileId = self.objectLayer.tileMap.GetTileID(int(itemTileIndex[0]),int(itemTileIndex[1]))
             if(overlappingTileId != -1):
-                self.HandleItem(item,overlappingTileId, roundedPosition, currentScene)
+                self.HandleItem(item, overlappingTileId, self.objectLayer.TileIndexToWorldPosition(itemTileIndex,True), currentScene)
 
     def HandleItem(self,item : ItemComponent,overlappingTileId : int, roundedPosition, currentScene : LevelScene):
         targetX = False
