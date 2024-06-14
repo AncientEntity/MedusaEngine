@@ -69,9 +69,15 @@ class GameSystem(EntitySystem):
     def WorldInteraction(self, currentScene : LevelScene):
         currentHoverIndex = self._tileMapLayer.WorldPointToTileIndexSafe(self._renderer.worldMousePosition)
         if currentHoverIndex != None:
-            currentScene.SetTile(self.previousHoverIndex, "HoverLayer", -1)
+            currentScene.ClearTileLayer("HoverLayer")
             currentScene.SetTile(self.previousHoverIndex,"PreviewLayer",-1)
             self.previousHoverIndex = currentHoverIndex
+
+            # Handle special underground belt preview.
+            if (self.currentlyPlacing == UndergroundEntrance):
+                self.UndergroundBeltPreview(currentHoverIndex, currentScene,False)
+            elif (self.currentlyPlacing == UndergroundExit):
+                self.UndergroundBeltPreview(currentHoverIndex, currentScene,True)
 
             #Highlighting and Placing
             if(currentHoverIndex[0] >= 1 and currentHoverIndex[1] >= 1 and currentHoverIndex[0] <= 14 and currentHoverIndex[1] <= 14):
@@ -111,3 +117,26 @@ class GameSystem(EntitySystem):
 
     def GetPlacingTileIndex(self):
         return self.currentlyPlacing.tiles[self.placeRotation % len(self.currentlyPlacing.tiles)]
+    def UndergroundBeltPreview(self,hoverPos,currentScene : LevelScene, reverse):
+        lookDirection = (0,0)
+        if (self.GetPlacingTileIndex() == UndergroundEntrance.tiles[0] or self.GetPlacingTileIndex() == UndergroundExit.tiles[0]):  # move right
+            lookDirection = (1, 0)
+        elif(self.GetPlacingTileIndex() == UndergroundEntrance.tiles[1] or self.GetPlacingTileIndex() == UndergroundExit.tiles[1]): #move down
+            lookDirection = (0,1)
+        elif(self.GetPlacingTileIndex() == UndergroundEntrance.tiles[2] or self.GetPlacingTileIndex() == UndergroundExit.tiles[2]): #move left
+            lookDirection = (-1,0)
+        elif(self.GetPlacingTileIndex() == UndergroundEntrance.tiles[3] or self.GetPlacingTileIndex() == UndergroundExit.tiles[3]): #move up
+            lookDirection = (0,-1)
+
+        if(reverse):
+            lookDirection = (-lookDirection[0],-lookDirection[1])
+
+        position = hoverPos[:]
+        for i in range(3):
+            position[0] += lookDirection[0]
+            position[1] += lookDirection[1]
+            if(position[0] < 1 or position[0] > 14):
+                return
+            if(position[1] < 1 or position[1] > 14):
+                return
+            currentScene.SetTile(position, "HoverLayer", 9, True)

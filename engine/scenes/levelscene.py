@@ -159,13 +159,13 @@ class LevelScene(Scene):
             return self.layerObjectsDict[objName][random.randint(0,len(self.layerObjectsDict[objName])-1)]
         return None
 
-    def SetTile(self,pos,layerName,tileIDOrName):
-        if(layerName not in self.tileMapLayersByName):
-            Log("Couldn't find the layer with name: "+layerName,LOG_WARNINGS)
+    def SetTile(self, pos, layerName, tileIDOrName, ignoreInvalidPosition=False):
+        if (layerName not in self.tileMapLayersByName):
+            Log("Couldn't find the layer with name: " + layerName, LOG_WARNINGS)
             return
 
-        layerObj : Entity = self.tileMapLayersByName[layerName]
-        layerObj.GetComponent(TilemapRenderer).tileMap.SetTile(tileIDOrName,pos[0],pos[1]) #todo cache TileMapRenderers instead as GetComponent is slow.
+        layerObj: Entity = self.tileMapLayersByName[layerName]
+        layerObj.GetComponent(TilemapRenderer).tileMap.SetTile(tileIDOrName, pos[0], pos[1], ignoreInvalidPosition)  # todo cache TileMapRenderers instead as GetComponent is slow.
 
     def GetTile(self,pos,layerName):
         if(layerName not in self.tileMapLayersByName):
@@ -174,3 +174,10 @@ class LevelScene(Scene):
 
         layerObj : Entity = self.tileMapLayersByName[layerName]
         return layerObj.GetComponent(TilemapRenderer).tileMap.GetTileID(pos[0],pos[1]) #todo cache TileMapRenderers instead as GetComponent is slow.
+    def ClearTileLayer(self, layerName):
+        if (layerName not in self.tileMapLayersByName):
+            Log("Couldn't find the layer with name: " + layerName, LOG_WARNINGS)
+            return
+
+        layerObj: Entity = self.tileMapLayersByName[layerName]
+        layerObj.GetComponent(TilemapRenderer).tileMap.Clear()   # todo cache TileMapRenderers instead as GetComponent is slow.
