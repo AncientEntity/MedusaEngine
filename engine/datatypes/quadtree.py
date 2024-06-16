@@ -1,7 +1,6 @@
 import pygame
 
-from engine.ecs import Entity
-
+from engine.components.physicscomponent import PhysicsComponent
 
 # Quadrants
 #    x y
@@ -12,53 +11,56 @@ from engine.ecs import Entity
 
 class QuadNode:
     maxChildrenCount = 10
-    minBoundSize = 40
+    minBoundSize = 32 # Should be power of 2.
     def __init__(self, parentNode, quadrantBounds : pygame.Rect):
         self.parent = parentNode
         self._isLeafNode = True
-        self._quadrantChildren = [None,None,None,None] #quadrant 1,2,3,4 as seen on top of file.
-        self._quadrantEntities = []
+        self._quadrantChildren = [] #quadrant 1,2,3,4 as seen on top of file.
+        self._quadrantBodies = []
         self.bounds : pygame.Rect = quadrantBounds
 
-        self.minBound = (self.bounds.w // 2) <= QuadNode.minBoundSize
-    def AddEntity(self, entity : Entity):
+        self.minBound = self.bounds.w <= QuadNode.minBoundSize
+    def AddBody(self, body : PhysicsComponent):
+        if(not QuadNode.BodyOverlappingBounds(body,self.bounds)):
+            return
+
         if(self._isLeafNode):
-            if(entity in self._quadrantEntities):
+            if(body in self._quadrantBodies):
                 return
 
-            if(len(self._quadrantEntities)+1 >= QuadNode.maxChildrenCount and not self.minBound):
+            self._quadrantBodies.append(body)
+            body._overlappingSpatialPartitions.append(self)
+
+            if (body.parentEntity.name == "Player"):
+                print(body.parentEntity.position, self.bounds, len(self._quadrantBodies))
+
+            if(not self.minBound and len(self._quadrantBodies) > QuadNode.maxChildrenCount):
                 self.SubdivideNode()
-                self.FindNextQuadrantForEntity(entity)
-            else:
-                entity.boundingSpatialNodes.append(self)
-                self._quadrantEntities.append(entity)
         else:
-            self.FindNextQuadrantForEntity(entity)
-    def UpdateEntity(self, entity):
-        if(not self._isLeafNode):
+            self.FindNextQuadrantForBody(body)
+
+
+    def UpdateBody(self, body : PhysicsComponent):
+        if(QuadNode.BodyOverlappingBounds(body,self.bounds)):
+           return
+
+        self.RemoveBody(body)
+
+        curNode = self.parent
+        while(not QuadNode.BodyOverlappingBounds(body,curNode.bounds)):
+            curNode = curNode.parent
+
+        curNode.AddBody(body)
+
+
+    def RemoveBody(self, body : PhysicsComponent):
+        if(body not in self._quadrantBodies):
             return
 
-        if (QuadNode.EntityOverlappingBounds(entity, self.bounds)):
-            return
-
-        self.RemoveEntity(entity)
-
-        curQuadNode : QuadNode = self.parent
-        while(not QuadNode.EntityOverlappingBounds(entity,curQuadNode.bounds)):
-            curQuadNode = curQuadNode.parent
-        curQuadNode.AddEntity(entity)
-
-        if(self.parent == None or self.parent._isLeafNode):
-            return
-
-        if(self.GetEntityParentCount() < self.maxChildrenCount):
-            print("Shrinking")
+        self._quadrantBodies.remove(body)
+        body._overlappingSpatialPartitions.remove(self)
+        if(self._isLeafNode and self.parent and self.parent.GetBodyCountFromNode(ignoreNoneLeaf=False,maxValue=15) <= QuadNode.maxChildrenCount):
             self.parent.UnSubdivideNode()
-
-    def RemoveEntity(self,entity):
-        if(entity in self._quadrantEntities):
-            self._quadrantEntities.remove(entity)
-            entity.boundingSpatialNodes.remove(self)
 
     def SubdivideNode(self):
         self._isLeafNode = False
@@ -66,50 +68,79 @@ class QuadNode:
         #Create new children
 
         #Q1 + + (top right)
-        self._quadrantChildren[0] = QuadNode(self,pygame.Rect(self.bounds.x+self.bounds.w / 2,self.bounds.y, self.bounds.w / 2, self.bounds.h / 2))
+        self._quadrantChildren.append(QuadNode(self,pygame.Rect(self.bounds.x+self.bounds.w / 2,self.bounds.y, self.bounds.w / 2, self.bounds.h / 2)))
         #Q2 - + (top left)
-        self._quadrantChildren[1] = QuadNode(self,pygame.Rect(self.bounds.x,self.bounds.y, self.bounds.w / 2, self.bounds.h / 2))
+        self._quadrantChildren.append(QuadNode(self,pygame.Rect(self.bounds.x,self.bounds.y, self.bounds.w / 2, self.bounds.h / 2)))
         #Q3 - - (bottom left)
-        self._quadrantChildren[2] = QuadNode(self,pygame.Rect(self.bounds.x,self.bounds.y + self.bounds.h / 2, self.bounds.w / 2, self.bounds.h / 2))
+        self._quadrantChildren.append(QuadNode(self,pygame.Rect(self.bounds.x,self.bounds.y + self.bounds.h / 2, self.bounds.w / 2, self.bounds.h / 2)))
         #Q4 + - (bottom right)
-        self._quadrantChildren[3] = QuadNode(self,pygame.Rect(self.bounds.x+self.bounds.w / 2,self.bounds.y + self.bounds.h / 2, self.bounds.w / 2, self.bounds.h / 2))
+        self._quadrantChildren.append(QuadNode(self,pygame.Rect(self.bounds.x+self.bounds.w / 2,self.bounds.y + self.bounds.h / 2, self.bounds.w / 2, self.bounds.h / 2)))
 
-        for entity in self._quadrantEntities:
-            entity.boundingSpatialNodes.remove(self)
-            self.FindNextQuadrantForEntity(entity)
-        self._quadrantEntities = []
+        for body in self._quadrantBodies:
+            body._overlappingSpatialPartitions.remove(self)
+            self.FindNextQuadrantForBody(body)
+        self._quadrantBodies = None
 
     def UnSubdivideNode(self):
+        self._quadrantBodies = []
         for child in self._quadrantChildren:
-            #child.parent = None
-            for entity in child._quadrantEntities:
-                self._quadrantEntities.append(entity)
-                entity.boundingSpatialNodes.append(self)
-                entity.boundingSpatialNodes.remove(child)
-            child._quadrantEntities = []
-        self._quadrantChildren = [None,None,None,None]
+            if(not child._isLeafNode):
+                child.UnSubdivideNode()
+            for body in child._quadrantBodies:
+                self._quadrantBodies.append(body)
+                body._overlappingSpatialPartitions.append(self)
+                body._overlappingSpatialPartitions.remove(child)
+            child._quadrantBodies = []
+        self._quadrantChildren = []
         self._isLeafNode = True
 
-    def GetEntityParentCount(self):
-        count = 0
-        for child in self.parent._quadrantChildren:
-            count += len(child._quadrantEntities)
+        # Parent may need to unsubdivide as well now.
+        if (self.parent and self.parent.GetBodyCountFromNode(ignoreNoneLeaf=False,
+                                                                                  maxValue=15) <= QuadNode.maxChildrenCount):
+            self.parent.UnSubdivideNode()
+
+    def GetBodyCountFromNode(self, ignoreNoneLeaf=True, includeSelf=False,maxValue=-1):
+        count = 0 if not includeSelf else len(self._quadrantBodies)
+        for child in self._quadrantChildren:
+            if(maxValue > 0 and count >= maxValue):
+                return count
+
+            if(not child._isLeafNode and ignoreNoneLeaf):
+                continue
+            elif(child._isLeafNode):
+                count += len(child._quadrantBodies)
+            else:
+                count += child.GetBodyCountFromNode(ignoreNoneLeaf)
         return count
 
 
-    def FindNextQuadrantForEntity(self, entity : Entity):
-        for child in self._quadrantChildren:
-            if(QuadNode.EntityOverlappingBounds(entity,child.bounds)):
-                child.AddEntity(entity)
-    @staticmethod
-    def EntityOverlappingBounds(entity : Entity, bounds : pygame.Rect):
-        if(entity.spatialBounds == None):
-            return bounds.collidepoint(entity.position)
-        #if((entity.spatialBounds.x >= bounds.x and entity.spatialBounds.x <= bounds.x+bounds.w) or
-        #   (entity.spatialBounds.x+entity.spatialBounds.w >= bounds.x and entity.spatialBounds.x+entity.spatialBounds.w <= bounds.x+bounds.w)):
-        #    if ((entity.spatialBounds.y >= bounds.y and entity.spatialBounds.y <= bounds.y + bounds.h) or
-        #            (entity.spatialBounds.y + entity.spatialBounds.h >= bounds.y and entity.spatialBounds.y + entity.spatialBounds.h <= bounds.y + bounds.h)):
-        #        return True
-        #return False
 
-        return bounds.colliderect(entity.spatialBounds)
+    def FindNextQuadrantForBody(self, body : PhysicsComponent):
+        found = False
+        for child in self._quadrantChildren:
+            if(QuadNode.BodyOverlappingBounds(body, child.bounds)):
+                child.AddBody(body)
+                found = True
+        if not found: #todo remove this exception when certain it works as it should.
+            raise Exception("Quadrant couldn't be found for body. Outside world bounds?" +
+                            "Make sure your min quad node size is a power of 2, and you're root node bounds are a power of 2.")
+
+    @staticmethod
+    def RemoveFromTree(body : PhysicsComponent):
+        for quad in body._overlappingSpatialPartitions:
+            quad.RemoveBody(body)
+
+    @staticmethod
+    def BodyOverlappingBounds(body : PhysicsComponent, bounds : pygame.Rect):
+        bodyBounds = pygame.Rect(body.parentEntity.position[0]-body.bounds[0] / 2,
+                                 body.parentEntity.position[1]-body.bounds[1] / 2,
+                                 body.bounds[0],
+                                 body.bounds[1])
+        return bounds.colliderect(bodyBounds)
+
+    @staticmethod
+    def GetBodiesInSharedSpace(body : PhysicsComponent):
+        others = []
+        for quad in body._overlappingSpatialPartitions:
+            others.extend(quad._quadrantBodies)
+        return others
