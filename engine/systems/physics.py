@@ -46,6 +46,9 @@ class PhysicsSystem(EntitySystem):
             body.parentEntity.position[0] += body._moveRequest[0]
             body.parentEntity.position[1] += body._moveRequest[1]
 
+            if(body.parentEntity.name == "Player"):
+                print(len(body._overlappingSpatialPartitions),body._overlappingSpatialPartitions)
+
             #Physics Component Collision
             other : PhysicsComponent
             for other in QuadNode.GetBodiesInSharedSpace(body): #currentScene.components[PhysicsComponent]:

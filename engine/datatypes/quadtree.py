@@ -31,9 +31,6 @@ class QuadNode:
             self._quadrantBodies.append(body)
             body._overlappingSpatialPartitions.append(self)
 
-            if (body.parentEntity.name == "Player"):
-                print(body.parentEntity.position, self.bounds, len(self._quadrantBodies))
-
             if(not self.minBound and len(self._quadrantBodies) > QuadNode.maxChildrenCount):
                 self.SubdivideNode()
         else:
@@ -59,7 +56,7 @@ class QuadNode:
 
         self._quadrantBodies.remove(body)
         body._overlappingSpatialPartitions.remove(self)
-        if(self._isLeafNode and self.parent and self.parent.GetBodyCountFromNode(ignoreNoneLeaf=False,maxValue=15) <= QuadNode.maxChildrenCount):
+        if(self.parent and self.parent.GetBodyCountFromNode(ignoreNoneLeaf=False,maxValue=15) <= QuadNode.maxChildrenCount):
             self.parent.UnSubdivideNode()
 
     def SubdivideNode(self):
@@ -125,6 +122,18 @@ class QuadNode:
             raise Exception("Quadrant couldn't be found for body. Outside world bounds?" +
                             "Make sure your min quad node size is a power of 2, and you're root node bounds are a power of 2.")
 
+    def GetBodiesRecursive(self):
+        if self._isLeafNode:
+            return self._quadrantBodies
+
+        bodies = []
+        for child in self._quadrantChildren:
+            if(not child._isLeafNode):
+                bodies.extend(child.GetBodiesRecursive())
+            else:
+                bodies.extend(child._quadrantBodies)
+        return bodies
+
     @staticmethod
     def RemoveFromTree(body : PhysicsComponent):
         for quad in body._overlappingSpatialPartitions:
@@ -132,8 +141,8 @@ class QuadNode:
 
     @staticmethod
     def BodyOverlappingBounds(body : PhysicsComponent, bounds : pygame.Rect):
-        bodyBounds = pygame.Rect(body.parentEntity.position[0]-body.bounds[0] / 2,
-                                 body.parentEntity.position[1]-body.bounds[1] / 2,
+        bodyBounds = pygame.FRect(body.parentEntity.position[0]-body.bounds[0] / 2 + body.offset[0],
+                                 body.parentEntity.position[1]-body.bounds[1] / 2 + body.offset[1],
                                  body.bounds[0],
                                  body.bounds[1])
         return bounds.colliderect(bodyBounds)
@@ -142,5 +151,5 @@ class QuadNode:
     def GetBodiesInSharedSpace(body : PhysicsComponent):
         others = []
         for quad in body._overlappingSpatialPartitions:
-            others.extend(quad._quadrantBodies)
+            others.extend(quad.GetBodiesRecursive())
         return others
