@@ -1,6 +1,7 @@
 import pygame
 
 from engine.components.physicscomponent import PhysicsComponent
+from engine.datatypes.quadtree import QuadNode
 from engine.ecs import Component, EntitySystem, Scene
 from engine.systems.renderer import TilemapRenderer
 
@@ -9,6 +10,8 @@ class PhysicsSystem(EntitySystem):
     def __init__(self):
         super().__init__([PhysicsComponent])
         self.stepsPerFrame = 2
+
+        self.quadtree = QuadNode(None,pygame.Rect(-1073741824,-1073741824,2147483645,2147483645))
 
     def Update(self,currentScene : Scene):
         for i in range(self.stepsPerFrame):
@@ -41,10 +44,16 @@ class PhysicsSystem(EntitySystem):
             body.parentEntity.position[0] += body._moveRequest[0]
             body.parentEntity.position[1] += body._moveRequest[1]
 
+            overlappingOthers = []
+            for overlappingRegion in body.parentEntity.boundingSpatialNodes:
+                for entity in overlappingRegion._quadrantEntities:
+                    if(entity not in overlappingOthers):
+                        overlappingOthers.append(entity.GetComponent(PhysicsComponent)) #todo getcomponent is slow :(
 
             #Physics Component Collision
             other : PhysicsComponent
-            for other in currentScene.components[PhysicsComponent]:
+            print(body.parentEntity.name,len(overlappingOthers))
+            for other in overlappingOthers:#currentScene.components[PhysicsComponent]:
                 if(body == other or self.DoBodiesInteract(body,other) == False):
                     continue
 
@@ -70,13 +79,46 @@ class PhysicsSystem(EntitySystem):
                         otherBounds = pygame.FRect(tile[1][0], tile[1][1], tilemapRenderer.tileMap.tileSize, tilemapRenderer.tileMap.tileSize)
                         self.HandlePhysicsCollision(body,bodyPos,bodyBounds,None,otherBounds.center,otherBounds,tilemapRenderer.physicsLayer not in body.collidesWithLayers)
 
-            body._moveRequest = None
+            #Update Spatial Partition
+            bodyPos = [body.parentEntity.position[0] + body.offset[0], body.parentEntity.position[1] + body.offset[1]]
+            bodyBounds = pygame.Rect(bodyPos[0] - body.bounds[0] / 2, bodyPos[1] - body.bounds[1] / 2, body.bounds[0],
+                                      body.bounds[1])
+            body.parentEntity.spatialBounds = bodyBounds
+            quadNode : QuadNode
+            for quadNode in body.parentEntity.boundingSpatialNodes[:]:
+                if(quadNode not in body.parentEntity.boundingSpatialNodes):
+                    continue
+                quadNode.UpdateEntity(body.parentEntity)
+                # if(not QuadNode.EntityOverlappingBounds(body.parentEntity,quadNode.bounds)):
+                #     quadNode._quadrantEntities.remove(body.parentEntity) #Temporary, remove this and replace with quadnode.RemoveEntity when implemented.
+                #     body.parentEntity.boundingSpatialNodes.remove(quadNode)
+                # else:
+                #     continue
+                #
+                # curQuadNode : QuadNode = quadNode.parent
+                # while(not QuadNode.EntityOverlappingBounds(body.parentEntity,curQuadNode.bounds)):
+                #     if(curQuadNode in body.parentEntity.boundingSpatialNodes):
+                #         body.parentEntity.boundingSpatialNodes.remove(curQuadNode)
+                #         curQuadNode._quadrantEntities.remove(body.parentEntity)
+                #     curQuadNode = curQuadNode.parent
+                # curQuadNode.AddEntity(body.parentEntity)
 
-        pygame.display.update()
+            body._moveRequest = None
 
     def OnNewComponent(self,component : Component):
         if (type(component) == PhysicsComponent and component.mapToSpriteOnStart):
             component.MapToSpriteRenderer()
+
+        bodyPos = [component.parentEntity.position[0] + component.offset[0], component.parentEntity.position[1] + component.offset[1]]
+        bodyBounds = pygame.Rect(bodyPos[0] - component.bounds[0] / 2, bodyPos[1] - component.bounds[1] / 2, component.bounds[0],
+                                 component.bounds[1])
+        component.parentEntity.spatialBounds = bodyBounds
+        self.quadtree.AddEntity(component.parentEntity)
+
+    def OnDestroyComponent(self, component : Component):
+        quadNode : QuadNode
+        for quadNode in component.parentEntity.boundingSpatialNodes:
+            quadNode.RemoveEntity(component.parentEntity)
 
     def HandlePhysicsCollision(self,body : PhysicsComponent,bodyPos,bodyBounds : pygame.FRect,other : PhysicsComponent,otherPos,otherBounds : pygame.FRect,onlyTrigger):
 

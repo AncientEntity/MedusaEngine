@@ -1,3 +1,4 @@
+from pygame import Rect
 
 class Component:
     def __init__(self):
@@ -27,10 +28,14 @@ class Scene:
         return newEnt
 
     def DeleteEntity(self,entity):
+        if(entity._destroyed):
+            return # Already destroyed (most likely multiple destory calls in the same frame)
+
         #Remove components from scene components
         for component in entity.components:
             self.RemoveComponent(component)
         self.entities.remove(entity)
+        entity._destroyed = True
 
     def AddComponent(self, component : Component):
         componentType = type(component)
@@ -42,7 +47,13 @@ class Scene:
         componentType = type(component)
         if (componentType in self.components):
             self.HandleDeleteComponent(component)
-            self.components[componentType].remove(component)
+
+            indexOfComponent = -1
+            try:
+                indexOfComponent = self.components[componentType].index(component)
+            except ValueError:
+                return
+            self.components[componentType].pop(indexOfComponent)
 
     def GetSystemByClass(self,systemType : type):
         for system in self.systems:
@@ -88,6 +99,13 @@ class Entity:
         self.name = "Unnamed Entity"
         self.position = (0, 0)
         self.components = []
+
+        self.spatialBounds : Rect = None #Used by the engine's automatic spatial partitioning. If set to none it will act as a
+                                  #Point in space. But if it has bounds, it will be checked partitioned with bounds.
+        self.boundingSpatialNodes = [] # The list of quad trees that the entity is bounded by.
+
+        self._destroyed = False
+
     def GetComponent(self, t):
         for component in self.components:
             if(isinstance(component,t)):
