@@ -1,4 +1,5 @@
 from engine.ecs import EntitySystem, Scene, Component
+from engine.tools.math import Distance
 from game.components.ConsumerComponent import ConsumerComponent
 from game.components.GeneratorComponent import GeneratorComponent
 import time
@@ -13,7 +14,8 @@ class GeneratorSystem(EntitySystem):
     def Update(self,currentScene : Scene):
         generator : GeneratorComponent
         for generator in currentScene.components[GeneratorComponent]:
-            if(generator.lastItem != None and generator.lastItem.position[0] == generator.parentEntity.position[0] and generator.lastItem.position[1] == generator.parentEntity.position[1]):
+            if(generator.lastItem != None and Distance(generator.lastItem.position,generator.parentEntity.position) < 10):
+                generator.lastCreatedItem = time.time()
                 continue
 
             if(time.time() - generator.lastCreatedItem >= generator.spawnTimer):

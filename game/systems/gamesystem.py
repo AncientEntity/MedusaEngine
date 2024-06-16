@@ -131,7 +131,7 @@ class GameSystem(EntitySystem):
         if(reverse):
             lookDirection = (-lookDirection[0],-lookDirection[1])
 
-        position = hoverPos[:]
+        position = list(hoverPos)
         for i in range(3):
             position[0] += lookDirection[0]
             position[1] += lookDirection[1]

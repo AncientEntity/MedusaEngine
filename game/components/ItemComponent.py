@@ -8,3 +8,5 @@ class ItemComponent(Component):
         self.worth = 1
         self.reappearTime = None
         self.reappearPosition = None
+
+        self._physics = None

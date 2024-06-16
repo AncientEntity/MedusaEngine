@@ -1,3 +1,4 @@
+from engine.components.physicscomponent import PhysicsComponent
 from engine.components.rendering.tilemaprenderer import TilemapRenderer
 from engine.ecs import EntitySystem, Component, Scene
 from engine.scenes.levelscene import LevelScene
@@ -18,28 +19,40 @@ class ItemSystem(EntitySystem):
 
         self.consumers = []
 
+        self._blockedUndergroundExits = []
+
     def Update(self, currentScene: LevelScene):
+        self._blockedUndergroundExits.clear()
+
         item : ItemComponent
         for item in currentScene.components[ItemComponent]:
             self.HandleItem(item, currentScene)
 
     def HandleItem(self,item : ItemComponent, currentScene : LevelScene):
         if(item.reappearTime != None):
+            reappearIndex = self.objectLayer.WorldPositionToTileIndex(item.reappearPosition)
             if(item.reappearTime > time.time()):
                 return
-            else:
-                print("reappear!")
+            elif reappearIndex != None and tuple(reappearIndex) not in self._blockedUndergroundExits:
                 item.reappearTime = None
                 item.parentEntity.position = item.reappearPosition
                 item.reappearPosition = None
+            else:
+                return
 
         itemTileIndex = self.objectLayer.WorldPointToTileIndexSafe(
             (item.parentEntity.position[0], item.parentEntity.position[1]))
+
+
         if (itemTileIndex == None):
             return
         overlappingTileId = self.objectLayer.tileMap.GetTileID(int(itemTileIndex[0]), int(itemTileIndex[1]))
         if (overlappingTileId == -1):
             return
+
+        if(overlappingTileId in UndergroundExit.tiles):
+            self._blockedUndergroundExits.append(tuple(itemTileIndex))
+
         roundedPosition = self.objectLayer.TileIndexToWorldPosition(itemTileIndex,True)
 
         self.ConveyorMove(item,overlappingTileId,roundedPosition)
@@ -67,7 +80,7 @@ class ItemSystem(EntitySystem):
         if(lookDirection == (0,0)):
             return
 
-        curLookPos = self.objectLayer.WorldPositionToTileIndex(item.parentEntity.position)
+        curLookPos = list(self.objectLayer.WorldPositionToTileIndex(item.parentEntity.position))
         targetExitPosition = None
         for i in range(3):
             curLookPos[0] += lookDirection[0]
@@ -86,6 +99,8 @@ class ItemSystem(EntitySystem):
 
         if(targetExitPosition == None):
             return
+        if(tuple(curLookPos) in self._blockedUndergroundExits): #make sure underground exit wont be blocked
+            return
 
         #Found an exit position, handle it.
         item.reappearPosition = targetExitPosition
@@ -96,23 +111,28 @@ class ItemSystem(EntitySystem):
     def ConveyorMove(self,item,overlappingTileId,roundedPosition):
         targetX = False
         targetY = False
+        finalMoveAmount = [0,0]
         if (overlappingTileId == ConveyorPlaceable.tiles[0] or overlappingTileId == UndergroundExit.tiles[0]):  # Move right
-            item.parentEntity.position[0] += self.game.deltaTime * self.conveyorSpeed
+            finalMoveAmount[0] += self.game.deltaTime * self.conveyorSpeed
             targetY = True
         elif (overlappingTileId == ConveyorPlaceable.tiles[1] or overlappingTileId == UndergroundExit.tiles[1]):  # Move down
-            item.parentEntity.position[1] += self.game.deltaTime * self.conveyorSpeed
+            finalMoveAmount[1] += self.game.deltaTime * self.conveyorSpeed
             targetX = True
         elif (overlappingTileId == ConveyorPlaceable.tiles[2] or overlappingTileId == UndergroundExit.tiles[2]):  # Move left
-            item.parentEntity.position[0] -= self.game.deltaTime * self.conveyorSpeed
+            finalMoveAmount[0] -= self.game.deltaTime * self.conveyorSpeed
             targetY = True
         elif (overlappingTileId == ConveyorPlaceable.tiles[3] or overlappingTileId == UndergroundExit.tiles[3]):  # Move up
-            item.parentEntity.position[1] -= self.game.deltaTime * self.conveyorSpeed
+            finalMoveAmount[1] -= self.game.deltaTime * self.conveyorSpeed
             targetX = True
 
         if(targetY):
-            item.parentEntity.position[1] = item.parentEntity.position[1] - (8 * self.game.deltaTime) * (item.parentEntity.position[1] - (roundedPosition[1]))
+            finalMoveAmount[1]  -= (8 * self.game.deltaTime) * (item.parentEntity.position[1] - (roundedPosition[1]))
         if(targetX):
-            item.parentEntity.position[0] = item.parentEntity.position[0] - (8 * self.game.deltaTime) * (item.parentEntity.position[0] - (roundedPosition[0]))
+            finalMoveAmount[0] -= (8 * self.game.deltaTime) * (item.parentEntity.position[0] - (roundedPosition[0]))
+
+        if(not item._physics):
+            item._physics = item.parentEntity.GetComponent(PhysicsComponent)
+        item._physics.Move(finalMoveAmount)
 
     def OnEnable(self, currentScene: Scene):
         self.objectLayer = currentScene.tileMapLayersByName["Objects"].GetComponent(TilemapRenderer)
