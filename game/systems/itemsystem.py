@@ -65,6 +65,8 @@ class ItemSystem(EntitySystem):
             currentScene.DeleteEntity(item.parentEntity)
             if(nearbyConsumer.itemID == item.itemID):
                 currentScene.GetSystemByClass(GameSystem).AddMoney(item.worth)
+            else:
+                currentScene.GetSystemByClass(GameSystem).AddMoney(-1)
 
         self.UndergroundEntranceMove(item,overlappingTileId)
 
