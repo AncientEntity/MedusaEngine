@@ -10,18 +10,22 @@ class Tilemap:
         self.map = []
         self.tileSet : dict = dict() #{0: Sprite, 1 : Sprite, 2 : Sprite} or {"orc_1" : Sprite, "orc_2" : Sprite} etc dont put surfaces in
 
+        self.Clear() # builds self.map as a 2d array with all positions as -1.
+
+    def SetTile(self,tileID : int, x,y, ignoreInvalidPosition=False):
+        if(x >= 0 and y >= 0 and x < self.size[0] and y < self.size[1] and (tileID in self.tileSet or tileID == -1)):
+            self.map[x][y] = tileID
+        elif(ignoreInvalidPosition == False):
+            Log("Invalid spot to set tile or invalid tileID."+str(tileID),LOG_ERRORS)
+    def GetTileID(self,x,y):
+        return self.map[x][y]
+    def Clear(self):
+        self.map = []
         for x in range(self.size[0]):
             xRow = []
             for i in range(self.size[1]):
                 xRow.append(-1)
             self.map.append(xRow)
-    def SetTile(self,tileID : int, x,y):
-        if(x < self.size[0] and y < self.size[1] and (tileID in self.tileSet or tileID == -1)):
-            self.map[x][y] = tileID
-        else:
-            Log("Invalid spot to set tile or invalid tileID."+str(tileID),LOG_ERRORS)
-    def GetTileID(self,x,y):
-        return self.map[x][y]
     def SetTileSetFromSpriteSheet(self,spriteSheet : SpriteSheet,alpha=255):
         if(spriteSheet.splitType == 'size'):
             for x in range(spriteSheet.xCount):

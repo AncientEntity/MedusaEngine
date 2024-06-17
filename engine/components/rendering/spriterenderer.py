@@ -4,8 +4,10 @@ from pygame import Surface
 
 
 class SpriteRenderer(RendererComponent):
-    def __init__(self, sprite : Sprite or Surface):
+    def __init__(self, sprite : Sprite or Surface, drawOrder=0):
         super().__init__()
+        self.drawOrder = drawOrder
+        self.sprite : Sprite
         if(isinstance(sprite,Surface)):
             self.sprite = Sprite(sprite)
         else:

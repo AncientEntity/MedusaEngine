@@ -30,8 +30,9 @@ class RenderingSystem(EntitySystem):
 
         self._sortedDrawOrder : list = [] #Sorted list of related components (ie SpriteRenderer). Sorted by sort order.
 
+        self.rawMousePosition = (0, 0)
+        self.screenMousePosition = (0, 0)
         self.worldMousePosition = (0,0)
-        self.screenMousePosition = (0,0)
 
     def OnEnable(self, currentScene : Scene):
         RenderingSystem.instance = self
@@ -72,9 +73,10 @@ class RenderingSystem(EntitySystem):
         self._renderTarget.fill(self.backgroundColor)
         self.cameraPosition = [self.cameraPosition[0],self.cameraPosition[1]]
 
-        self.screenMousePosition = (pygame.mouse.get_pos()[0],pygame.mouse.get_pos()[1])
-        self.worldMousePosition = (round((self.screenMousePosition[0]-self.cameraPosition[0]-self._screenSize[0]/2)/self.renderScale),
-                                   round((self.screenMousePosition[1]-self.cameraPosition[1]-self._screenSize[1]/2)/self.renderScale))
+        self.rawMousePosition = pygame.mouse.get_pos()
+        self.screenMousePosition = ((self.rawMousePosition[0] - self._screenSize[0] / 2) / self.renderScale,(self.rawMousePosition[1] - self._screenSize[1] / 2) / self.renderScale)
+        self.worldMousePosition = (round((self.rawMousePosition[0] - self.cameraPosition[0] - self._screenSize[0] / 2) / self.renderScale),
+                                   round((self.rawMousePosition[1] - self.cameraPosition[1] - self._screenSize[1] / 2) / self.renderScale))
 
         #Loop through sorted render order and render everything out.
         for component in self._sortedDrawOrder:

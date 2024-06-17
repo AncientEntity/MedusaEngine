@@ -1,5 +1,4 @@
 import asyncio
-import copy
 
 import pygame
 import engine.ecs as ecs
@@ -8,7 +7,7 @@ from engine.game import Game
 import time
 from sys import exit
 
-from engine.logging import Log, LOG_ALL, LOG_ERRORS, LOG_INFO, LOG_WARNINGS
+from engine.logging import Log, LOG_ERRORS, LOG_INFO, LOG_WARNINGS
 from engine.scenes import splashscene
 
 
