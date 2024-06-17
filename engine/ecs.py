@@ -21,9 +21,7 @@ class Scene:
         newEnt.components = components
         self.entities.append(newEnt)
         for component in newEnt.components:
-            component.parentEntity = newEnt
-            self.AddComponent(component)
-            self._newComponentQueue.append(component)
+            self.AddComponent(component, newEnt)
         return newEnt
 
     def DeleteEntity(self,entity):
@@ -32,7 +30,9 @@ class Scene:
             self.RemoveComponent(component)
         self.entities.remove(entity)
 
-    def AddComponent(self, component : Component):
+    def AddComponent(self, component : Component, parentEntity):
+        component.parentEntity = parentEntity
+        self._newComponentQueue.append(component)
         componentType = type(component)
         if (componentType not in self.components):
             self.components[componentType] = []

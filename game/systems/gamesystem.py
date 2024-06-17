@@ -3,6 +3,8 @@ import pygame
 from engine.components.rendering.spriterenderer import SpriteRenderer
 from engine.components.rendering.textrenderer import TextRenderer
 from engine.components.rendering.tilemaprenderer import TilemapRenderer
+from engine.components.ui.buttoncomponent import ButtonComponent
+from engine.constants import CURSOR_PRESSED
 from engine.ecs import EntitySystem
 from engine.engine import Input
 from engine.prefabs.ui.ButtonPrefab import CreateButtonPrefab
@@ -50,7 +52,20 @@ class GameSystem(EntitySystem):
         self.placementPreviewRenderer = SpriteRenderer(worldSpriteSheet[ConveyorPlaceable.tiles[0]])
         self.placementPreviewIcon = currentScene.CreateEntity("PlacementPreviewIcon",[100,118],components=[self.placementPreviewRenderer])
 
-        self.conveyorButton = CreateButtonPrefab(currentScene, worldSpriteSheet[(1,3)], "Conveyor", self.mainFont)
+        self.conveyorButton : ButtonComponent = CreateButtonPrefab(currentScene, worldSpriteSheet[(1,3)], "", self.mainFont).GetComponent(ButtonComponent)
+        currentScene.AddComponent(SpriteRenderer(pygame.transform.scale(worldSpriteSheet[6],(8,8)),5),
+                                  self.conveyorButton.parentEntity)
+        self.conveyorButton.parentEntity.position = [-100,118]
+
+        self.undergroundEntranceButton : ButtonComponent = CreateButtonPrefab(currentScene, worldSpriteSheet[(1,3)], "", self.mainFont).GetComponent(ButtonComponent)
+        currentScene.AddComponent(SpriteRenderer(pygame.transform.scale(worldSpriteSheet[2], (8, 8)), 5),
+                                  self.undergroundEntranceButton.parentEntity)
+        self.undergroundEntranceButton.parentEntity.position = [-80,118]
+
+        self.undergroundExitButton : ButtonComponent = CreateButtonPrefab(currentScene, worldSpriteSheet[(1,3)], "", self.mainFont).GetComponent(ButtonComponent)
+        currentScene.AddComponent(SpriteRenderer(pygame.transform.scale(worldSpriteSheet[3], (8, 8)), 5),
+                                  self.undergroundExitButton.parentEntity)
+        self.undergroundExitButton.parentEntity.position = [-60,118]
 
         self._renderer = currentScene.GetSystemByClass(RenderingSystem)
         self._tileMapLayer = currentScene.tileMapLayersByName["Main"].GetComponent(TilemapRenderer)
@@ -98,18 +113,21 @@ class GameSystem(EntitySystem):
                 else:
                     currentScene.SetTile(currentHoverIndex,"HoverLayer",9)
                     currentScene.SetTile(currentHoverIndex,"PreviewLayer", self.GetPlacingTileIndex())
-                    self.placementPreviewRenderer.sprite = worldSpriteSheet[self.GetPlacingTileIndex()]
-
 
     def Controls(self):
         if(Input.KeyDown(pygame.K_r)):
             self.placeRotation += 1
-        if(Input.KeyDown(pygame.K_1)):
+            self.placementPreviewRenderer.sprite = worldSpriteSheet[self.GetPlacingTileIndex()]
+        if(Input.KeyDown(pygame.K_1) or self.conveyorButton.cursorState == CURSOR_PRESSED):
             self.currentlyPlacing = self.placeables[0]
-        elif(Input.KeyDown(pygame.K_2)):
+            self.placementPreviewRenderer.sprite = worldSpriteSheet[self.GetPlacingTileIndex()]
+        elif(Input.KeyDown(pygame.K_2) or self.undergroundEntranceButton.cursorState == CURSOR_PRESSED):
             self.currentlyPlacing = self.placeables[1]
-        elif(Input.KeyDown(pygame.K_3)):
+            self.placementPreviewRenderer.sprite = worldSpriteSheet[self.GetPlacingTileIndex()]
+        elif(Input.KeyDown(pygame.K_3) or self.undergroundExitButton.cursorState == CURSOR_PRESSED):
             self.currentlyPlacing = self.placeables[2]
+            self.placementPreviewRenderer.sprite = worldSpriteSheet[self.GetPlacingTileIndex()]
+
 
     def AddMoney(self,moneyToAdd):
         self._money += moneyToAdd
