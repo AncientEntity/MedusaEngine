@@ -10,8 +10,7 @@ import random
 itemSpriteSheet = SpriteSheet("game/art/ryanitems.png",10)
 
 def CreateItem(scene: Scene,itemID):
-
     physics = PhysicsComponent([5,5],(0,0))
 
-    newEntity = scene.CreateEntity(name="Item", position=[0, 0], components=[SpriteRenderer(itemSpriteSheet[(itemID,0)]),ItemComponent(itemID),physics])
+    newEntity = scene.CreateEntity(name="Item", position=[0, 0], components=[SpriteRenderer(itemSpriteSheet[itemID]),ItemComponent(itemID),physics])
     return newEntity

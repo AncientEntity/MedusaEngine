@@ -14,7 +14,7 @@ class GeneratorSystem(EntitySystem):
     def Update(self,currentScene : Scene):
         generator : GeneratorComponent
         for generator in currentScene.components[GeneratorComponent]:
-            if(generator.lastItem != None and Distance(generator.lastItem.position,generator.parentEntity.position) < 10):
+            if(generator.lastItem != None and Distance(generator.lastItem.position,generator.parentEntity.position) < 6):
                 generator.lastCreatedItem = time.time()
                 continue
 

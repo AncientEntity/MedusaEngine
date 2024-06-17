@@ -5,6 +5,7 @@ from engine.components.rendering.textrenderer import TextRenderer
 from engine.components.rendering.tilemaprenderer import TilemapRenderer
 from engine.ecs import EntitySystem
 from engine.engine import Input
+from engine.prefabs.ui.ButtonPrefab import CreateButtonPrefab
 from engine.scenes.levelscene import LevelScene
 from engine.systems.renderer import RenderingSystem
 from game.constants import ConveyorPlaceable, UndergroundEntrance, UndergroundExit, worldSpriteSheet
@@ -48,6 +49,8 @@ class GameSystem(EntitySystem):
 
         self.placementPreviewRenderer = SpriteRenderer(worldSpriteSheet[ConveyorPlaceable.tiles[0]])
         self.placementPreviewIcon = currentScene.CreateEntity("PlacementPreviewIcon",[100,118],components=[self.placementPreviewRenderer])
+
+        self.conveyorButton = CreateButtonPrefab(currentScene, worldSpriteSheet[(1,3)], "Conveyor", self.mainFont)
 
         self._renderer = currentScene.GetSystemByClass(RenderingSystem)
         self._tileMapLayer = currentScene.tileMapLayersByName["Main"].GetComponent(TilemapRenderer)

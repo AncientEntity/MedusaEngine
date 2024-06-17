@@ -69,14 +69,22 @@ class Scene:
     def HandleNewComponents(self): #Runs OnNewComponent for each new component (just added to the scene) for every system that it relates to.
         for startComp in self._newComponentQueue:
             for system in self.systems:
-                if(type(startComp) in system.targetComponents):
+                if self.SystemUsesComponent(startComp, system):
+                    # if(type(component) in system.targetComponents): #swapped out for the above line as that function considers inheritance.
                     system.OnNewComponent(startComp)
         self._newComponentQueue = []
 
     def HandleDeleteComponent(self,component : Component):
         for system in self.systems:
-            if(type(component) in system.targetComponents):
+            if self.SystemUsesComponent(component,system):
+            #if(type(component) in system.targetComponents): #swapped out for the above line as that function considers inheritance.
                 system.OnDestroyComponent(component)
+
+    def SystemUsesComponent(self, component : Component, system):
+        for componentType in system.targetComponents:
+            if isinstance(component,componentType):
+                return True
+        return False
 
     def Clear(self):
         self.components = {}

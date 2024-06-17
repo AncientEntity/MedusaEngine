@@ -18,7 +18,7 @@ def CreateGenerator(scene : LevelScene):
 
     scene.SetTile(tilePosition,"GeneratorLayer",16)
 
-    targetItem = random.randint(0,8)
+    targetItem = random.randint(0,15)
 
     CreateConsumer(scene,targetItem)
 
@@ -37,6 +37,6 @@ def CreateConsumer(scene : LevelScene, wantedItem):
     scene.SetTile(tilePosition,"GeneratorLayer",24)
 
     newConsumer = scene.CreateEntity("Consumer",[tilePosition[0]*16-16*7.5,tilePosition[1]*16-16*8],[ConsumerComponent(wantedItem),
-                                                                                                     SpriteRenderer(itemSpriteSheet[(wantedItem,0)])])
+                                                                                                     SpriteRenderer(itemSpriteSheet[wantedItem])])
     newConsumer.GetComponent(SpriteRenderer).sprite.SetAlpha(80)
     return newConsumer

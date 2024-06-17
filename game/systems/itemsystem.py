@@ -29,6 +29,8 @@ class ItemSystem(EntitySystem):
             self.HandleItem(item, currentScene)
 
     def HandleItem(self,item : ItemComponent, currentScene : LevelScene):
+
+        #Handle underground belt reappear
         if(item.reappearTime != None):
             reappearIndex = self.objectLayer.WorldPositionToTileIndex(item.reappearPosition)
             if(item.reappearTime > time.time()):
@@ -40,6 +42,7 @@ class ItemSystem(EntitySystem):
             else:
                 return
 
+        #Calculate movement related variables
         itemTileIndex = self.objectLayer.WorldPointToTileIndexSafe(
             (item.parentEntity.position[0], item.parentEntity.position[1]))
 
