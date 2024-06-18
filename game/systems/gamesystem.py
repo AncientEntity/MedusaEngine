@@ -53,17 +53,17 @@ class GameSystem(EntitySystem):
         self.placementPreviewIcon = currentScene.CreateEntity("PlacementPreviewIcon",[100,118],components=[self.placementPreviewRenderer])
 
         self.conveyorButton : ButtonComponent = CreateButtonPrefab(currentScene, worldSpriteSheet[(1,3)], "", self.mainFont).GetComponent(ButtonComponent)
-        currentScene.AddComponent(SpriteRenderer(pygame.transform.scale(worldSpriteSheet[6],(8,8)),5),
+        currentScene.AddComponent(SpriteRenderer(pygame.transform.scale(worldSpriteSheet[6],(8,8)),5,True),
                                   self.conveyorButton.parentEntity)
         self.conveyorButton.parentEntity.position = [-100,118]
 
         self.undergroundEntranceButton : ButtonComponent = CreateButtonPrefab(currentScene, worldSpriteSheet[(1,3)], "", self.mainFont).GetComponent(ButtonComponent)
-        currentScene.AddComponent(SpriteRenderer(pygame.transform.scale(worldSpriteSheet[2], (8, 8)), 5),
+        currentScene.AddComponent(SpriteRenderer(pygame.transform.scale(worldSpriteSheet[2], (8, 8)), 5,True),
                                   self.undergroundEntranceButton.parentEntity)
         self.undergroundEntranceButton.parentEntity.position = [-80,118]
 
         self.undergroundExitButton : ButtonComponent = CreateButtonPrefab(currentScene, worldSpriteSheet[(1,3)], "", self.mainFont).GetComponent(ButtonComponent)
-        currentScene.AddComponent(SpriteRenderer(pygame.transform.scale(worldSpriteSheet[3], (8, 8)), 5),
+        currentScene.AddComponent(SpriteRenderer(pygame.transform.scale(worldSpriteSheet[3], (8, 8)), 5,True),
                                   self.undergroundExitButton.parentEntity)
         self.undergroundExitButton.parentEntity.position = [-60,118]
 
@@ -91,14 +91,14 @@ class GameSystem(EntitySystem):
             currentScene.SetTile(self.previousHoverIndex,"PreviewLayer",-1)
             self.previousHoverIndex = currentHoverIndex
 
-            # Handle special underground belt preview.
-            if (self.currentlyPlacing == UndergroundEntrance):
-                self.UndergroundBeltPreview(currentHoverIndex, currentScene,False)
-            elif (self.currentlyPlacing == UndergroundExit):
-                self.UndergroundBeltPreview(currentHoverIndex, currentScene,True)
-
             #Highlighting and Placing
             if(currentHoverIndex[0] >= 1 and currentHoverIndex[1] >= 1 and currentHoverIndex[0] <= 14 and currentHoverIndex[1] <= 14):
+                # Handle special underground belt preview.
+                if (self.currentlyPlacing == UndergroundEntrance):
+                    self.UndergroundBeltPreview(currentHoverIndex, currentScene, False)
+                elif (self.currentlyPlacing == UndergroundExit):
+                    self.UndergroundBeltPreview(currentHoverIndex, currentScene, True)
+
                 if(Input.MouseButtonPressed(0)):
                     currentScene.SetTile(currentHoverIndex,"HoverLayer",10)
 

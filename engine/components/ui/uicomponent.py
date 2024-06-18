@@ -6,3 +6,4 @@ class UIComponent(Component):
         super().__init__()
         self.bounds = [0,0]
         self.cursorState = CURSOR_NONE
+        self.screenSpace = True

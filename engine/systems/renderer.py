@@ -75,8 +75,8 @@ class RenderingSystem(EntitySystem):
 
         self.rawMousePosition = pygame.mouse.get_pos()
         self.screenMousePosition = ((self.rawMousePosition[0] - self._screenSize[0] / 2) / self.renderScale,(self.rawMousePosition[1] - self._screenSize[1] / 2) / self.renderScale)
-        self.worldMousePosition = (round((self.rawMousePosition[0] - self.cameraPosition[0] - self._screenSize[0] / 2) / self.renderScale),
-                                   round((self.rawMousePosition[1] - self.cameraPosition[1] - self._screenSize[1] / 2) / self.renderScale))
+        self.worldMousePosition = (round((self.rawMousePosition[0] + self.cameraPosition[0] - self._screenSize[0] / 2) / self.renderScale),
+                                   round((self.rawMousePosition[1] + self.cameraPosition[1] - self._screenSize[1] / 2) / self.renderScale))
 
         #Loop through sorted render order and render everything out.
         for component in self._sortedDrawOrder:
@@ -106,7 +106,7 @@ class RenderingSystem(EntitySystem):
         if (False == self.IsOnScreenSprite(spriteSurface, spriteRenderer.parentEntity.position)):
             return
 
-        finalPosition = self.FinalPositionOfSprite(spriteRenderer.parentEntity.position, spriteSurface)
+        finalPosition = self.FinalPositionOfSprite(spriteRenderer.parentEntity.position, spriteSurface, spriteRenderer.screenSpace)
         self._renderTarget.blit(spriteSurface, finalPosition)
 
         if (self.debug):  # If debug draw bounds of spriterenderers
@@ -139,8 +139,8 @@ class RenderingSystem(EntitySystem):
                 tailSprite : Sprite = GetSprite(tileMapRenderer.tileMap.tileSet[tileMapRenderer.tileMap.map[x][y]],True)
                 spriteSurface = tailSprite.GetSprite()
                 self._renderTarget.blit(spriteSurface, leftAnchoredScreenPosition)
-                if (tailSprite.tint):
-                    self._renderTarget.fill(color=tailSprite.tint, rect=(
+                if (tailSprite._tint):
+                    self._renderTarget.fill(color=tailSprite._tint, rect=(
                     leftAnchoredScreenPosition[0], leftAnchoredScreenPosition[1], spriteSurface.get_width(), spriteSurface.get_width()),
                                             special_flags=pygame.BLEND_ADD)
 
@@ -200,9 +200,13 @@ class RenderingSystem(EntitySystem):
     def WorldToScreenPosition(self,position):
         return [position[0] - self.cameraPosition[0] + self._scaledHalfSize[0], position[1] - self.cameraPosition[1] + self._scaledHalfSize[1]]
 
-    def FinalPositionOfSprite(self,position,sprite):
+    def FinalPositionOfSprite(self,position,sprite, screenSpace=False):
         topLeftPosition = CenterToTopLeftPosition(position, sprite)
-        return self.WorldToScreenPosition(topLeftPosition)
+        if(not screenSpace):
+            return self.WorldToScreenPosition(topLeftPosition)
+        else:
+            #for the user we center 0,0 on the screen but when drawing 0,0 is the top left. So we fix it here.
+            return (topLeftPosition[0]+self._scaledHalfSize[0],topLeftPosition[1]+self._scaledHalfSize[1])
 
     def IsOnScreenSprite(self, sprite : pygame.Surface, position) -> bool:
         return self.IsOnScreenRect(pygame.Rect(position[0]-sprite.get_width()//2,position[1]-sprite.get_height()//2,sprite.get_width(),sprite.get_height()))

@@ -27,9 +27,15 @@ class UISystem(EntitySystem):
             element.cursorState = self.GetElementHoverState(mousePosition,element)
 
     def GetElementHoverState(self,mousePosition,element : UIComponent):
-        screenBounds = pygame.Rect(element.parentEntity.position[0]-element.bounds[0]/2-RenderingSystem().instance.cameraPosition[0]
-                                   ,element.parentEntity.position[1]-element.bounds[1]/2-RenderingSystem().instance.cameraPosition[1],
-                                   element.bounds[0],element.bounds[1])
+        screenBounds = None
+        if(element.screenSpace):
+            screenBounds = pygame.Rect(element.parentEntity.position[0]-element.bounds[0]/2
+                                       ,element.parentEntity.position[1]-element.bounds[1]/2,
+                                       element.bounds[0],element.bounds[1])
+        else:
+            screenBounds = pygame.Rect(element.parentEntity.position[0]-element.bounds[0]/2-RenderingSystem().instance.cameraPosition[0]
+                                       ,element.parentEntity.position[1]-element.bounds[1]/2-RenderingSystem().instance.cameraPosition[1],
+                                       element.bounds[0],element.bounds[1])
         if(screenBounds.collidepoint(mousePosition)):
             return CURSOR_PRESSED if Input.MouseButtonPressed(0) else CURSOR_HOVERING
         return CURSOR_NONE

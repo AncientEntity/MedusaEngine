@@ -25,9 +25,10 @@ class Sprite: #TODO sprite draw order implementation to control draw order.
 
         self._flipX = False
         self.ignoreCollision = False
-        self.tint = None
+        self._tint = None
         self._rotation = None
         self._alpha = None # When None it is 255. fully opaque.
+        self._scale = None
 
         self.RefreshSprite()
 
@@ -36,13 +37,16 @@ class Sprite: #TODO sprite draw order implementation to control draw order.
         if(self._unmodifiedSprite == None):
             return
 
-        self.sprite = self._unmodifiedSprite.copy()
+        if(self._scale != None):
+            self.sprite = pygame.transform.scale(self._unmodifiedSprite.copy(),(self._unmodifiedSprite.get_width()*self._scale[0],self._unmodifiedSprite.get_height()*self._scale[1]))
+        else:
+            self.sprite = self._unmodifiedSprite.copy()
 
         #todo render offset (where you can have an offset and it repeats). ex: if you have a conveyor belt sprite you can 'repeat' it with an offset.
 
         #Handle tint
-        if(self.tint != None):
-            self.sprite.fill(self.tint,special_flags=pygame.BLEND_ADD)
+        if(self._tint != None):
+            self.sprite.fill(self._tint, special_flags=pygame.BLEND_ADD)
 
         #Handle alpha
         if(self._alpha != None):
@@ -64,25 +68,36 @@ class Sprite: #TODO sprite draw order implementation to control draw order.
 
         self._flipX = flipped
         self.RefreshSprite()
+        return self
 
     def SetTint(self,tint):
-        if(self.tint == tint):
+        if(self._tint == tint):
             return
 
-        self.tint = tint
+        self._tint = tint
         self.RefreshSprite()
+        return self
     def SetRotation(self,rotation):
         if(self._rotation == rotation):
             return
 
         self._rotation = rotation
         self.RefreshSprite()
+        return self
     def SetAlpha(self,alpha):
         if(self._alpha == alpha):
             return
 
         self._alpha = alpha
         self.RefreshSprite()
+        return self
+    def SetScale(self,scale):
+        if(self._scale == scale):
+            return
+
+        self._scale = scale
+        self.RefreshSprite()
+        return self
 
     def get_width(self):
         return self.sprite.get_width()
