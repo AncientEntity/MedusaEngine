@@ -1,3 +1,5 @@
+import pygame
+
 from engine.components.rendering.renderercomponent import RendererComponent
 from engine.datatypes.sprites import Sprite
 from engine.logging import Log, LOG_ERRORS
@@ -31,7 +33,10 @@ class Tilemap:
             for x in range(spriteSheet.xCount):
                 for y in range(spriteSheet.yCount):
                     hashIndex = y*spriteSheet.xCount+x
-                    self.tileSet[hashIndex] = Sprite(spriteSheet[(x,y)])
+                    if(type(spriteSheet[(x,y)]) == pygame.Surface):
+                        self.tileSet[hashIndex] = Sprite(spriteSheet[(x,y)])
+                    else:
+                        self.tileSet[hashIndex] = spriteSheet[(x,y)].GetSprite() # So the tilemap always has a copy.
                     self.tileSet[hashIndex].SetAlpha(alpha)
 
         elif(spriteSheet.splitType == 'map'):
