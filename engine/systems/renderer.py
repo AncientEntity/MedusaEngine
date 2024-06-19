@@ -195,7 +195,8 @@ class RenderingSystem(EntitySystem):
                 return
             renderPosition = self.FinalPositionOfSprite(renderPosition, actualSprite, screenSpace=textRenderer.screenSpace)
 
-        self._renderTarget.blit(actualSprite, [renderPosition[0] - textRenderer._render.get_width()//2,renderPosition[1] - textRenderer._render.get_height()//2])
+
+        self._renderTarget.blit(actualSprite, (renderPosition[0]-textRenderer._alignOffset[0],renderPosition[1]-textRenderer._alignOffset[1]))
 
     def WorldToScreenPosition(self,position):
         return [position[0] - self.cameraPosition[0] + self._scaledHalfSize[0], position[1] - self.cameraPosition[1] + self._scaledHalfSize[1]]

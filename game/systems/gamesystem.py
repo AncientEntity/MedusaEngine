@@ -10,9 +10,11 @@ from engine.engine import Input
 from engine.prefabs.ui.ButtonPrefab import CreateButtonPrefab
 from engine.scenes.levelscene import LevelScene
 from engine.systems.renderer import RenderingSystem
-from game.constants import ConveyorPlaceable, UndergroundEntrance, UndergroundExit, worldSpriteSheet
+from game.constants import ConveyorPlaceable, UndergroundEntrance, UndergroundExit, worldSpriteSheet, \
+    UNDERGROUND_BELT_UNLOCK_LEVEL
 from game.datatypes.Placeable import Placeable
 from game.prefabs.Generator import CreateGenerator
+from game.systems.notificationsystem import NotificationSystem
 
 
 class GameSystem(EntitySystem):
@@ -22,10 +24,10 @@ class GameSystem(EntitySystem):
         self._renderer : RenderingSystem = None
         self.previousHoverIndex = (0,0)
         self.placeRotation = 0
-        self._money = 1000
+        self._money = 160
 
         self._level = 1
-        self.levelDelay = 5
+        self.levelDelay = 15
         self._levelTimeRemaining = self.levelDelay
 
         self.placeables = [ConveyorPlaceable,UndergroundEntrance,UndergroundExit]
@@ -33,7 +35,7 @@ class GameSystem(EntitySystem):
     def OnEnable(self, currentScene : LevelScene):
         self.mainFont = pygame.font.Font("game/art/PixeloidMono-d94EV.ttf",10)
 
-        self.moneyText = TextRenderer("$1000",self.mainFont)
+        self.moneyText = TextRenderer("$160",self.mainFont)
         self.levelText = TextRenderer("Level: 1",self.mainFont)
         self.nextOrderText = TextRenderer("Next Order: 20s",self.mainFont)
 
@@ -57,16 +59,6 @@ class GameSystem(EntitySystem):
                                   self.conveyorButton.parentEntity)
         self.conveyorButton.parentEntity.position = [-100,118]
 
-        self.undergroundEntranceButton : ButtonComponent = CreateButtonPrefab(currentScene, worldSpriteSheet[(1,3)], "", self.mainFont).GetComponent(ButtonComponent)
-        currentScene.AddComponent(SpriteRenderer(pygame.transform.scale(worldSpriteSheet[2], (8, 8)), 5,True),
-                                  self.undergroundEntranceButton.parentEntity)
-        self.undergroundEntranceButton.parentEntity.position = [-80,118]
-
-        self.undergroundExitButton : ButtonComponent = CreateButtonPrefab(currentScene, worldSpriteSheet[(1,3)], "", self.mainFont).GetComponent(ButtonComponent)
-        currentScene.AddComponent(SpriteRenderer(pygame.transform.scale(worldSpriteSheet[3], (8, 8)), 5,True),
-                                  self.undergroundExitButton.parentEntity)
-        self.undergroundExitButton.parentEntity.position = [-60,118]
-
         self._renderer = currentScene.GetSystemByClass(RenderingSystem)
         self._tileMapLayer = currentScene.tileMapLayersByName["Main"].GetComponent(TilemapRenderer)
 
@@ -82,6 +74,8 @@ class GameSystem(EntitySystem):
             self.levelText.SetText("Level: "+str(self._level))
             self._levelTimeRemaining = self.levelDelay
             CreateGenerator(currentScene)
+            if(self._level == UNDERGROUND_BELT_UNLOCK_LEVEL):
+                self.UnlockUndergroundBelts(currentScene)
 
 
     def WorldInteraction(self, currentScene : LevelScene):
@@ -121,10 +115,10 @@ class GameSystem(EntitySystem):
         if(Input.KeyDown(pygame.K_1) or self.conveyorButton.cursorState == CURSOR_PRESSED):
             self.currentlyPlacing = self.placeables[0]
             self.placementPreviewRenderer.sprite = worldSpriteSheet[self.GetPlacingTileIndex()]
-        elif(Input.KeyDown(pygame.K_2) or self.undergroundEntranceButton.cursorState == CURSOR_PRESSED):
+        elif(self._level >= UNDERGROUND_BELT_UNLOCK_LEVEL and (Input.KeyDown(pygame.K_2) or self.undergroundEntranceButton.cursorState == CURSOR_PRESSED)):
             self.currentlyPlacing = self.placeables[1]
             self.placementPreviewRenderer.sprite = worldSpriteSheet[self.GetPlacingTileIndex()]
-        elif(Input.KeyDown(pygame.K_3) or self.undergroundExitButton.cursorState == CURSOR_PRESSED):
+        elif(self._level >= UNDERGROUND_BELT_UNLOCK_LEVEL and (Input.KeyDown(pygame.K_3) or self.undergroundExitButton.cursorState == CURSOR_PRESSED)):
             self.currentlyPlacing = self.placeables[2]
             self.placementPreviewRenderer.sprite = worldSpriteSheet[self.GetPlacingTileIndex()]
 
@@ -161,3 +155,16 @@ class GameSystem(EntitySystem):
             if(position[1] < 1 or position[1] > 14):
                 return
             currentScene.SetTile(position, "HoverLayer", 9, True)
+    def UnlockUndergroundBelts(self, currentScene): # I don't like this solution but for a remake/example game it's not an issue.
+
+        self.undergroundEntranceButton : ButtonComponent = CreateButtonPrefab(currentScene, worldSpriteSheet[(1,3)], "", self.mainFont).GetComponent(ButtonComponent)
+        currentScene.AddComponent(SpriteRenderer(pygame.transform.scale(worldSpriteSheet[2], (8, 8)), 5,True),
+                                  self.undergroundEntranceButton.parentEntity)
+        self.undergroundEntranceButton.parentEntity.position = [-80,118]
+
+        self.undergroundExitButton : ButtonComponent = CreateButtonPrefab(currentScene, worldSpriteSheet[(1,3)], "", self.mainFont).GetComponent(ButtonComponent)
+        currentScene.AddComponent(SpriteRenderer(pygame.transform.scale(worldSpriteSheet[3], (8, 8)), 5,True),
+                                  self.undergroundExitButton.parentEntity)
+        self.undergroundExitButton.parentEntity.position = [-60,118]
+
+        currentScene.GetSystemByClass(NotificationSystem).CreateNotification(currentScene, "Underground Belts Unlocked!")

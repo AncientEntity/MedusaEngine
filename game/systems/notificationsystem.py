@@ -1,4 +1,5 @@
 from engine.components.rendering.textrenderer import TextRenderer
+from engine.constants import ALIGN_TOPLEFT
 from engine.ecs import EntitySystem, Scene, Component, Entity
 from engine.scenes.levelscene import LevelScene
 import pygame
@@ -17,24 +18,25 @@ class NotificationSystem(EntitySystem):
     def Update(self,currentScene : Scene):
         index = 0
         notification : Entity
-        for notification in self.notifications[:]:
-            timeLeft = time.time() - notification.GetComponent(NotificationComponent).startTime
+        for notification in self.notifications[::-1]:
+            timeLeft = self.halfLife - (time.time() - notification.GetComponent(NotificationComponent).startTime)
             if(timeLeft <= 0):
+                currentScene.DeleteEntity(notification)
                 self.notifications.remove(notification)
                 continue
 
-            notification.position[1] = 97 - index*10
-            notification.GetComponent(TextRenderer).SetAlpha(255-255*(timeLeft/self.halfLife))
+            notification.position[1] = 90 - index*11
+            notification.GetComponent(TextRenderer).SetAlpha(350*(timeLeft/self.halfLife)) #Alpha above 255 so it doesn't immediately start disappearing.
             index += 1
     def OnEnable(self, currentScene : Scene):
         self.notificationFont = pygame.font.Font("game/art/PixeloidMono-d94EV.ttf",10)
-        self.CreateNotification(currentScene, "Test Notification!")
 
     def CreateNotification(self, currentScene : LevelScene, text):
         textRenderer = TextRenderer(text,self.notificationFont)
         textRenderer.screenSpace = True
         textRenderer.drawOrder = 1000
         textRenderer.SetColor((255,255,255))
-        notifyEntity = currentScene.CreateEntity("Notification",[-48,97],[textRenderer, NotificationComponent()])
+        textRenderer.SetAlign(ALIGN_TOPLEFT)
+        notifyEntity = currentScene.CreateEntity("Notification",[-110,90],[textRenderer, NotificationComponent(time.time())])
 
         self.notifications.append(notifyEntity)
