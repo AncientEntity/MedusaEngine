@@ -25,7 +25,7 @@ class EngineSplashScreenScene(Scene):
     def Init(self):
         super().Init()
         font = pygame.font.SysFont("Arial", 36, True, False)
-        engineNameText = font.render("Powered by Catalyst Engine", True, (0, 0, 0))
+        engineNameText = font.render("Powered by Medusa Engine", True, (0, 0, 0))
         engineNameEntity = self.CreateEntity("Engine Name Text",[0,-200],[SpriteRenderer(engineNameText)])
         engineNameEntity.name = "Engine Name Text"
 

@@ -1,5 +1,8 @@
 import random
 
+import pygame.font
+
+from engine.components.rendering.textrenderer import TextRenderer
 from engine.scenes.levelscene import LevelScene
 from engine.systems.physics import PhysicsSystem
 from game import prefabs
@@ -15,9 +18,12 @@ class TiledTestScene(LevelScene):
         self.systems.append(NPCSystem())
         self.systems.append(PhysicsSystem())
         self.player = None
+
     def LevelStart(self):
         self.player = prefabs.CreatePlayer(self)
         self.player.position = self.GetRandomTiledObjectByName("SPAWN")["position"][:]
+
+        self.worldTextTest = self.CreateEntity("World Text Test",[-150,0],[TextRenderer("World Test String :)", pygame.font.SysFont("Arial",12))])
 
         def SpawnEnemyAbovePlayer(s,o):
             if(o.parentEntity.name == "Player"):
