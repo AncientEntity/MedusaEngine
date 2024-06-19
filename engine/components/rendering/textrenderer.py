@@ -15,7 +15,7 @@ class TextRenderer(RendererComponent):
         self.drawOrder = 100
         self.screenSpace = True #If false it will be rendered onto world space. Setting it to True will essentially be UI
     def Render(self):
-        self._render = self._font.render(self._text,self._antialiased,self._color)
+        self._render = Sprite(self._font.render(self._text,self._antialiased,self._color))
     def SetText(self,text):
         if(text == self._text):
             return
@@ -31,6 +31,11 @@ class TextRenderer(RendererComponent):
             return
         self._color = color
         self.Render()
+    def SetAlpha(self,alpha):
+        if(self._render._alpha == alpha):
+            return
+        self.Render()
+        self._render.SetAlpha(alpha)
     def SetAntialiased(self,antialias : bool):
         if(self._antialiased == antialias):
             return

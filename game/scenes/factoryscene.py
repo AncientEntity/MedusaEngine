@@ -11,6 +11,7 @@ from game.prefabs.Generator import CreateGenerator
 from game.systems.generatorsystem import GeneratorSystem
 from game.systems.itemsystem import ItemSystem
 from game.systems.gamesystem import GameSystem
+from game.systems.notificationsystem import NotificationSystem
 
 
 class TinyFactoryScene(LevelScene):
@@ -20,6 +21,7 @@ class TinyFactoryScene(LevelScene):
         self.systems.append(GameSystem())
         self.systems.append(ItemSystem())
         self.systems.append(GeneratorSystem())
+        self.systems.append(NotificationSystem())
         self.systems.append(UISystem())
         self.GetSystemByClass(renderer.RenderingSystem).renderScale = 2
     def LevelStart(self):
