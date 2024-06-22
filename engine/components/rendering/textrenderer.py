@@ -12,6 +12,10 @@ class TextRenderer(RendererComponent):
         self._color = (0,0,0)
         self._antialiased = True
 
+        self._shadowEnabled = False
+        self._shadowColor = (0,0,0)
+        self._shadowOffset = 2
+
         self._textAlign = ALIGN_CENTER
         self._alignOffset = (0,0)
 
@@ -20,7 +24,18 @@ class TextRenderer(RendererComponent):
         self.drawOrder = 100
         self.screenSpace = True #If false it will be rendered onto world space. Setting it to True will essentially be UI
     def Render(self):
-        self._render = Sprite(self._font.render(self._text,self._antialiased,self._color))
+
+        #If no shadow
+        if(not self._shadowEnabled):
+            self._render = Sprite(self._font.render(self._text,self._antialiased,self._color))
+        else:
+            frontRender = self._font.render(self._text,self._antialiased,self._color)
+            backRender = self._font.render(self._text,self._antialiased,self._shadowColor)
+            textSurface = pygame.Surface((frontRender.get_width()+1,frontRender.get_height()+1), pygame.SRCALPHA, 32)
+            textSurface.blit(backRender,[2,2])
+            textSurface.blit(frontRender,[0,0])
+            self._render = Sprite(textSurface)
+
         self.CalculateAlignmentOffset()
     def SetText(self,text):
         if(text == self._text):
@@ -47,6 +62,14 @@ class TextRenderer(RendererComponent):
             return
         self._textAlign = alignment
         self.CalculateAlignmentOffset()
+    def SetShadow(self, hasShadow : bool, shadowColor, offset : int):
+        if(self._shadowEnabled == hasShadow and self._shadowColor == shadowColor):
+            return
+        self._shadowEnabled = hasShadow
+        self._shadowColor = shadowColor
+        self._shadowOffset = offset
+        self.Render()
+
 
     def CalculateAlignmentOffset(self):
         xOffset = 0
