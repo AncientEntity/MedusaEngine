@@ -45,7 +45,7 @@ class RenderingSystem(EntitySystem):
         self.InsertIntoSortedRenderOrder(component)
         Log("Added "+component.parentEntity.name + " to rendering order."+str(component.drawOrder),LOG_ALL)
 
-    def OnDestroyComponent(self, component : RendererComponent):
+    def OnDeleteComponent(self, component : RendererComponent):
         indexOfComponent = self._sortedDrawOrder.index(component)
         if(indexOfComponent != -1):
             self._sortedDrawOrder.pop(indexOfComponent)
@@ -79,7 +79,10 @@ class RenderingSystem(EntitySystem):
                                    round((self.rawMousePosition[1] + self.cameraPosition[1] - self._screenSize[1] / 2) / self.renderScale))
 
         #Loop through sorted render order and render everything out.
+        component : RendererComponent
         for component in self._sortedDrawOrder:
+            if not component.enabled:
+                continue
             if(isinstance(component,SpriteRenderer)):
                 self.RenderSpriteRenderer(component)
             elif(isinstance(component,TilemapRenderer)):

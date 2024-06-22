@@ -57,7 +57,7 @@ class UISystem(EntitySystem):
         if (isinstance(component, ButtonComponent)):
             self.buttons.append(component)
 
-    def OnDestroyComponent(self, component: Component):
+    def OnDeleteComponent(self, component: Component):
         self.allUIElements.remove(component)
 
         if (isinstance(component, ButtonComponent)):

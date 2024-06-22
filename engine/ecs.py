@@ -2,6 +2,7 @@
 class Component:
     def __init__(self):
         self.parentEntity : Entity = None
+        self.enabled = True # This only works if the given EntitySystem supports it.
 
 
 class Scene:
@@ -19,16 +20,26 @@ class Scene:
         newEnt.name = name
         newEnt.position = position
         newEnt.components = components
-        self.entities.append(newEnt)
-        for component in newEnt.components:
-            self.AddComponent(component, newEnt)
+        self.AddEntity(newEnt)
         return newEnt
 
+    def AddEntity(self, entity):
+        if(entity._alive):
+            return
+        self.entities.append(entity)
+        for component in entity.components:
+            self.AddComponent(component, entity)
+        entity._alive = True
+
     def DeleteEntity(self,entity):
+        if(not entity._alive):
+            return
+
         #Remove components from scene components
         for component in entity.components:
             self.RemoveComponent(component)
         self.entities.remove(entity)
+        entity._alive = False
 
     def AddComponent(self, component : Component, parentEntity):
         component.parentEntity = parentEntity
@@ -37,6 +48,8 @@ class Scene:
         if (componentType not in self.components):
             self.components[componentType] = []
         self.components[componentType].append(component)
+        if component not in parentEntity.components:
+            parentEntity.components.append(component)
 
     def RemoveComponent(self, component : Component):
         componentType = type(component)
@@ -78,7 +91,7 @@ class Scene:
         for system in self.systems:
             if self.SystemUsesComponent(component,system):
             #if(type(component) in system.targetComponents): #swapped out for the above line as that function considers inheritance.
-                system.OnDestroyComponent(component)
+                system.OnDeleteComponent(component)
 
     def SystemUsesComponent(self, component : Component, system):
         for componentType in system.targetComponents:
@@ -96,11 +109,15 @@ class Entity:
         self.name = "Unnamed Entity"
         self.position = (0, 0)
         self.components = []
+
+        self._alive = False
     def GetComponent(self, t):
         for component in self.components:
             if(isinstance(component,t)):
                 return component
         return None
+    def IsAlive(self):
+        return self._alive
 
 class EntitySystem:
     def __init__(self, targetComponents=[]):
@@ -116,5 +133,5 @@ class EntitySystem:
     def OnNewComponent(self,component : Component): #Called when a new component is created into the scene. (Used to initialize that component)
         pass
 
-    def OnDestroyComponent(self, component : Component): #Called when an existing component is destroyed (Use for deinitializing it from the systems involved)
+    def OnDeleteComponent(self, component : Component): #Called when an existing component is deleted (Use for deinitializing it from the systems involved)
         pass
