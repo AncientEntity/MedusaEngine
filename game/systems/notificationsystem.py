@@ -40,3 +40,4 @@ class NotificationSystem(EntitySystem):
         notifyEntity = currentScene.CreateEntity("Notification",[-110,90],[textRenderer, NotificationComponent(time.time())])
 
         self.notifications.append(notifyEntity)
+        return notifyEntity

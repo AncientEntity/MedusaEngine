@@ -3,7 +3,7 @@
         "height": 4300,
         "width": 2
     },
-    "activeFile": "factorymap.tmx",
+    "activeFile": "mainmenumap.tmx",
     "expandedProjectPaths": [
         "."
     ],
@@ -18,6 +18,14 @@
         },
         "factorytileset.tsx": {
             "scaleInDock": 1
+        },
+        "mainmenumap.tmx": {
+            "scale": 2,
+            "selectedLayer": 2,
+            "viewCenter": {
+                "x": 75,
+                "y": 163.5
+            }
         }
     },
     "last.exportedFilePath": "G:/Projects/MedusaEngine/game/tiled",
@@ -29,11 +37,12 @@
     "map.tileWidth": 16,
     "map.width": 16,
     "openFiles": [
-        "factorymap.tmx"
+        "mainmenumap.tmx"
     ],
     "project": "tinyfactory.tiled-project",
     "property.type": "int",
     "recentFiles": [
+        "mainmenumap.tmx",
         "factorymap.tmx"
     ],
     "tileset.lastUsedFormat": "tsx",

@@ -146,7 +146,7 @@ class ItemSystem(EntitySystem):
         if(isinstance(component,ConsumerComponent)):
             self.consumers.append(component)
 
-    def OnDestroyComponent(self, component: Component):  # Called when an existing component is destroyed (Use for deinitializing it from the systems involved)
+    def OnDeleteComponent(self, component: Component):  # Called when an existing component is destroyed (Use for deinitializing it from the systems involved)
         if(isinstance(component,ConsumerComponent)):
             self.consumers.remove(component)
 

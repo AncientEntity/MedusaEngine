@@ -1,7 +1,3 @@
-import pygame.font
-
-from engine.components.rendering.textrenderer import TextRenderer
-from engine.datatypes.spritesheet import SpriteSheet
 from engine.scenes.levelscene import LevelScene
 from engine.systems import renderer
 from engine.systems.physics import PhysicsSystem
@@ -25,4 +21,5 @@ class TinyFactoryScene(LevelScene):
         self.systems.append(UISystem())
         self.GetSystemByClass(renderer.RenderingSystem).renderScale = 2
     def LevelStart(self):
-        CreateGenerator(self)
+        pass
+        #CreateGenerator(self)

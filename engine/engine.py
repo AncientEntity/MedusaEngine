@@ -1,4 +1,5 @@
 import asyncio
+from typing import Type
 
 import pygame
 import engine.ecs as ecs
@@ -115,11 +116,11 @@ class Engine:
         return self.IsKeyState(key,KEYDOWN)
     def KeyUp(self,key : int) -> bool:
         return self.IsKeyState(key,KEYUP)
-    def LoadScene(self, scene : ecs.Scene):
+    def LoadScene(self, scene : Type[ecs.Scene]):
         if(self._queuedScene != None):
             Log("Scene queuing on top of another scene. Before: "+self._queuedScene.name+", now: "+scene.name,LOG_WARNINGS)
-        self._queuedScene = scene
-        Log("Queued scene: "+scene.name,LOG_INFO)
+        self._queuedScene = scene()
+        Log("Queued scene: "+self._queuedScene.name,LOG_INFO)
     def _LoadQueuedScene(self):
         Log("Loading scene: "+self._queuedScene.name,LOG_INFO)
         self._currentScene = self._queuedScene

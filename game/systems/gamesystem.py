@@ -4,12 +4,13 @@ from engine.components.rendering.spriterenderer import SpriteRenderer
 from engine.components.rendering.textrenderer import TextRenderer
 from engine.components.rendering.tilemaprenderer import TilemapRenderer
 from engine.components.ui.buttoncomponent import ButtonComponent
-from engine.constants import CURSOR_PRESSED
+from engine.constants import CURSOR_PRESSED, ALIGN_TOPLEFT
 from engine.ecs import EntitySystem
 from engine.engine import Input
 from engine.prefabs.ui.ButtonPrefab import CreateButtonPrefab
 from engine.scenes.levelscene import LevelScene
 from engine.systems.renderer import RenderingSystem
+from game.components.ItemComponent import ItemComponent
 from game.constants import ConveyorPlaceable, UndergroundEntrance, UndergroundExit, worldSpriteSheet, \
     UNDERGROUND_BELT_UNLOCK_LEVEL
 from game.datatypes.Placeable import Placeable
@@ -26,6 +27,8 @@ class GameSystem(EntitySystem):
         self.placeRotation = 0
         self._money = 160
 
+        self.mainMenu = True
+        self.alive = False
         self._level = 1
         self.levelDelay = 15
         self._levelTimeRemaining = self.levelDelay
@@ -34,10 +37,14 @@ class GameSystem(EntitySystem):
         self.currentlyPlacing : Placeable = self.placeables[0]
     def OnEnable(self, currentScene : LevelScene):
         self.mainFont = pygame.font.Font("game/art/PixeloidMono-d94EV.ttf",10)
+        self.titleText = pygame.font.Font("game/art/PixeloidMono-d94EV.ttf",20)
 
         self.moneyText = TextRenderer("$160",self.mainFont)
+        self.moneyText.enabled = False
         self.levelText = TextRenderer("Level: 1",self.mainFont)
+        self.levelText.enabled = False
         self.nextOrderText = TextRenderer("Next Order: 20s",self.mainFont)
+        self.nextOrderText.enabled = False
 
         self.moneyTextEnt = currentScene.CreateEntity("MoneyText",[-90,-128],components=[self.moneyText])
         self.moneyTextEnt.GetComponent(TextRenderer).SetColor((255,255,255))
@@ -52,17 +59,81 @@ class GameSystem(EntitySystem):
         self.nextOrderTextEnt.GetComponent(TextRenderer).SetAntialiased(False)
 
         self.placementPreviewRenderer = SpriteRenderer(worldSpriteSheet[ConveyorPlaceable.tiles[0]])
+        self.placementPreviewRenderer.enabled = False
         self.placementPreviewIcon = currentScene.CreateEntity("PlacementPreviewIcon",[100,118],components=[self.placementPreviewRenderer])
 
-        self.conveyorButton : ButtonComponent = CreateButtonPrefab(currentScene, worldSpriteSheet[(1,3)], "", self.mainFont).GetComponent(ButtonComponent)
-        currentScene.AddComponent(SpriteRenderer(pygame.transform.scale(worldSpriteSheet[6],(8,8)),5,True),
-                                  self.conveyorButton.parentEntity)
-        self.conveyorButton.parentEntity.position = [-100,118]
+        self.conveyorButton = None
+        self.undergroundEntranceButton = None
+        self.undergroundExitButton = None
 
         self._renderer = currentScene.GetSystemByClass(RenderingSystem)
         self._tileMapLayer = currentScene.tileMapLayersByName["Main"].GetComponent(TilemapRenderer)
 
+        self.creditsText = TextRenderer("Demo game for Medusa Engine", self.mainFont)
+        self.creditsText.enabled = True
+        self.creditsTextEnt = currentScene.CreateEntity("CreditsText",[0,118],components=[self.creditsText])
+        self.creditsText.SetColor((255,255,255))
+        self.creditsText.SetAntialiased(False)
+        self.creditsText.SetShadow(True,(0,0,0),2)
+
+        self.lostText = TextRenderer("You Lost!", self.titleText)
+        self.lostText.enabled = False
+        self.lostTextEnt = currentScene.CreateEntity("LostText",[0,-75],components=[self.lostText])
+        self.lostText.SetColor((255,255,255))
+        self.lostText.SetAntialiased(False)
+        self.lostText.SetShadow(True,(0,0,0),2)
+
+        self.pressRestartText = TextRenderer("Press Space to Restart", self.mainFont)
+        self.pressRestartText.enabled = False
+        self.pressRestartTextEnt = currentScene.CreateEntity("RestartText",[0,-30],components=[self.pressRestartText])
+        self.pressRestartText.SetColor((255,255,255))
+        self.pressRestartText.SetAntialiased(False)
+        self.pressRestartText.SetShadow(True,(0,0,0),2)
+
+        self.resultLevelText = TextRenderer("Level: 1", self.mainFont)
+        self.resultLevelText.enabled = False
+        self.resultLevelText.SetAlign(ALIGN_TOPLEFT)
+        self.resultLevelTextEnt = currentScene.CreateEntity("resultLevelText",[-80,-10],components=[self.resultLevelText])
+        self.resultLevelText.SetColor((255,255,255))
+        self.resultLevelText.SetAntialiased(False)
+
+        self.resultMoneyText = TextRenderer("Money: 628", self.mainFont)
+        self.resultMoneyText.enabled = False
+        self.resultMoneyText.SetAlign(ALIGN_TOPLEFT)
+        self.resultMoneyTextEnt = currentScene.CreateEntity("resultMoneyText",[-80,5],components=[self.resultMoneyText])
+        self.resultMoneyText.SetColor((255,255,255))
+        self.resultMoneyText.SetAntialiased(False)
+
+        self.resultReasonText = TextRenderer("Reason: Generator Jammed", self.mainFont)
+        self.resultReasonText.enabled = False
+        self.resultReasonText.SetAlign(ALIGN_TOPLEFT)
+        self.resultReasonTextEnt = currentScene.CreateEntity("resultMoneyText",[-80,20],components=[self.resultReasonText])
+        self.resultReasonText.SetColor((255,255,255))
+        self.resultReasonText.SetAntialiased(False)
+
+        self.gameTitleText = TextRenderer("Tiny Factory", self.titleText)
+        self.gameTitleText.enabled = True
+        self.gameTitleTextEnt = currentScene.CreateEntity("Game Title Text",[0,-80],components=[self.gameTitleText])
+        self.gameTitleText.SetColor((255,255,255))
+        self.gameTitleText.SetAntialiased(False)
+        self.gameTitleText.SetShadow(True,(0,0,0),2)
+
+        self.pressStartText = TextRenderer("Press Space to Start", self.mainFont)
+        self.pressStartText.enabled = True
+        self.pressStartTextEnt = currentScene.CreateEntity("RestartText",[0,-50],components=[self.pressStartText])
+        self.pressStartText.SetColor((255,255,255))
+        self.pressStartText.SetAntialiased(False)
+        self.pressStartText.SetShadow(True,(0,0,0),2)
+
     def Update(self, currentScene: LevelScene):
+        if(not self.alive):
+            if Input.KeyDown(pygame.K_SPACE):
+                if self.mainMenu:
+                    self.StartGame(currentScene)
+                else:
+                    self.game.LoadScene(self.game._game.startingScene)
+            return
+
         self.WorldInteraction(currentScene)
         self.Controls()
         self.HandleRound(currentScene)
@@ -77,6 +148,49 @@ class GameSystem(EntitySystem):
             if(self._level == UNDERGROUND_BELT_UNLOCK_LEVEL):
                 self.UnlockUndergroundBelts(currentScene)
 
+    def StartGame(self, currentScene):
+        self.mainMenu = False
+        self.alive = True
+        self._money = 160
+        self._level = 1
+
+        self.moneyText.enabled = True
+        self.levelText.enabled = True
+        self.nextOrderText.enabled = True
+        self.gameTitleText.enabled = False
+        self.pressStartText.enabled = False
+        self.creditsText.enabled = False
+
+        self.conveyorButton : ButtonComponent = CreateButtonPrefab(currentScene, worldSpriteSheet[(1,3)], "", self.mainFont).GetComponent(ButtonComponent)
+        currentScene.AddComponent(SpriteRenderer(pygame.transform.scale(worldSpriteSheet[6],(8,8)),5,True),
+                                  self.conveyorButton.parentEntity)
+        self.conveyorButton.parentEntity.position = [-100,118]
+        CreateGenerator(currentScene)
+
+    def SetLostScreen(self, currentScene : LevelScene, value : bool, reason : str):
+        self.alive = not value
+        for item in currentScene.components[ItemComponent]:
+            currentScene.DeleteEntity(item.parentEntity)
+        self.creditsText.enabled = value
+        self.lostText.enabled = value
+        self.pressRestartText.enabled = value
+        self.resultLevelText.enabled = value
+        self.resultLevelText.SetText("Level: "+str(self._level))
+        self.resultMoneyText.enabled = value
+        self.resultMoneyText.SetText("Money: "+str(self._money))
+        self.resultReasonText.enabled = value
+        self.resultReasonText.SetText("Reason: "+reason)
+
+        currentScene.SetTile(self.previousHoverIndex, "PreviewLayer", -1)
+        currentScene.SetTile(self.previousHoverIndex, "HoverLayer", -1)
+        currentScene.DeleteEntity(self.conveyorButton.parentEntity)
+        if(self.undergroundEntranceButton):
+            currentScene.DeleteEntity(self.undergroundEntranceButton.parentEntity)
+        if(self.undergroundExitButton):
+            currentScene.DeleteEntity(self.undergroundExitButton.parentEntity)
+        currentScene.DeleteEntity(self.placementPreviewIcon)
+        #self._level = 1
+        #self._money = 160
 
     def WorldInteraction(self, currentScene : LevelScene):
         currentHoverIndex = self._tileMapLayer.WorldPointToTileIndexSafe(self._renderer.worldMousePosition)
@@ -121,7 +235,6 @@ class GameSystem(EntitySystem):
         elif(self._level >= UNDERGROUND_BELT_UNLOCK_LEVEL and (Input.KeyDown(pygame.K_3) or self.undergroundExitButton.cursorState == CURSOR_PRESSED)):
             self.currentlyPlacing = self.placeables[2]
             self.placementPreviewRenderer.sprite = worldSpriteSheet[self.GetPlacingTileIndex()]
-
 
     def AddMoney(self,moneyToAdd):
         self._money += moneyToAdd
