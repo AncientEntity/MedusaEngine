@@ -11,5 +11,5 @@ class ${NAME}(EntitySystem):
         pass
     def OnNewComponent(self,component : Component): #Called when a new component is created into the scene. (Used to initialize that component)
         pass
-    def OnDestroyComponent(self, component : Component): #Called when an existing component is destroyed (Use for deinitializing it from the systems involved)
+    def OnDeleteComponent(self, component : Component): #Called when an existing component is destroyed (Use for deinitializing it from the systems involved)
         pass
