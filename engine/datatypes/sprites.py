@@ -1,3 +1,5 @@
+import copy
+
 import pygame, time
 
 
@@ -46,7 +48,8 @@ class Sprite:
 
         #Handle tint
         if(self._tint != None):
-            self.sprite.fill(self._tint, special_flags=pygame.BLEND_ADD)
+            self.sprite.fill((0, 0, 0, 255), None, pygame.BLEND_RGBA_MULT)
+            self.sprite.fill(self._tint + (0,), None, pygame.BLEND_RGBA_ADD)
 
         #Handle alpha
         if(self._alpha != None):
@@ -103,6 +106,11 @@ class Sprite:
         return self.sprite.get_width()
     def get_height(self):
         return self.sprite.get_height()
+    def Copy(self):
+        newCopy = copy.copy(self)
+        newCopy._unmodifiedSprite = self._unmodifiedSprite
+        newCopy.RefreshSprite()
+        return newCopy
 
 class AnimatedSprite(Sprite):
     def __init__(self,sprites,fps):
