@@ -70,7 +70,7 @@ class GameSystem(EntitySystem):
         self.undergroundExitButton = None
 
         self._renderer = currentScene.GetSystemByClass(RenderingSystem)
-        self._tileMapLayer = currentScene.tileMapLayersByName["Main"].GetComponent(TilemapRenderer)
+        self._tileMapLayer = currentScene.tileMapLayersObjectsByName["Main"].GetComponent(TilemapRenderer)
 
         self.creditsText = TextRenderer("Demo game for Medusa Engine", self.mainFont)
         self.creditsText.enabled = True

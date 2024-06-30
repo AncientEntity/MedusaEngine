@@ -140,7 +140,7 @@ class ItemSystem(EntitySystem):
         item._physics.Move(finalMoveAmount)
 
     def OnEnable(self, currentScene: Scene):
-        self.objectLayer = currentScene.tileMapLayersByName["Objects"].GetComponent(TilemapRenderer)
+        self.objectLayer = currentScene.tileMapLayersByName["Objects"]
 
     def OnNewComponent(self, component: Component):  # Called when a new component is created into the scene. (Used to initialize that component)
         if(isinstance(component,ConsumerComponent)):

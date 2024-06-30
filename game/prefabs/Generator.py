@@ -20,7 +20,6 @@ def CreateGenerator(scene : LevelScene):
     scene.SetTile(tilePosition,"GeneratorLayer",16)
 
     targetItem = random.randint(0,21)
-    print("Generator created for ID:",targetItem)
 
     CreateConsumer(scene,targetItem)
 
