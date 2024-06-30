@@ -1,5 +1,4 @@
 from engine.components.audioplayer import AudioPlayer
-from engine.components.rendering.tilemaprenderer import TilemapRenderer
 from engine.datatypes.audioclip import RandomAudioClip
 from engine.datatypes.sprites import AnimatedSprite
 from engine.scenes.levelscene import LevelScene
@@ -12,7 +11,6 @@ from game.systems.generatorsystem import GeneratorSystem
 from game.systems.itemsystem import ItemSystem
 from game.systems.gamesystem import GameSystem
 from game.systems.notificationsystem import NotificationSystem
-import random
 
 class TinyFactoryScene(LevelScene):
     def __init__(self):

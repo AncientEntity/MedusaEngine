@@ -9,3 +9,4 @@ class GeneratorComponent(Component):
         self.spawnTimer = 0.7
         self.lastCreatedItem = 0
         self.lastItem = None
+        self.jammedParticles = None

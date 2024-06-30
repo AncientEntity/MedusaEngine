@@ -5,6 +5,7 @@ from game.components.GeneratorComponent import GeneratorComponent
 import time
 
 from game.prefabs.Item import CreateItem
+from game.prefabs.JammedParticlesPrefab import CreateJammedParticlesPrefab
 from game.systems.gamesystem import GameSystem
 from game.systems.notificationsystem import NotificationSystem
 
@@ -26,11 +27,18 @@ class GeneratorSystem(EntitySystem):
         for generator in currentScene.components[GeneratorComponent]:
             if(generator.lastItem != None and Distance(generator.lastItem.position,generator.parentEntity.position) < 6):
                 blockedTime = time.time() - generator.lastCreatedItem
+
+                if(generator.jammedParticles == None and blockedTime >= self.blockedTime / 3):
+                    generator.jammedParticles = CreateJammedParticlesPrefab(currentScene,generator.parentEntity.position)
+                elif(generator.jammedParticles and blockedTime < self.blockedTime / 3):
+                    currentScene.DeleteEntity(generator.jammedParticles)
+                    generator.jammedParticles = None
+
                 if(blockedTime >= self.blockedTime / 2 and (self.blockNotify == None or not self.blockNotify.IsAlive())):
                     self.blockNotify = currentScene.GetSystemByClass(NotificationSystem).CreateNotification(currentScene, "Critical: Generator Backed Up!")
                 if(blockedTime >= self.blockedTime):
                     currentScene.GetSystemByClass(GameSystem).SetLostScreen(currentScene, True, "Generator Jammed")
-                    pass
+                    return
                 continue
 
             if(time.time() - generator.lastCreatedItem >= generator.spawnTimer):
