@@ -22,8 +22,9 @@ class LevelScene(Scene):
         self.systems = [renderer.RenderingSystem()]
         self.mapJson = tiled.TiledGetRawMapData(tiledFilePath)
         self.tileMapLayers : list[TilemapRenderer] = []
+        self.tileMapLayersObjectsByName : dict = {}
         self.tileMapLayersByName : dict = {}
-        self.worldTileset = worldTileset
+        self.worldTileset : SpriteSheet = worldTileset
 
         # Layer0 will have draw order of firstLayerDrawOrder, then Layer1 will have firstLayerDrawOrder+1 and so on.
         #However, YOU CAN OVERRIDE firstLayerDrawOrder by having drawOrder as a variable property in the map.
@@ -55,9 +56,11 @@ class LevelScene(Scene):
                 if(finalDrawOrder == None):
                     finalDrawOrder = drawOrder
 
-                layerEnt = self.CreateEntity("WORLD-"+layer["name"], offset, components=[self.LoadTileLayer(layer,finalDrawOrder)])
+                tileLayerRenderer = self.LoadTileLayer(layer,finalDrawOrder)
+                layerEnt = self.CreateEntity("WORLD-"+layer["name"], offset, components=[tileLayerRenderer])
                 self.tileMapLayers.append(layerEnt)
-                self.tileMapLayersByName[layer["name"]] = layerEnt
+                self.tileMapLayersObjectsByName[layer["name"]] = layerEnt
+                self.tileMapLayersByName[layer["name"]] = tileLayerRenderer
                 drawOrder += 1
 
         self.LevelStart()
@@ -160,24 +163,24 @@ class LevelScene(Scene):
         return None
 
     def SetTile(self, pos, layerName, tileIDOrName, ignoreInvalidPosition=False):
-        if (layerName not in self.tileMapLayersByName):
+        if (layerName not in self.tileMapLayersObjectsByName):
             Log("Couldn't find the layer with name: " + layerName, LOG_WARNINGS)
             return
 
-        layerObj: Entity = self.tileMapLayersByName[layerName]
+        layerObj: Entity = self.tileMapLayersObjectsByName[layerName]
         layerObj.GetComponent(TilemapRenderer).tileMap.SetTile(tileIDOrName, pos[0], pos[1], ignoreInvalidPosition)  # todo cache TileMapRenderers instead as GetComponent is slow.
 
     def GetTile(self,pos,layerName):
-        if(layerName not in self.tileMapLayersByName):
+        if(layerName not in self.tileMapLayersObjectsByName):
             Log("Couldn't find the layer with name: "+layerName,LOG_WARNINGS)
             return
 
-        layerObj : Entity = self.tileMapLayersByName[layerName]
+        layerObj : Entity = self.tileMapLayersObjectsByName[layerName]
         return layerObj.GetComponent(TilemapRenderer).tileMap.GetTileID(pos[0],pos[1]) #todo cache TileMapRenderers instead as GetComponent is slow.
     def ClearTileLayer(self, layerName):
-        if (layerName not in self.tileMapLayersByName):
+        if (layerName not in self.tileMapLayersObjectsByName):
             Log("Couldn't find the layer with name: " + layerName, LOG_WARNINGS)
             return
 
-        layerObj: Entity = self.tileMapLayersByName[layerName]
+        layerObj: Entity = self.tileMapLayersObjectsByName[layerName]
         layerObj.GetComponent(TilemapRenderer).tileMap.Clear()   # todo cache TileMapRenderers instead as GetComponent is slow.

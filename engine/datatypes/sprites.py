@@ -1,3 +1,5 @@
+import copy
+
 import pygame, time
 
 
@@ -12,7 +14,7 @@ def GetSprite(sprite, getTailSprite=False):
             return sprite
         return nextSprite
 
-class Sprite: #TODO sprite draw order implementation to control draw order.
+class Sprite:
     def __init__(self,filePathOrSurface : str or pygame.Surface):
         if(isinstance(filePathOrSurface,str)):
             if(filePathOrSurface != ""):
@@ -46,7 +48,8 @@ class Sprite: #TODO sprite draw order implementation to control draw order.
 
         #Handle tint
         if(self._tint != None):
-            self.sprite.fill(self._tint, special_flags=pygame.BLEND_ADD)
+            self.sprite.fill((0, 0, 0, 255), None, pygame.BLEND_RGBA_MULT)
+            self.sprite.fill(self._tint + (0,), None, pygame.BLEND_RGBA_ADD)
 
         #Handle alpha
         if(self._alpha != None):
@@ -103,6 +106,11 @@ class Sprite: #TODO sprite draw order implementation to control draw order.
         return self.sprite.get_width()
     def get_height(self):
         return self.sprite.get_height()
+    def Copy(self):
+        newCopy = copy.copy(self)
+        newCopy._unmodifiedSprite = self._unmodifiedSprite
+        newCopy.RefreshSprite()
+        return newCopy
 
 class AnimatedSprite(Sprite):
     def __init__(self,sprites,fps):

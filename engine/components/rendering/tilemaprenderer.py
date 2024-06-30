@@ -44,6 +44,8 @@ class Tilemap:
                 self.tileSet[key] = Sprite(value)
         else:
             Log("Unknown sprite sheet split type: ",spriteSheet.splitType,LOG_ERRORS)
+    def SetSpriteAtIndex(self, sprite : Sprite, index : int):
+        self.tileSet[index] = sprite
 
 class TilemapRenderer(RendererComponent):
     def __init__(self,tileMap=None):

@@ -16,6 +16,7 @@ from game.systems.playersystem import PlayerComponent
 class SideScrollingScene(Scene):
     def __init__(self):
         super().__init__()
+        self.name = "Side Scrolling Scene"
         self.systems = [renderer.RenderingSystem(),playersystem.PlayerSystem(),physics.PhysicsSystem(),NPCSystem()]
     def Init(self):
         self.Clear()
