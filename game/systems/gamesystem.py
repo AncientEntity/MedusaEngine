@@ -7,6 +7,7 @@ from engine.components.ui.buttoncomponent import ButtonComponent
 from engine.constants import CURSOR_PRESSED, ALIGN_TOPLEFT
 from engine.ecs import EntitySystem
 from engine.engine import Input
+from engine.prefabs.audio.AudioSinglePrefab import CreateAudioSingle
 from engine.prefabs.ui.ButtonPrefab import CreateButtonPrefab
 from engine.scenes.levelscene import LevelScene
 from engine.systems.renderer import RenderingSystem
@@ -143,6 +144,8 @@ class GameSystem(EntitySystem):
         if(self._levelTimeRemaining <= 0):
             self._level += 1
             self.levelText.SetText("Level: "+str(self._level))
+            currentScene.GetSystemByClass(NotificationSystem).CreateNotification(currentScene,
+                                                                                 "Level "+str(self._level-1)+ " Completed!")
             self._levelTimeRemaining = self.levelDelay
             CreateGenerator(currentScene)
             if(self._level == UNDERGROUND_BELT_UNLOCK_LEVEL):
@@ -169,8 +172,7 @@ class GameSystem(EntitySystem):
 
     def SetLostScreen(self, currentScene : LevelScene, value : bool, reason : str):
         self.alive = not value
-        for item in currentScene.components[ItemComponent]:
-            currentScene.DeleteEntity(item.parentEntity)
+        CreateAudioSingle(currentScene, "PlaceSoundSingle", "game/sound/loss.ogg", 1)
         self.creditsText.enabled = value
         self.lostText.enabled = value
         self.pressRestartText.enabled = value
@@ -214,6 +216,7 @@ class GameSystem(EntitySystem):
                     if(currentScene.GetTile(currentHoverIndex,"Objects") == -1 and self._money >= self.currentlyPlacing.cost):
                         self.AddMoney(-self.currentlyPlacing.cost)
                         currentScene.SetTile(currentHoverIndex,"Objects",self.GetPlacingTileIndex())
+                        CreateAudioSingle(currentScene, "PlaceSoundSingle", "game/sound/place.ogg", 1)
                 elif(Input.MouseButtonPressed(2)):
                     currentScene.SetTile(currentHoverIndex,"HoverLayer",10)
                     if (currentScene.GetTile(currentHoverIndex, "Objects") != -1):

@@ -1,6 +1,7 @@
 from engine.components.rendering.textrenderer import TextRenderer
 from engine.constants import ALIGN_TOPLEFT
 from engine.ecs import EntitySystem, Scene, Component, Entity
+from engine.prefabs.audio.AudioSinglePrefab import CreateAudioSingle
 from engine.scenes.levelscene import LevelScene
 import pygame
 import time
@@ -40,4 +41,5 @@ class NotificationSystem(EntitySystem):
         notifyEntity = currentScene.CreateEntity("Notification",[-110,90],[textRenderer, NotificationComponent(time.time())])
 
         self.notifications.append(notifyEntity)
+        CreateAudioSingle(currentScene, "PlaceSoundSingle", "game/sound/notificationsound.ogg", 1)
         return notifyEntity
