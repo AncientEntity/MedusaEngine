@@ -32,14 +32,6 @@ class ParticleEmitterComponent(RendererComponent):
         self._lastParticleSpawnTime = time.time()
         self._activeParticles = []
 
-    def SetSpriteColor(self,color):
-        self.sprite.SetTint(color)
-        #self._color = color
-        #newSprite = GetSprite(self.sprite).copy()
-        #newSprite.fill((0,0,0,255),None,pygame.BLEND_RGBA_MULT)
-        #newSprite.fill(self._color+(0,),None,pygame.BLEND_RGBA_ADD)
-        #self.sprite = newSprite
-
     def NewParticle(self):
         newParticle = Particle()
         newParticle.position = [self.parentEntity.position[0]+random.randint(self.spawnBounds.x,self.spawnBounds.w),self.parentEntity.position[1]+random.randint(self.spawnBounds.y,self.spawnBounds.h)]

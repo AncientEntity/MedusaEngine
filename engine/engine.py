@@ -117,9 +117,10 @@ class Engine:
     def KeyUp(self,key : int) -> bool:
         return self.IsKeyState(key,KEYUP)
     def LoadScene(self, scene : Type[ecs.Scene]):
+        sceneInstance = scene()
         if(self._queuedScene != None):
-            Log("Scene queuing on top of another scene. Before: "+self._queuedScene.name+", now: "+scene.name,LOG_WARNINGS)
-        self._queuedScene = scene()
+            Log("Scene queuing on top of another scene. Before: "+self._queuedScene.name+", now: "+sceneInstance.name,LOG_WARNINGS)
+        self._queuedScene = sceneInstance
         Log("Queued scene: "+self._queuedScene.name,LOG_INFO)
     def _LoadQueuedScene(self):
         Log("Loading scene: "+self._queuedScene.name,LOG_INFO)
