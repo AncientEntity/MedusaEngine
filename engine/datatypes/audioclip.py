@@ -1,8 +1,4 @@
-import pygame
-
-# todo this is pretty basic at the moment, eventually I want ConditionalAudioClip, RandomAudioClip, etc
-# todo which would function similarly to how AnimatedSprites work and such, where we use a GetClip function
-# todo which determines which audio clip we want to play, allowing for nested audio clips and more complex behaviour.
+import pygame, random
 
 def GetSound(audioClip, getTailSound=False):
     if(isinstance(audioClip,pygame.mixer.Sound)):
@@ -25,3 +21,14 @@ class AudioClip:
             self.sound = filePathOrSound
     def GetSound(self):
         return self.sound
+
+class RandomAudioClip(AudioClip):
+    def __init__(self, sounds):
+        self.sounds = []
+        for clip in sounds:
+            self.sounds.append(AudioClip(clip))
+        self.sound = GetSound(self.sounds[0])
+    def GetSound(self):
+        randomSound = GetSound(random.choice(self.sounds))
+        self.sound = randomSound
+        return randomSound

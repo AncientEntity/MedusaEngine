@@ -1,4 +1,5 @@
 from engine.components.audioplayer import AudioPlayer
+from engine.datatypes.audioclip import RandomAudioClip
 from engine.scenes.levelscene import LevelScene
 from engine.systems import renderer
 from engine.systems.audio import AudioSystem
@@ -23,5 +24,5 @@ class TinyFactoryScene(LevelScene):
         self.systems.append(AudioSystem())
         self.GetSystemByClass(renderer.RenderingSystem).renderScale = 2
     def LevelStart(self):
-        self.music = self.CreateEntity("Music",[0,0],[AudioPlayer(random.choice(["game/sound/A Loop.ogg","game/sound/B Loop.ogg"]),True,0.4)])
+        self.music = self.CreateEntity("Music",[0,0],[AudioPlayer(RandomAudioClip(["game/sound/A Loop.ogg","game/sound/B Loop.ogg"]),True,0.4)])
         self.music.GetComponent(AudioPlayer).loops = True
