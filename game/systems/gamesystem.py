@@ -11,6 +11,8 @@ from engine.prefabs.audio.AudioSinglePrefab import CreateAudioSingle
 from engine.prefabs.ui.ButtonPrefab import CreateButtonPrefab
 from engine.scenes.levelscene import LevelScene
 from engine.systems.renderer import RenderingSystem
+from game.components.ConsumerComponent import ConsumerComponent
+from game.components.GeneratorComponent import GeneratorComponent
 from game.components.ItemComponent import ItemComponent
 from game.constants import ConveyorPlaceable, UndergroundEntrance, UndergroundExit, worldSpriteSheet, \
     UNDERGROUND_BELT_UNLOCK_LEVEL
@@ -132,7 +134,8 @@ class GameSystem(EntitySystem):
                 if self.mainMenu:
                     self.StartGame(currentScene)
                 else:
-                    self.game.LoadScene(self.game._game.startingScene)
+                    self.StopGame(currentScene)
+                    #self.game.LoadScene(self.game._game.startingScene)
             return
 
         self.WorldInteraction(currentScene)
@@ -170,6 +173,34 @@ class GameSystem(EntitySystem):
         self.conveyorButton.parentEntity.position = [-100,118]
         CreateGenerator(currentScene)
 
+
+    def StopGame(self, currentScene):
+        self.mainMenu = True
+        self.moneyText.enabled = False
+        self.levelText.enabled = False
+        self.nextOrderText.enabled = False
+        self.gameTitleText.enabled = True
+        self.pressStartText.enabled = True
+        self.creditsText.enabled = True
+
+        self.lostText.enabled = False
+        self.pressRestartText.enabled = False
+        self.resultLevelText.enabled = False
+        self.resultMoneyText.enabled = False
+        self.resultReasonText.enabled = False
+
+        for generator in currentScene.components[GeneratorComponent][:]:
+            currentScene.DeleteEntity(generator.parentEntity)
+        for consumer in currentScene.components[ConsumerComponent][:]:
+            currentScene.DeleteEntity(consumer.parentEntity)
+        for item in currentScene.components[ItemComponent][:]:
+            currentScene.DeleteEntity(item.parentEntity)
+
+        currentScene.ClearTileLayer("HoverLayer")
+        currentScene.ClearTileLayer("PreviewLayer")
+        currentScene.ClearTileLayer("Objects")
+        currentScene.ClearTileLayer("GeneratorLayer")
+
     def SetLostScreen(self, currentScene : LevelScene, value : bool, reason : str):
         self.alive = not value
         CreateAudioSingle(currentScene, "PlaceSoundSingle", "game/sound/loss.ogg", 1)
@@ -191,8 +222,7 @@ class GameSystem(EntitySystem):
         if(self.undergroundExitButton):
             currentScene.DeleteEntity(self.undergroundExitButton.parentEntity)
         currentScene.DeleteEntity(self.placementPreviewIcon)
-        #self._level = 1
-        #self._money = 160
+
 
     def WorldInteraction(self, currentScene : LevelScene):
         currentHoverIndex = self._tileMapLayer.WorldPointToTileIndexSafe(self._renderer.worldMousePosition)

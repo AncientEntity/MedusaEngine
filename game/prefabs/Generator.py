@@ -1,4 +1,4 @@
-import random
+import random, time
 
 from engine.components.rendering.spriterenderer import SpriteRenderer
 from engine.scenes.levelscene import LevelScene
@@ -6,6 +6,7 @@ from game.components.ConsumerComponent import ConsumerComponent
 from game.components.GeneratorComponent import GeneratorComponent
 from game.prefabs.Item import itemSpriteSheet
 
+random.seed(time.time())
 
 def CreateGenerator(scene : LevelScene):
     tilePosition = [random.randint(1,14),random.randint(1,14)]
@@ -18,7 +19,8 @@ def CreateGenerator(scene : LevelScene):
 
     scene.SetTile(tilePosition,"GeneratorLayer",16)
 
-    targetItem = random.randint(0,12)
+    targetItem = random.randint(0,21)
+    print("Generator created for ID:",targetItem)
 
     CreateConsumer(scene,targetItem)
 
