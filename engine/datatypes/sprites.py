@@ -12,7 +12,7 @@ def GetSprite(sprite, getTailSprite=False):
             return sprite
         return nextSprite
 
-class Sprite: #TODO sprite draw order implementation to control draw order.
+class Sprite:
     def __init__(self,filePathOrSurface : str or pygame.Surface):
         if(isinstance(filePathOrSurface,str)):
             if(filePathOrSurface != ""):
