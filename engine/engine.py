@@ -7,6 +7,8 @@ from engine.constants import KEYDOWN, KEYUP, KEYPRESSED, KEYINACTIVE
 from engine.game import Game
 import time
 from sys import exit
+import sys
+import platform
 
 from engine.logging import Log, LOG_ERRORS, LOG_INFO, LOG_WARNINGS
 from engine.scenes import splashscene
@@ -40,6 +42,10 @@ class Engine:
         if(self._game.startingScene == None):
             Log("Game has no starting scene",LOG_ERRORS)
             exit(0)
+
+        if(self._game.webCanvasPixelated):
+            if sys.platform == 'emscripten':
+                platform.window.canvas.style.imageRendering = "pixelated"
 
         #Load splash screen if enabled otherwise load starting scene, if we load splash screen scene the splash screen scene swaps to the self._game.startingScene for us.
         if(self._game.startingSplashEnabled):
