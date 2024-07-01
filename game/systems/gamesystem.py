@@ -1,5 +1,6 @@
 import pygame
 
+from engine.components.rendering.particlecomponent import ParticleEmitterComponent
 from engine.components.rendering.spriterenderer import SpriteRenderer
 from engine.components.rendering.textrenderer import TextRenderer
 from engine.components.rendering.tilemaprenderer import TilemapRenderer
@@ -193,7 +194,7 @@ class GameSystem(EntitySystem):
         self.resultMoneyText.enabled = False
         self.resultReasonText.enabled = False
 
-        self.ClearMap(currentScene)
+        #self.ClearMap(currentScene)
 
     def ClearMap(self, currentScene):
 
@@ -203,6 +204,8 @@ class GameSystem(EntitySystem):
             currentScene.DeleteEntity(consumer.parentEntity)
         for item in currentScene.components[ItemComponent][:]:
             currentScene.DeleteEntity(item.parentEntity)
+        for particle in currentScene.components[ParticleEmitterComponent][:]:
+            currentScene.DeleteEntity(particle.parentEntity)
 
         currentScene.ClearTileLayer("HoverLayer")
         currentScene.ClearTileLayer("PreviewLayer")
