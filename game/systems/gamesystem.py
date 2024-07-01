@@ -194,8 +194,6 @@ class GameSystem(EntitySystem):
         self.resultMoneyText.enabled = False
         self.resultReasonText.enabled = False
 
-        #self.ClearMap(currentScene)
-
     def ClearMap(self, currentScene):
 
         for generator in currentScene.components[GeneratorComponent][:]:
