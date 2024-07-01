@@ -28,6 +28,7 @@ class Sprite:
         self._flipX = False
         self.ignoreCollision = False
         self._tint = None
+        self._color = None
         self._rotation = None
         self._alpha = None # When None it is 255. fully opaque.
         self._scale = None
@@ -48,8 +49,12 @@ class Sprite:
 
         #Handle tint
         if(self._tint != None):
+            self.sprite.fill(self._tint, special_flags=pygame.BLEND_ADD)
+
+        #Handle color
+        if(self._color != None):
             self.sprite.fill((0, 0, 0, 255), None, pygame.BLEND_RGBA_MULT)
-            self.sprite.fill(self._tint + (0,), None, pygame.BLEND_RGBA_ADD)
+            self.sprite.fill(self._color + (0,), None, pygame.BLEND_RGBA_ADD)
 
         #Handle alpha
         if(self._alpha != None):
@@ -78,6 +83,13 @@ class Sprite:
             return
 
         self._tint = tint
+        self.RefreshSprite()
+        return self
+    def SetColor(self,color):
+        if(self._color == color):
+            return
+
+        self._color = color
         self.RefreshSprite()
         return self
     def SetRotation(self,rotation):
