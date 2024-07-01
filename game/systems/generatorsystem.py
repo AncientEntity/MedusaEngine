@@ -17,7 +17,7 @@ class GeneratorSystem(EntitySystem):
         self.blockNotify = None
 
     def Update(self,currentScene : Scene):
-        if(not currentScene.GetSystemByClass(GameSystem).alive):
+        if(not currentScene.GetSystemByClass(GameSystem).alive and not currentScene.GetSystemByClass(GameSystem).mainMenu):
             if(self.blockNotify and self.blockNotify.IsAlive()):
                 currentScene.DeleteEntity(self.blockNotify)
             return
@@ -25,7 +25,7 @@ class GeneratorSystem(EntitySystem):
 
         generator : GeneratorComponent
         for generator in currentScene.components[GeneratorComponent]:
-            if(generator.lastItem != None and Distance(generator.lastItem.position,generator.parentEntity.position) < 6):
+            if(currentScene.GetSystemByClass(GameSystem).alive and generator.lastItem != None and Distance(generator.lastItem.position,generator.parentEntity.position) < 6):
                 blockedTime = time.time() - generator.lastCreatedItem
 
                 if(generator.jammedParticles == None and blockedTime >= self.blockedTime / 3):
@@ -33,6 +33,7 @@ class GeneratorSystem(EntitySystem):
                 elif(generator.jammedParticles and blockedTime < self.blockedTime / 3):
                     currentScene.DeleteEntity(generator.jammedParticles)
                     generator.jammedParticles = None
+
 
                 if(blockedTime >= self.blockedTime / 2 and (self.blockNotify == None or not self.blockNotify.IsAlive())):
                     self.blockNotify = currentScene.GetSystemByClass(NotificationSystem).CreateNotification(currentScene, "Critical: Generator Backed Up!")

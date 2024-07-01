@@ -17,7 +17,7 @@ from game.components.ItemComponent import ItemComponent
 from game.constants import ConveyorPlaceable, UndergroundEntrance, UndergroundExit, worldSpriteSheet, \
     UNDERGROUND_BELT_UNLOCK_LEVEL
 from game.datatypes.Placeable import Placeable
-from game.prefabs.Generator import CreateGenerator
+from game.prefabs.Generator import CreateGenerator, CreateConsumer
 from game.systems.notificationsystem import NotificationSystem
 
 
@@ -39,6 +39,8 @@ class GameSystem(EntitySystem):
         self.placeables = [ConveyorPlaceable,UndergroundEntrance,UndergroundExit]
         self.currentlyPlacing : Placeable = self.placeables[0]
     def OnEnable(self, currentScene : LevelScene):
+        self.LoadGame(currentScene)
+
         self.mainFont = pygame.font.Font("game/art/PixeloidMono-d94EV.ttf",10)
         self.titleText = pygame.font.Font("game/art/PixeloidMono-d94EV.ttf",20)
 
@@ -156,8 +158,10 @@ class GameSystem(EntitySystem):
 
     def StartGame(self, currentScene):
         self.mainMenu = False
+        self.ClearMap(currentScene)
         self.alive = True
         self._money = 160
+        self.moneyText.SetText("$" + str(self._money))
         self._level = 1
 
         self.moneyText.enabled = True
@@ -188,6 +192,10 @@ class GameSystem(EntitySystem):
         self.resultLevelText.enabled = False
         self.resultMoneyText.enabled = False
         self.resultReasonText.enabled = False
+
+        self.ClearMap(currentScene)
+
+    def ClearMap(self, currentScene):
 
         for generator in currentScene.components[GeneratorComponent][:]:
             currentScene.DeleteEntity(generator.parentEntity)
@@ -225,6 +233,11 @@ class GameSystem(EntitySystem):
 
 
     def WorldInteraction(self, currentScene : LevelScene):
+
+        # Uncomment this to save a new main menu.
+        #if(Input.KeyDown(pygame.K_t)):
+        #    self.SaveGame(currentScene)
+
         currentHoverIndex = self._tileMapLayer.WorldPointToTileIndexSafe(self._renderer.worldMousePosition)
         if currentHoverIndex != None:
             currentScene.ClearTileLayer("HoverLayer")
@@ -314,3 +327,43 @@ class GameSystem(EntitySystem):
         self.undergroundExitButton.parentEntity.position = [-60,118]
 
         currentScene.GetSystemByClass(NotificationSystem).CreateNotification(currentScene, "Underground Belts Unlocked!")
+
+    def SaveGame(self, currentScene : LevelScene):
+        import pickle
+
+        objLayerFile = open("game/data/objlayer.dat","wb")
+        genLayerFile = open("game/data/genlayer.dat","wb")
+        consumerFile = open("game/data/consumers.dat","wb")
+        generatorFile = open("game/data/generators.dat","wb")
+
+        pickle.dump(currentScene.tileMapLayersByName["Objects"].tileMap.map,objLayerFile)
+        pickle.dump(currentScene.tileMapLayersByName["GeneratorLayer"].tileMap.map,genLayerFile)
+
+        consumers = []
+        consumer : ConsumerComponent
+        for consumer in currentScene.components[ConsumerComponent]:
+            consumers.append((consumer.parentEntity.position, consumer.itemID))
+        pickle.dump(consumers, consumerFile)
+        generators = []
+        generator : GeneratorComponent
+        for generator in currentScene.components[GeneratorComponent]:
+            generators.append((generator.parentEntity.position,generator.itemID))
+        pickle.dump(generators, generatorFile)
+
+        objLayerFile.close()
+        genLayerFile.close()
+        consumerFile.close()
+        generatorFile.close()
+        print("Saved Main Menu")
+    def LoadGame(self, currentScene : LevelScene):
+        import pickle
+        currentScene.tileMapLayersByName["Objects"].tileMap.map = pickle.load(open("game/data/objlayer.dat","rb"))
+        currentScene.tileMapLayersByName["GeneratorLayer"].tileMap.map = pickle.load(open("game/data/genlayer.dat","rb"))
+        consumers = pickle.load(open("game/data/consumers.dat","rb"))
+        for consumer in consumers:
+            CreateConsumer(currentScene,consumer[1],consumer[0])
+        generators = pickle.load(open("game/data/generators.dat","rb"))
+        for generator in generators:
+            CreateGenerator(currentScene,generator[1],generator[0])
+
+        print("Loaded Main Menu")
