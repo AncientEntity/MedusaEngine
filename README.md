@@ -48,4 +48,4 @@ Knighty McKnightFace Demo [(play here)](https://anciententity.itch.io/knighty-mc
 
 Tiny Factory Demo [(play here)](https://anciententity.itch.io/tiny-factory-remastered)
 
-![python_L8lP7b8tr6](https://github.com/AncientEntity/MedusaEngine/assets/22735861/8aba685b-dc00-4fed-9a2e-0d29e75edb8c)
+![chrome_qQIUbQQSkM](https://github.com/AncientEntity/MedusaEngine/assets/22735861/21df0074-4c44-4731-b59e-3c6df15cf031)
