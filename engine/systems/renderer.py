@@ -13,7 +13,7 @@ from engine.logging import Log, LOG_ALL
 
 
 def CenterToTopLeftPosition(centerPosition, surface : pygame.Surface):
-    return [centerPosition[0]-surface.get_width()//2,centerPosition[1]-surface.get_height()//2]
+    return [centerPosition[0]-surface.get_width()/2,centerPosition[1]-surface.get_height()/2]
 
 class RenderingSystem(EntitySystem):
     instance = None
@@ -125,27 +125,13 @@ class RenderingSystem(EntitySystem):
 
         topLeftTilePos = tileMapRenderer.WorldPositionToTileIndex(worldDrawBounds.topleft)
         bottomRightTilePos = tileMapRenderer.WorldPositionToTileIndex(worldDrawBounds.bottomright)
-        tileDrawBounds = tileMapRenderer.GetOverlappingTilesInTileSpace(topLeftTilePos, bottomRightTilePos)
+        tileDrawBounds = tileMapRenderer.GetOverlappingTilesInWorldSpace(topLeftTilePos, bottomRightTilePos, True)
 
-        centeredOffset = [tileMapRenderer.parentEntity.position[0] - (
-                    tileMapRenderer.tileMap.size[0] * tileMapRenderer.tileMap.tileSize) // 2,
-                          tileMapRenderer.parentEntity.position[1] - (
-                                      tileMapRenderer.tileMap.size[1] * tileMapRenderer.tileMap.tileSize) // 2]
         for (tileID, (x,y)) in tileDrawBounds:
-            if (tileMapRenderer.tileMap.map[x][y] == -1):  # Empty tile
-                continue
 
-            # Get world position then the left anchored screen position
-            worldPosition = [centeredOffset[0] + (x * tileMapRenderer.tileMap.tileSize),
-                             centeredOffset[1] + (y * tileMapRenderer.tileMap.tileSize)]
-            leftAnchoredScreenPosition = self.WorldToScreenPosition(worldPosition)
+            leftAnchoredScreenPosition = self.WorldToScreenPosition((x,y))
 
-            if (False == self.IsOnScreenRect(
-                    pygame.Rect(worldPosition[0], worldPosition[1], tileMapRenderer.tileMap.tileSize,
-                                tileMapRenderer.tileMap.tileSize))):
-                continue
-
-            tailSprite : Sprite = GetSprite(tileMapRenderer.tileMap.tileSet[tileMapRenderer.tileMap.map[x][y]],True)
+            tailSprite : Sprite = GetSprite(tileMapRenderer.tileMap.tileSet[tileID],True)
             spriteSurface = tailSprite.GetSprite()
             self._renderTarget.blit(spriteSurface, leftAnchoredScreenPosition)
             if (tailSprite._tint):
