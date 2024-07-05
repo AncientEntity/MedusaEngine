@@ -86,7 +86,9 @@ class RenderingSystem(EntitySystem):
             if(isinstance(component,SpriteRenderer)):
                 self.RenderSpriteRenderer(component)
             elif(isinstance(component,TilemapRenderer)):
-                self.RenderTileMapRenderer(component)
+                worldPositionTopLeft = (self.cameraPosition[0]-self._scaledHalfSize[0],self.cameraPosition[1]-self._scaledHalfSize[1])
+                worldDrawBounds = pygame.FRect(worldPositionTopLeft[0],worldPositionTopLeft[1],self._scaledScreenSize[0],self._scaledScreenSize[1])
+                self.RenderTileMapRenderer(component, worldDrawBounds)
             elif(isinstance(component,ParticleEmitterComponent)):
                 self.RenderParticleEmitter(component)
             elif(isinstance(component, TextRenderer)):
@@ -117,35 +119,39 @@ class RenderingSystem(EntitySystem):
                              pygame.Rect(finalPosition[0] - 1, finalPosition[1], spriteSurface.get_width(),
                                          spriteSurface.get_height()), width=1)
 
-    def RenderTileMapRenderer(self,tileMapRenderer : TilemapRenderer):
+    def RenderTileMapRenderer(self,tileMapRenderer : TilemapRenderer, worldDrawBounds):
         if (tileMapRenderer.tileMap == None or tileMapRenderer.tileMap.tileSet == None):
             return
+
+        topLeftTilePos = tileMapRenderer.WorldPositionToTileIndex(worldDrawBounds.topleft)
+        bottomRightTilePos = tileMapRenderer.WorldPositionToTileIndex(worldDrawBounds.bottomright)
+        tileDrawBounds = tileMapRenderer.GetOverlappingTilesInTileSpace(topLeftTilePos, bottomRightTilePos)
+
         centeredOffset = [tileMapRenderer.parentEntity.position[0] - (
                     tileMapRenderer.tileMap.size[0] * tileMapRenderer.tileMap.tileSize) // 2,
                           tileMapRenderer.parentEntity.position[1] - (
                                       tileMapRenderer.tileMap.size[1] * tileMapRenderer.tileMap.tileSize) // 2]
-        for x in range(tileMapRenderer.tileMap.size[0]):
-            for y in range(tileMapRenderer.tileMap.size[1]):
-                if (tileMapRenderer.tileMap.map[x][y] == -1):  # Empty tile
-                    continue
+        for (tileID, (x,y)) in tileDrawBounds:
+            if (tileMapRenderer.tileMap.map[x][y] == -1):  # Empty tile
+                continue
 
-                # Get world position then the left anchored screen position
-                worldPosition = [centeredOffset[0] + (x * tileMapRenderer.tileMap.tileSize),
-                                 centeredOffset[1] + (y * tileMapRenderer.tileMap.tileSize)]
-                leftAnchoredScreenPosition = self.WorldToScreenPosition(worldPosition)
+            # Get world position then the left anchored screen position
+            worldPosition = [centeredOffset[0] + (x * tileMapRenderer.tileMap.tileSize),
+                             centeredOffset[1] + (y * tileMapRenderer.tileMap.tileSize)]
+            leftAnchoredScreenPosition = self.WorldToScreenPosition(worldPosition)
 
-                if (False == self.IsOnScreenRect(
-                        pygame.Rect(worldPosition[0], worldPosition[1], tileMapRenderer.tileMap.tileSize,
-                                    tileMapRenderer.tileMap.tileSize))):
-                    continue
+            if (False == self.IsOnScreenRect(
+                    pygame.Rect(worldPosition[0], worldPosition[1], tileMapRenderer.tileMap.tileSize,
+                                tileMapRenderer.tileMap.tileSize))):
+                continue
 
-                tailSprite : Sprite = GetSprite(tileMapRenderer.tileMap.tileSet[tileMapRenderer.tileMap.map[x][y]],True)
-                spriteSurface = tailSprite.GetSprite()
-                self._renderTarget.blit(spriteSurface, leftAnchoredScreenPosition)
-                if (tailSprite._tint):
-                    self._renderTarget.fill(color=tailSprite._tint, rect=(
-                    leftAnchoredScreenPosition[0], leftAnchoredScreenPosition[1], spriteSurface.get_width(), spriteSurface.get_width()),
-                                            special_flags=pygame.BLEND_ADD)
+            tailSprite : Sprite = GetSprite(tileMapRenderer.tileMap.tileSet[tileMapRenderer.tileMap.map[x][y]],True)
+            spriteSurface = tailSprite.GetSprite()
+            self._renderTarget.blit(spriteSurface, leftAnchoredScreenPosition)
+            if (tailSprite._tint):
+                self._renderTarget.fill(color=tailSprite._tint, rect=(
+                leftAnchoredScreenPosition[0], leftAnchoredScreenPosition[1], spriteSurface.get_width(), spriteSurface.get_width()),
+                                        special_flags=pygame.BLEND_ADD)
 
     def RenderParticleEmitter(self,emitter : ParticleEmitterComponent):
         if(emitter.sprite == None):
@@ -203,6 +209,8 @@ class RenderingSystem(EntitySystem):
 
     def WorldToScreenPosition(self,position):
         return [position[0] - self.cameraPosition[0] + self._scaledHalfSize[0], position[1] - self.cameraPosition[1] + self._scaledHalfSize[1]]
+    def ScreenToWorldPosition(self, position):
+        return [position[0] + self.cameraPosition[0] - self._scaledHalfSize[0], position[1] + self.cameraPosition[1] - self._scaledHalfSize[1]]
 
     def FinalPositionOfSprite(self,position,sprite, screenSpace=False):
         topLeftPosition = CenterToTopLeftPosition(position, sprite)
