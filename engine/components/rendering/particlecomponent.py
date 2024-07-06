@@ -6,7 +6,7 @@ from engine.components.rendering.renderercomponent import RendererComponent
 from engine.datatypes.sprites import Sprite, GetSprite
 import time
 
-defaultParticle = Sprite(pygame.image.load("engine/art/default-particle.png"))
+defaultParticle = None # Loaded in ParticleEmitterComponent.__init__() if it's None.
 
 class Particle:
     def __init__(self):
@@ -19,7 +19,12 @@ class Particle:
 #todo implement particle system :) it will still need to be added to RendererSystem's target components.
 class ParticleEmitterComponent(RendererComponent):
     def __init__(self):
+        global defaultParticle
         super().__init__()
+
+        if(defaultParticle == None):
+            defaultParticle = Sprite(pygame.image.load("engine/art/default-particle.png"))
+
         self.sprite : Sprite = defaultParticle.Copy()
         self.particlesPerSecond = 25.0
         self.maxParticles = 100

@@ -1,5 +1,3 @@
-import math
-
 import pygame.display
 
 from engine.components.rendering.particlecomponent import ParticleEmitterComponent, Particle
@@ -8,7 +6,7 @@ from engine.components.rendering.spriterenderer import SpriteRenderer
 from engine.components.rendering.textrenderer import TextRenderer
 from engine.components.rendering.tilemaprenderer import TilemapRenderer
 from engine.datatypes.sprites import GetSprite, Sprite
-from engine.ecs import EntitySystem, Scene, Component
+from engine.ecs import EntitySystem, Scene
 from engine.logging import Log, LOG_ALL
 
 
