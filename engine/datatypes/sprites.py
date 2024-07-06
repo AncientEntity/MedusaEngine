@@ -1,3 +1,5 @@
+import copy
+
 import pygame, time
 
 
@@ -12,7 +14,7 @@ def GetSprite(sprite, getTailSprite=False):
             return sprite
         return nextSprite
 
-class Sprite: #TODO sprite draw order implementation to control draw order.
+class Sprite:
     def __init__(self,filePathOrSurface : str or pygame.Surface):
         if(isinstance(filePathOrSurface,str)):
             if(filePathOrSurface != ""):
@@ -25,9 +27,11 @@ class Sprite: #TODO sprite draw order implementation to control draw order.
 
         self._flipX = False
         self.ignoreCollision = False
-        self.tint = None
+        self._tint = None
+        self._color = None
         self._rotation = None
         self._alpha = None # When None it is 255. fully opaque.
+        self._scale = None
 
         self.RefreshSprite()
 
@@ -36,13 +40,25 @@ class Sprite: #TODO sprite draw order implementation to control draw order.
         if(self._unmodifiedSprite == None):
             return
 
-        self.sprite = self._unmodifiedSprite.copy()
+        if(self._scale != None):
+            self.sprite = pygame.transform.scale(self._unmodifiedSprite.copy(),(self._unmodifiedSprite.get_width()*self._scale[0],self._unmodifiedSprite.get_height()*self._scale[1]))
+        else:
+            self.sprite = self._unmodifiedSprite.copy()
+
+        # Optimizations (can only do it if pygame is inited)
+        self.sprite = self.sprite.convert_alpha() # Converts it to the proper 'format' for python.
+                                                  # This will throw an error if pygame.display hasn't been initialized.
 
         #todo render offset (where you can have an offset and it repeats). ex: if you have a conveyor belt sprite you can 'repeat' it with an offset.
 
         #Handle tint
-        if(self.tint != None):
-            self.sprite.fill(self.tint,special_flags=pygame.BLEND_ADD)
+        if(self._tint != None):
+            self.sprite.fill(self._tint, special_flags=pygame.BLEND_ADD)
+
+        #Handle color
+        if(self._color != None):
+            self.sprite.fill((0, 0, 0, 255), None, pygame.BLEND_RGBA_MULT)
+            self.sprite.fill(self._color + (0,), None, pygame.BLEND_RGBA_ADD)
 
         #Handle alpha
         if(self._alpha != None):
@@ -64,30 +80,53 @@ class Sprite: #TODO sprite draw order implementation to control draw order.
 
         self._flipX = flipped
         self.RefreshSprite()
+        return self
 
     def SetTint(self,tint):
-        if(self.tint == tint):
+        if(self._tint == tint):
             return
 
-        self.tint = tint
+        self._tint = tint
         self.RefreshSprite()
+        return self
+    def SetColor(self,color):
+        if(self._color == color):
+            return
+
+        self._color = color
+        self.RefreshSprite()
+        return self
     def SetRotation(self,rotation):
         if(self._rotation == rotation):
             return
 
         self._rotation = rotation
         self.RefreshSprite()
+        return self
     def SetAlpha(self,alpha):
         if(self._alpha == alpha):
             return
 
         self._alpha = alpha
         self.RefreshSprite()
+        return self
+    def SetScale(self,scale):
+        if(self._scale == scale):
+            return
+
+        self._scale = scale
+        self.RefreshSprite()
+        return self
 
     def get_width(self):
         return self.sprite.get_width()
     def get_height(self):
         return self.sprite.get_height()
+    def Copy(self):
+        newCopy = copy.copy(self)
+        newCopy._unmodifiedSprite = self._unmodifiedSprite
+        newCopy.RefreshSprite()
+        return newCopy
 
 class AnimatedSprite(Sprite):
     def __init__(self,sprites,fps):

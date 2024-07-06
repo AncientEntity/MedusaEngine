@@ -55,6 +55,6 @@ def CreateParticleTestPrefab(scene):
     particleComponent = ParticleEmitterComponent()
 
 
-    particleComponent.SetSpriteColor((random.randint(100,255),random.randint(0,50),random.randint(0,50)))
+    particleComponent.sprite.SetColor((random.randint(0,255),random.randint(0,255),random.randint(0,255)))
 
     return scene.CreateEntity("PARTICLE",[0,0],components=[particleComponent])

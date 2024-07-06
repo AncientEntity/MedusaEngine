@@ -55,6 +55,6 @@ class PlayerSystem(EntitySystem):
         else:
             player.parentEntity.GetComponent(SpriteRenderer).sprite = player.idleAnim
         if(Input.KeyDown(pygame.K_r)):
-            self.game.LoadScene(sidescrollingscene.SideScrollingScene())
+            self.game.LoadScene(sidescrollingscene.SideScrollingScene)
         if (Input.KeyDown(pygame.K_t) or player.parentEntity.position[1] >= 200):
-            self.game.LoadScene(TiledTestScene())
+            self.game.LoadScene(TiledTestScene)

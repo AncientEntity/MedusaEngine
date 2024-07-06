@@ -56,6 +56,13 @@ class SpriteSheet:
             return self.sprites[str(item[0])+":"+str(item[1])]
         else:
             return self.sprites[item]
+    def __setitem__(self, item, value): # todo test this, untested currently.
+        if(type(item) == tuple):
+            self.sprites[str(item[0])+":"+str(item[1])] = value
+            self.sprites[item[0]+item[1]*self.xCount] = value
+        else:
+            self.sprites[item] = value
+            self.sprites[(item % self.xCount, item // self.xCount)] = value
 
 #Map file example (each line has name of frame, and x,y,w,h of rect:
 #orc_shaman_idle_anim_f0 368 201 16 23

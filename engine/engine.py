@@ -1,5 +1,5 @@
 import asyncio
-import copy
+from typing import Type
 
 import pygame
 import engine.ecs as ecs
@@ -7,8 +7,10 @@ from engine.constants import KEYDOWN, KEYUP, KEYPRESSED, KEYINACTIVE
 from engine.game import Game
 import time
 from sys import exit
+import sys
+import platform
 
-from engine.logging import Log, LOG_ALL, LOG_ERRORS, LOG_INFO, LOG_WARNINGS
+from engine.logging import Log, LOG_ERRORS, LOG_INFO, LOG_WARNINGS
 from engine.scenes import splashscene
 
 
@@ -40,6 +42,10 @@ class Engine:
         if(self._game.startingScene == None):
             Log("Game has no starting scene",LOG_ERRORS)
             exit(0)
+
+        if(self._game.webCanvasPixelated):
+            if sys.platform == 'emscripten':
+                platform.window.canvas.style.imageRendering = "pixelated"
 
         #Load splash screen if enabled otherwise load starting scene, if we load splash screen scene the splash screen scene swaps to the self._game.startingScene for us.
         if(self._game.startingSplashEnabled):
@@ -116,11 +122,12 @@ class Engine:
         return self.IsKeyState(key,KEYDOWN)
     def KeyUp(self,key : int) -> bool:
         return self.IsKeyState(key,KEYUP)
-    def LoadScene(self, scene : ecs.Scene):
+    def LoadScene(self, scene : Type[ecs.Scene]):
+        sceneInstance = scene()
         if(self._queuedScene != None):
-            Log("Scene queuing on top of another scene. Before: "+self._queuedScene.name+", now: "+scene.name,LOG_WARNINGS)
-        self._queuedScene = scene
-        Log("Queued scene: "+scene.name,LOG_INFO)
+            Log("Scene queuing on top of another scene. Before: "+self._queuedScene.name+", now: "+sceneInstance.name,LOG_WARNINGS)
+        self._queuedScene = sceneInstance
+        Log("Queued scene: "+self._queuedScene.name,LOG_INFO)
     def _LoadQueuedScene(self):
         Log("Loading scene: "+self._queuedScene.name,LOG_INFO)
         self._currentScene = self._queuedScene

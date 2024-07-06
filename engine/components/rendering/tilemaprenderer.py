@@ -1,3 +1,5 @@
+import pygame
+
 from engine.components.rendering.renderercomponent import RendererComponent
 from engine.datatypes.sprites import Sprite
 from engine.logging import Log, LOG_ERRORS
@@ -10,24 +12,31 @@ class Tilemap:
         self.map = []
         self.tileSet : dict = dict() #{0: Sprite, 1 : Sprite, 2 : Sprite} or {"orc_1" : Sprite, "orc_2" : Sprite} etc dont put surfaces in
 
+        self.Clear() # builds self.map as a 2d array with all positions as -1.
+
+    def SetTile(self,tileID : int, x,y, ignoreInvalidPosition=False):
+        if(x >= 0 and y >= 0 and x < self.size[0] and y < self.size[1] and (tileID in self.tileSet or tileID == -1)):
+            self.map[x][y] = tileID
+        elif(ignoreInvalidPosition == False):
+            Log("Invalid spot to set tile or invalid tileID."+str(tileID),LOG_ERRORS)
+    def GetTileID(self,x,y):
+        return self.map[x][y]
+    def Clear(self):
+        self.map = []
         for x in range(self.size[0]):
             xRow = []
             for i in range(self.size[1]):
                 xRow.append(-1)
             self.map.append(xRow)
-    def SetTile(self,tileID : int, x,y):
-        if(x < self.size[0] and y < self.size[1] and (tileID in self.tileSet or tileID == -1)):
-            self.map[x][y] = tileID
-        else:
-            Log("Invalid spot to set tile or invalid tileID."+str(tileID),LOG_ERRORS)
-    def GetTileID(self,x,y):
-        return self.map[x][y]
     def SetTileSetFromSpriteSheet(self,spriteSheet : SpriteSheet,alpha=255):
         if(spriteSheet.splitType == 'size'):
             for x in range(spriteSheet.xCount):
                 for y in range(spriteSheet.yCount):
                     hashIndex = y*spriteSheet.xCount+x
-                    self.tileSet[hashIndex] = Sprite(spriteSheet[(x,y)])
+                    if(type(spriteSheet[(x,y)]) == pygame.Surface):
+                        self.tileSet[hashIndex] = Sprite(spriteSheet[(x,y)])
+                    else:
+                        self.tileSet[hashIndex] = spriteSheet[(x,y)].GetSprite() # So the tilemap always has a copy.
                     self.tileSet[hashIndex].SetAlpha(alpha)
 
         elif(spriteSheet.splitType == 'map'):
@@ -35,6 +44,8 @@ class Tilemap:
                 self.tileSet[key] = Sprite(value)
         else:
             Log("Unknown sprite sheet split type: ",spriteSheet.splitType,LOG_ERRORS)
+    def SetSpriteAtIndex(self, sprite : Sprite, index : int):
+        self.tileSet[index] = sprite
 
 class TilemapRenderer(RendererComponent):
     def __init__(self,tileMap=None):
@@ -61,13 +72,23 @@ class TilemapRenderer(RendererComponent):
             return None #Outside bounds
         return tilePosition
 
-    def GetOverlappingTilesInTileSpace(self,topLeft,bottomRight, ignoreEmptyTiles=True):
+    def GetOverlappingTilesInWorldSpace(self, tileTopLeft, tileBottomRight, ignoreEmptyTiles=True):
         tiles = []
-        for x in range(topLeft[0]-2,bottomRight[0]+2):
-            for y in range(topLeft[1]-2,bottomRight[1]+2):
+        for x in range(tileTopLeft[0]-2,tileBottomRight[0]+2):
+            for y in range(tileTopLeft[1]-2,tileBottomRight[1]+2):
                 if(x >= 0 and y >= 0 and x < self.tileMap.size[0] and y < self.tileMap.size[1]):
                     if(ignoreEmptyTiles and self.tileMap.map[x][y] == -1):
                         continue
                     worldPos = self.TileIndexToWorldPosition((x, y))
                     tiles.append([self.tileMap.map[x][y],(worldPos[0],worldPos[1])])
+        return tiles
+
+    def GetOverlappingTilesInTileSpace(self, tileTopLeft, tileBottomRight, ignoreEmptyTiles=True):
+        tiles = []
+        for x in range(tileTopLeft[0]-2,tileBottomRight[0]+2):
+            for y in range(tileTopLeft[1]-2,tileBottomRight[1]+2):
+                if(x >= 0 and y >= 0 and x < self.tileMap.size[0] and y < self.tileMap.size[1]):
+                    if(ignoreEmptyTiles and self.tileMap.map[x][y] == -1):
+                        continue
+                    tiles.append([self.tileMap.map[x][y],(x,y)])
         return tiles

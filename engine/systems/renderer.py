@@ -1,5 +1,3 @@
-import math
-
 import pygame.display
 
 from engine.components.rendering.particlecomponent import ParticleEmitterComponent, Particle
@@ -8,12 +6,12 @@ from engine.components.rendering.spriterenderer import SpriteRenderer
 from engine.components.rendering.textrenderer import TextRenderer
 from engine.components.rendering.tilemaprenderer import TilemapRenderer
 from engine.datatypes.sprites import GetSprite, Sprite
-from engine.ecs import EntitySystem, Scene, Component
+from engine.ecs import EntitySystem, Scene
 from engine.logging import Log, LOG_ALL
 
 
 def CenterToTopLeftPosition(centerPosition, surface : pygame.Surface):
-    return [centerPosition[0]-surface.get_width()//2,centerPosition[1]-surface.get_height()//2]
+    return [centerPosition[0]-surface.get_width()/2,centerPosition[1]-surface.get_height()/2]
 
 class RenderingSystem(EntitySystem):
     instance = None
@@ -30,8 +28,9 @@ class RenderingSystem(EntitySystem):
 
         self._sortedDrawOrder : list = [] #Sorted list of related components (ie SpriteRenderer). Sorted by sort order.
 
+        self.rawMousePosition = (0, 0)
+        self.screenMousePosition = (0, 0)
         self.worldMousePosition = (0,0)
-        self.screenMousePosition = (0,0)
 
     def OnEnable(self, currentScene : Scene):
         RenderingSystem.instance = self
@@ -44,7 +43,7 @@ class RenderingSystem(EntitySystem):
         self.InsertIntoSortedRenderOrder(component)
         Log("Added "+component.parentEntity.name + " to rendering order."+str(component.drawOrder),LOG_ALL)
 
-    def OnDestroyComponent(self, component : RendererComponent):
+    def OnDeleteComponent(self, component : RendererComponent):
         indexOfComponent = self._sortedDrawOrder.index(component)
         if(indexOfComponent != -1):
             self._sortedDrawOrder.pop(indexOfComponent)
@@ -70,18 +69,23 @@ class RenderingSystem(EntitySystem):
 
     def Update(self,currentScene : Scene):
         self._renderTarget.fill(self.backgroundColor)
-        self.cameraPosition = [self.cameraPosition[0],self.cameraPosition[1]]
 
-        self.screenMousePosition = (pygame.mouse.get_pos()[0],pygame.mouse.get_pos()[1])
-        self.worldMousePosition = (round((self.screenMousePosition[0]-self.cameraPosition[0]-self._screenSize[0]/2)/self.renderScale),
-                                   round((self.screenMousePosition[1]-self.cameraPosition[1]-self._screenSize[1]/2)/self.renderScale))
+        self.rawMousePosition = pygame.mouse.get_pos()
+        self.screenMousePosition = ((self.rawMousePosition[0] - self._screenSize[0] / 2) / self.renderScale,(self.rawMousePosition[1] - self._screenSize[1] / 2) / self.renderScale)
+        self.worldMousePosition = (round((self.rawMousePosition[0] + self.cameraPosition[0] - self._screenSize[0] / 2) / self.renderScale),
+                                   round((self.rawMousePosition[1] + self.cameraPosition[1] - self._screenSize[1] / 2) / self.renderScale))
 
         #Loop through sorted render order and render everything out.
+        component : RendererComponent
         for component in self._sortedDrawOrder:
+            if not component.enabled:
+                continue
             if(isinstance(component,SpriteRenderer)):
                 self.RenderSpriteRenderer(component)
             elif(isinstance(component,TilemapRenderer)):
-                self.RenderTileMapRenderer(component)
+                worldPositionTopLeft = (self.cameraPosition[0]-self._scaledHalfSize[0],self.cameraPosition[1]-self._scaledHalfSize[1])
+                worldDrawBounds = pygame.FRect(worldPositionTopLeft[0],worldPositionTopLeft[1],self._scaledScreenSize[0],self._scaledScreenSize[1])
+                self.RenderTileMapRenderer(component, worldDrawBounds)
             elif(isinstance(component,ParticleEmitterComponent)):
                 self.RenderParticleEmitter(component)
             elif(isinstance(component, TextRenderer)):
@@ -104,7 +108,7 @@ class RenderingSystem(EntitySystem):
         if (False == self.IsOnScreenSprite(spriteSurface, spriteRenderer.parentEntity.position)):
             return
 
-        finalPosition = self.FinalPositionOfSprite(spriteRenderer.parentEntity.position, spriteSurface)
+        finalPosition = self.FinalPositionOfSprite(spriteRenderer.parentEntity.position, spriteSurface, spriteRenderer.screenSpace)
         self._renderTarget.blit(spriteSurface, finalPosition)
 
         if (self.debug):  # If debug draw bounds of spriterenderers
@@ -112,35 +116,25 @@ class RenderingSystem(EntitySystem):
                              pygame.Rect(finalPosition[0] - 1, finalPosition[1], spriteSurface.get_width(),
                                          spriteSurface.get_height()), width=1)
 
-    def RenderTileMapRenderer(self,tileMapRenderer : TilemapRenderer):
+    def RenderTileMapRenderer(self,tileMapRenderer : TilemapRenderer, worldDrawBounds):
         if (tileMapRenderer.tileMap == None or tileMapRenderer.tileMap.tileSet == None):
             return
-        centeredOffset = [tileMapRenderer.parentEntity.position[0] - (
-                    tileMapRenderer.tileMap.size[0] * tileMapRenderer.tileMap.tileSize) // 2,
-                          tileMapRenderer.parentEntity.position[1] - (
-                                      tileMapRenderer.tileMap.size[1] * tileMapRenderer.tileMap.tileSize) // 2]
-        for x in range(tileMapRenderer.tileMap.size[0]):
-            for y in range(tileMapRenderer.tileMap.size[1]):
-                if (tileMapRenderer.tileMap.map[x][y] == -1):  # Empty tile
-                    continue
 
-                # Get world position then the left anchored screen position
-                worldPosition = [centeredOffset[0] + (x * tileMapRenderer.tileMap.tileSize),
-                                 centeredOffset[1] + (y * tileMapRenderer.tileMap.tileSize)]
-                leftAnchoredScreenPosition = self.WorldToScreenPosition(worldPosition)
+        topLeftTilePos = tileMapRenderer.WorldPositionToTileIndex(worldDrawBounds.topleft)
+        bottomRightTilePos = tileMapRenderer.WorldPositionToTileIndex(worldDrawBounds.bottomright)
+        tileDrawBounds = tileMapRenderer.GetOverlappingTilesInWorldSpace(topLeftTilePos, bottomRightTilePos, True)
 
-                if (False == self.IsOnScreenRect(
-                        pygame.Rect(worldPosition[0], worldPosition[1], tileMapRenderer.tileMap.tileSize,
-                                    tileMapRenderer.tileMap.tileSize))):
-                    continue
+        for (tileID, (x,y)) in tileDrawBounds:
 
-                tailSprite : Sprite = GetSprite(tileMapRenderer.tileMap.tileSet[tileMapRenderer.tileMap.map[x][y]],True)
-                spriteSurface = tailSprite.GetSprite()
-                self._renderTarget.blit(spriteSurface, leftAnchoredScreenPosition)
-                if (tailSprite.tint):
-                    self._renderTarget.fill(color=tailSprite.tint, rect=(
-                    leftAnchoredScreenPosition[0], leftAnchoredScreenPosition[1], spriteSurface.get_width(), spriteSurface.get_width()),
-                                            special_flags=pygame.BLEND_ADD)
+            leftAnchoredScreenPosition = self.WorldToScreenPosition((x,y))
+
+            tailSprite : Sprite = GetSprite(tileMapRenderer.tileMap.tileSet[tileID],True)
+            spriteSurface = tailSprite.GetSprite()
+            self._renderTarget.blit(spriteSurface, leftAnchoredScreenPosition)
+            if (tailSprite._tint):
+                self._renderTarget.fill(color=tailSprite._tint, rect=(
+                leftAnchoredScreenPosition[0], leftAnchoredScreenPosition[1], spriteSurface.get_width(), spriteSurface.get_width()),
+                                        special_flags=pygame.BLEND_ADD)
 
     def RenderParticleEmitter(self,emitter : ParticleEmitterComponent):
         if(emitter.sprite == None):
@@ -178,7 +172,7 @@ class RenderingSystem(EntitySystem):
         if (textRenderer._render == None):
             return
 
-        actualSprite = textRenderer._render
+        actualSprite = textRenderer._render.GetSprite()
         # Validate if we found an actual sprite
         if (actualSprite == None):
             return
@@ -191,16 +185,23 @@ class RenderingSystem(EntitySystem):
             # If in world space, verify what is being drawn is on the screen
             if (False == self.IsOnScreenSprite(actualSprite, textRenderer.parentEntity.position)):
                 return
-            renderPosition = self.FinalPositionOfSprite(renderPosition, actualSprite)
+            renderPosition = self.FinalPositionOfSprite(renderPosition, actualSprite, screenSpace=textRenderer.screenSpace)
 
-        self._renderTarget.blit(actualSprite, [renderPosition[0] - textRenderer._render.get_width()//2,renderPosition[1] - textRenderer._render.get_height()//2])
+
+        self._renderTarget.blit(actualSprite, (renderPosition[0]-textRenderer._alignOffset[0],renderPosition[1]-textRenderer._alignOffset[1]))
 
     def WorldToScreenPosition(self,position):
-        return [position[0] - self.cameraPosition[0] + self._scaledHalfSize[0], position[1] - self.cameraPosition[1] + self._scaledHalfSize[1]]
+        return [round(position[0] - self.cameraPosition[0] + self._scaledHalfSize[0]), round(position[1] - self.cameraPosition[1] + self._scaledHalfSize[1])]
+    def ScreenToWorldPosition(self, position):
+        return [position[0] + self.cameraPosition[0] - self._scaledHalfSize[0], position[1] + self.cameraPosition[1] - self._scaledHalfSize[1]]
 
-    def FinalPositionOfSprite(self,position,sprite):
+    def FinalPositionOfSprite(self,position,sprite, screenSpace=False):
         topLeftPosition = CenterToTopLeftPosition(position, sprite)
-        return self.WorldToScreenPosition(topLeftPosition)
+        if(not screenSpace):
+            return self.WorldToScreenPosition(topLeftPosition)
+        else:
+            #for the user we center 0,0 on the screen but when drawing 0,0 is the top left. So we fix it here.
+            return (topLeftPosition[0]+self._scaledHalfSize[0],topLeftPosition[1]+self._scaledHalfSize[1])
 
     def IsOnScreenSprite(self, sprite : pygame.Surface, position) -> bool:
         return self.IsOnScreenRect(pygame.Rect(position[0]-sprite.get_width()//2,position[1]-sprite.get_height()//2,sprite.get_width(),sprite.get_height()))

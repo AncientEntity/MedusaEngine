@@ -2,7 +2,7 @@
 
 Medusa is a FOSS Python based game engine for creating 2D games in Python with Pygame. It's not intended to be packaged as a module but is meant to be embedded directly into your project files.
 
-Example Game: https://statusvoid.com/prototyping/
+Game demos below
 
 # Requirements
 Python 3.11 or newer
@@ -36,11 +36,16 @@ Below is the intended project structure but doesn't necessarily need to be follo
 
 - `/game`: This directory contains the game files. Here you'll find the assets, scripts, and other resources that make up the game itself.
 
-# Gifs
+# Demos & Gifs
+
+Knighty McKnightFace Demo [(play here)](https://anciententity.itch.io/knighty-mcknightyface)
 
 ![python_EA7pzBiGDy](https://github.com/AncientEntity/MedusaEngine/assets/22735861/2d6d4a19-3c53-4a3e-b414-f3aecea981dd)
 
+Knighty McKnightFace Demo [(play here)](https://anciententity.itch.io/knighty-mcknightyface)
+
 ![python_BFsRluECuz](https://github.com/AncientEntity/MedusaEngine/assets/22735861/7ff670b8-0db8-4f6b-bd8f-63489d57ac3c)
 
-![python_L8lP7b8tr6](https://github.com/AncientEntity/MedusaEngine/assets/22735861/8aba685b-dc00-4fed-9a2e-0d29e75edb8c)
+Tiny Factory Demo [(play here)](https://anciententity.itch.io/tiny-factory-remastered)
 
+![chrome_qQIUbQQSkM](https://github.com/AncientEntity/MedusaEngine/assets/22735861/21df0074-4c44-4731-b59e-3c6df15cf031)
