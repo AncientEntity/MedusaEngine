@@ -11,7 +11,7 @@ from engine.components.physicscomponent import PhysicsComponent
 
 class QuadNode:
     maxChildrenCount = 10
-    minBoundSize = 32 # Should be power of 2.
+    minBoundSize = 16 # Should be power of 2.
     def __init__(self, parentNode, quadrantBounds : pygame.Rect):
         self.parent = parentNode
         self._isLeafNode = True
@@ -51,11 +51,10 @@ class QuadNode:
 
 
     def RemoveBody(self, body : PhysicsComponent):
-        if(body not in self._quadrantBodies):
-            return
+        if(self._quadrantBodies and body in self._quadrantBodies):
+            self._quadrantBodies.remove(body)
+            body._overlappingSpatialPartitions.remove(self)
 
-        self._quadrantBodies.remove(body)
-        body._overlappingSpatialPartitions.remove(self)
         if(self.parent and self.parent.GetBodyCountFromNode(ignoreNoneLeaf=False,maxValue=15) <= QuadNode.maxChildrenCount):
             self.parent.UnSubdivideNode()
 
@@ -120,7 +119,8 @@ class QuadNode:
                 found = True
         if not found: #todo remove this exception when certain it works as it should.
             raise Exception("Quadrant couldn't be found for body. Outside world bounds?" +
-                            "Make sure your min quad node size is a power of 2, and you're root node bounds are a power of 2.")
+                            "Make sure your min quad node size is a power of 2, and you're" +
+                            " root node bounds are a power of 2. BodyBounds: "+str(body.bounds)+", Last Child Bounds: "+str(child.bounds))
 
     def GetBodiesRecursive(self):
         if self._isLeafNode:

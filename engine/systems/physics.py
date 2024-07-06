@@ -77,7 +77,10 @@ class PhysicsSystem(EntitySystem):
                         otherBounds = pygame.FRect(tile[1][0], tile[1][1], tilemapRenderer.tileMap.tileSize, tilemapRenderer.tileMap.tileSize)
                         self.HandlePhysicsCollision(body,bodyPos,bodyBounds,None,otherBounds.center,otherBounds,tilemapRenderer.physicsLayer not in body.collidesWithLayers)
 
+            node : QuadNode
             for node in body._overlappingSpatialPartitions[:]:
+                if(node not in body._overlappingSpatialPartitions):
+                    continue # Might have gotten removed with an unsubdivide.
                 node.UpdateBody(body)
 
             body._moveRequest = None
@@ -87,7 +90,7 @@ class PhysicsSystem(EntitySystem):
             component.MapToSpriteRenderer()
         self.quadtree.AddBody(component)
 
-    def OnDestroyComponent(self, component : Component):
+    def OnDeleteComponent(self, component : Component):
         QuadNode.RemoveFromTree(component)
 
     def HandlePhysicsCollision(self,body : PhysicsComponent,bodyPos,bodyBounds : pygame.FRect,other : PhysicsComponent,otherPos,otherBounds : pygame.FRect,onlyTrigger):
@@ -194,3 +197,11 @@ class PhysicsSystem(EntitySystem):
 
     def DoBodiesInteract(self,body1 : PhysicsComponent,body2 : PhysicsComponent):
         return body1.physicsLayer in body2.collidesWithLayers or body1.physicsLayer in body2.triggersWithLayers or body2.physicsLayer in body1.collidesWithLayers or body2.physicsLayer in body1.triggersWithLayers
+
+    def DebugDrawQuads(self,renderer, quad : QuadNode):
+        if(quad == None):
+            return
+        if(quad.bounds.w <= 512):
+            renderer.DebugDrawWorldRect((255,0,0),quad.bounds)
+        for c in quad._quadrantChildren:
+            self.DebugDrawQuads(renderer,c)

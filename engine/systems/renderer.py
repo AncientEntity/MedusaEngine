@@ -8,6 +8,7 @@ from engine.components.rendering.tilemaprenderer import TilemapRenderer
 from engine.datatypes.sprites import GetSprite, Sprite
 from engine.ecs import EntitySystem, Scene
 from engine.logging import Log, LOG_ALL
+from engine.systems.physics import PhysicsSystem
 
 
 def CenterToTopLeftPosition(centerPosition, surface : pygame.Surface):
@@ -90,6 +91,8 @@ class RenderingSystem(EntitySystem):
                 self.RenderParticleEmitter(component)
             elif(isinstance(component, TextRenderer)):
                 self.RenderTextRenderer(component)
+
+        currentScene.GetSystemByClass(PhysicsSystem).DebugDrawQuads(self,currentScene.GetSystemByClass(PhysicsSystem).quadtree)
 
         #Finally blit the render target onto the final display.
         self.game.display.blit(pygame.transform.scale(self._renderTarget,(self._screenSize[0],self._screenSize[1])),(0,0))
@@ -212,4 +215,4 @@ class RenderingSystem(EntitySystem):
 
     def DebugDrawWorldRect(self,color,rect):
         worldP = self.WorldToScreenPosition((rect.x,rect.y))
-        pygame.draw.rect(self._renderTarget,(255,0,0),(worldP[0],worldP[1],rect.w,rect.h))
+        pygame.draw.rect(self._renderTarget,color,(worldP[0],worldP[1],rect.w,rect.h),1)
