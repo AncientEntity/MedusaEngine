@@ -71,7 +71,6 @@ class RenderingSystem(EntitySystem):
 
     def Update(self,currentScene : Scene):
         self._renderTarget.fill(self.backgroundColor)
-        self.cameraPosition = [self.cameraPosition[0],self.cameraPosition[1]]
 
         self.rawMousePosition = pygame.mouse.get_pos()
         self.screenMousePosition = ((self.rawMousePosition[0] - self._screenSize[0] / 2) / self.renderScale,(self.rawMousePosition[1] - self._screenSize[1] / 2) / self.renderScale)
@@ -194,7 +193,7 @@ class RenderingSystem(EntitySystem):
         self._renderTarget.blit(actualSprite, (renderPosition[0]-textRenderer._alignOffset[0],renderPosition[1]-textRenderer._alignOffset[1]))
 
     def WorldToScreenPosition(self,position):
-        return [position[0] - self.cameraPosition[0] + self._scaledHalfSize[0], position[1] - self.cameraPosition[1] + self._scaledHalfSize[1]]
+        return [round(position[0] - self.cameraPosition[0] + self._scaledHalfSize[0]), round(position[1] - self.cameraPosition[1] + self._scaledHalfSize[1])]
     def ScreenToWorldPosition(self, position):
         return [position[0] + self.cameraPosition[0] - self._scaledHalfSize[0], position[1] + self.cameraPosition[1] - self._scaledHalfSize[1]]
 
