@@ -13,7 +13,7 @@ class PhysicsSystem(EntitySystem):
 
         # Root quad tree for spatial partitioning. Bounds should be a power of 2. 536870912=2^29, 1073741824=2^30
         # this allows it to divide evenly. Inside QuadNode's class variables the min quad node size is 32=2^5
-        self.quadtree = QuadNode(None,pygame.Rect(-536870912,-536870912,1073741824,1073741824))
+        self.quadtree = QuadNode(None,pygame.Rect(-2**29,-2**29,2**30,2**30))
 
     def Update(self,currentScene : Scene):
         for i in range(self.stepsPerFrame):
@@ -22,6 +22,7 @@ class PhysicsSystem(EntitySystem):
     def Step(self, currentScene : Scene, stepTime):
         body : PhysicsComponent
 
+        # Reset body step properties
         for body in currentScene.components[PhysicsComponent]:
             body.ResetCollisionDirections()
             body._lastStepTriggeredWith = body._thisStepTriggeredWith
@@ -201,7 +202,7 @@ class PhysicsSystem(EntitySystem):
     def DebugDrawQuads(self,renderer, quad : QuadNode):
         if(quad == None):
             return
-        if(quad.bounds.w <= 512):
+        if(quad.bounds.w <= 1024):
             renderer.DebugDrawWorldRect((255,0,0),quad.bounds)
         for c in quad._quadrantChildren:
             self.DebugDrawQuads(renderer,c)
