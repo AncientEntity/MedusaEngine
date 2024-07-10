@@ -12,7 +12,7 @@ class PhysicsSystem(EntitySystem):
         self.stepsPerFrame = 2
 
         # Root quad tree for spatial partitioning. Bounds should be a power of 2. 536870912=2^29, 1073741824=2^30
-        # this allows it to divide evenly. Inside QuadNode's class variables the min quad node size is 32=2^5
+        # this allows it to divide evenly. Inside QuadNode's class variables the min quad node size is 16=2^4
         self.quadtree = QuadNode(None,pygame.Rect(-2**29,-2**29,2**30,2**30))
 
     def Update(self,currentScene : Scene):
@@ -87,10 +87,6 @@ class PhysicsSystem(EntitySystem):
     def OnNewComponent(self,component : Component):
         if (type(component) == PhysicsComponent and component.mapToSpriteOnStart):
             component.MapToSpriteRenderer()
-    #    self.quadtree.AddBody(component)
-
-    #def OnDeleteComponent(self, component : Component):
-    #    QuadNode.RemoveFromTree(component)
 
     def HandlePhysicsCollision(self,body : PhysicsComponent,bodyPos,bodyBounds : pygame.FRect,other : PhysicsComponent,otherPos,otherBounds : pygame.FRect,onlyTrigger):
 
