@@ -55,13 +55,7 @@ class Scene:
         componentType = type(component)
         if (componentType in self.components):
             self.HandleDeleteComponent(component)
-
-            indexOfComponent = -1
-            try:
-                indexOfComponent = self.components[componentType].index(component)
-            except ValueError:
-                return
-            self.components[componentType].pop(indexOfComponent)
+            self.components[componentType].remove(component)
 
     def GetSystemByClass(self,systemType : type):
         for system in self.systems:

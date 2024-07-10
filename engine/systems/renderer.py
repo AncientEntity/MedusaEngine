@@ -8,7 +8,6 @@ from engine.components.rendering.tilemaprenderer import TilemapRenderer
 from engine.datatypes.sprites import GetSprite, Sprite
 from engine.ecs import EntitySystem, Scene
 from engine.logging import Log, LOG_ALL
-from engine.systems.physics import PhysicsSystem
 
 
 def CenterToTopLeftPosition(centerPosition, surface : pygame.Surface):
