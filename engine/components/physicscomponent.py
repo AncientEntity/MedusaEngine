@@ -26,6 +26,10 @@ class PhysicsComponent(Component):
         self._thisStepTriggeredWith = [] #List of other physics components that this collided with this frame.
         self._lastStepTriggeredWith = [] #List of other physics components that this collided with last frame.
 
+        # Spatial Partitioning
+        self._overlappingSpatialPartitions = []
+
+
     def Move(self,movement):
         if(self._moveRequest == None):
             self._moveRequest = [0,0]
