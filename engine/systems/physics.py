@@ -28,7 +28,8 @@ class PhysicsSystem(EntitySystem):
             body._lastStepTriggeredWith = body._thisStepTriggeredWith
             body._thisStepTriggeredWith = []
 
-        # Rebuild quad tree
+        # Rebuild quad tree (this is only temporary, the branch spatialpartitioning-optimized will instead
+        # update objects based on if they have moved. But this is still faster.
         self.quadtree = QuadNode(None,pygame.Rect(-2**29,-2**29,2**30,2**30))
         for body in currentScene.components[PhysicsComponent]:
             body._overlappingSpatialPartitions.clear()
@@ -55,7 +56,7 @@ class PhysicsSystem(EntitySystem):
 
             #Physics Component Collision
             other : PhysicsComponent
-            for other in QuadNode.GetBodiesInSharedSpace(body):# currentScene.components[PhysicsComponent]:
+            for other in QuadNode.GetBodiesInSharedSpace(body):
                 if(body == other or self.DoBodiesInteract(body,other) == False):
                     continue
 
@@ -80,12 +81,6 @@ class PhysicsSystem(EntitySystem):
                     if(False == tilemapRenderer.tileMap.tileSet[tile[0]].ignoreCollision):
                         otherBounds = pygame.FRect(tile[1][0], tile[1][1], tilemapRenderer.tileMap.tileSize, tilemapRenderer.tileMap.tileSize)
                         self.HandlePhysicsCollision(body,bodyPos,bodyBounds,None,otherBounds.center,otherBounds,tilemapRenderer.physicsLayer not in body.collidesWithLayers)
-
-            #node : QuadNode
-            #for node in body._overlappingSpatialPartitions[:]:
-            #    if(node not in body._overlappingSpatialPartitions):
-            #        continue # Might have gotten removed with an unsubdivide.
-            #    node.UpdateBody(body)
 
             body._moveRequest = None
 
