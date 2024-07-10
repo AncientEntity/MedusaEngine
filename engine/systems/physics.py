@@ -28,12 +28,6 @@ class PhysicsSystem(EntitySystem):
             body._lastStepTriggeredWith = body._thisStepTriggeredWith
             body._thisStepTriggeredWith = []
 
-        # Rebuild quad tree
-        self.quadtree = QuadNode(None,pygame.Rect(-2**29,-2**29,2**30,2**30))
-        for body in currentScene.components[PhysicsComponent]:
-            body._overlappingSpatialPartitions.clear()
-            self.quadtree.AddBody(body)
-
         #Physics Component Collision
         for body in currentScene.components[PhysicsComponent]:
             if(body.static): #If static do not check for collisions with others, as it should be stationary.
@@ -81,21 +75,21 @@ class PhysicsSystem(EntitySystem):
                         otherBounds = pygame.FRect(tile[1][0], tile[1][1], tilemapRenderer.tileMap.tileSize, tilemapRenderer.tileMap.tileSize)
                         self.HandlePhysicsCollision(body,bodyPos,bodyBounds,None,otherBounds.center,otherBounds,tilemapRenderer.physicsLayer not in body.collidesWithLayers)
 
-            #node : QuadNode
-            #for node in body._overlappingSpatialPartitions[:]:
-            #    if(node not in body._overlappingSpatialPartitions):
-            #        continue # Might have gotten removed with an unsubdivide.
-            #    node.UpdateBody(body)
+            node : QuadNode
+            for node in body._overlappingSpatialPartitions[:]:
+                if(node not in body._overlappingSpatialPartitions):
+                    continue # Might have gotten removed with an unsubdivide.
+                node.UpdateBody(body)
 
             body._moveRequest = None
 
     def OnNewComponent(self,component : Component):
         if (type(component) == PhysicsComponent and component.mapToSpriteOnStart):
             component.MapToSpriteRenderer()
-    #    self.quadtree.AddBody(component)
+        self.quadtree.AddBody(component)
 
-    #def OnDeleteComponent(self, component : Component):
-    #    QuadNode.RemoveFromTree(component)
+    def OnDeleteComponent(self, component : Component):
+        QuadNode.RemoveFromTree(component)
 
     def HandlePhysicsCollision(self,body : PhysicsComponent,bodyPos,bodyBounds : pygame.FRect,other : PhysicsComponent,otherPos,otherBounds : pygame.FRect,onlyTrigger):
 
