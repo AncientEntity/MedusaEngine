@@ -1,5 +1,8 @@
+import math
+
 from engine.components.physicscomponent import PhysicsComponent
 from engine.components.rendering.spriterenderer import SpriteRenderer
+from engine.datatypes.sprites import Sprite
 from engine.ecs import EntitySystem, Scene, Component
 from engine.engine import Input
 from engine.systems.renderer import RenderingSystem
@@ -14,9 +17,22 @@ class PlayerSystem(EntitySystem):
         self.physics : PhysicsComponent = None
         self.playerRenderer : SpriteRenderer = None
 
-        self.cameraPosition = None
+        self.renderingSystem : RenderingSystem = None
+
+        self.cameraPosition = None # Contains the same list that the rendering system has.
+        self.cachedWeaponSpriteRef : Sprite = None
     def Update(self,currentScene : Scene):
         self.Movement()
+        self.Weapon()
+    def Weapon(self):
+        if self.player.weapon:
+            self.player.weapon.parentEntity.position = [self.player.parentEntity.position[0]+3,self.player.parentEntity.position[1]+5]
+            if(self.cachedWeaponSpriteRef == None):
+                self.cachedWeaponSpriteRef : Sprite = self.player.weapon.parentEntity.GetComponent(SpriteRenderer).sprite
+            if(self.renderingSystem.screenMousePosition[0] != 0):
+                ang = -math.degrees(math.atan2(self.renderingSystem.screenMousePosition[1],self.renderingSystem.screenMousePosition[0]))
+                self.cachedWeaponSpriteRef.SetRotation(ang)
+                self.cachedWeaponSpriteRef.SetScale((1.5,1.5))
     def Movement(self):
         moving = False
         movement = [0,0]
@@ -43,11 +59,12 @@ class PlayerSystem(EntitySystem):
             self.playerRenderer.sprite = self.player.idleAnim
 
         newCameraPosition = MoveTowards(self.cameraPosition,self.player.parentEntity.position,
-                                        self.game.deltaTime*self.player.speed/10 * Distance(self.player.parentEntity.position,self.cameraPosition)*0.2)
+                                        self.game.deltaTime*self.player.speed/10 * Distance(self.player.parentEntity.position,self.cameraPosition)*0.15)
         self.cameraPosition[0] = newCameraPosition[0]
         self.cameraPosition[1] = newCameraPosition[1]
     def OnEnable(self, currentScene : Scene):
-        self.cameraPosition = currentScene.GetSystemByClass(RenderingSystem).cameraPosition
+        self.renderingSystem = currentScene.GetSystemByClass(RenderingSystem)
+        self.cameraPosition = self.renderingSystem.cameraPosition
     def OnNewComponent(self,component : Component): #Called when a new component is created into the scene. (Used to initialize that component)
         self.player = component
         self.physics = self.player.parentEntity.GetComponent(PhysicsComponent)

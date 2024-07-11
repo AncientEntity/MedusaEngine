@@ -1,12 +1,14 @@
 from engine.datatypes.sprites import AnimatedSprite
 from engine.ecs import Component
 from game import assets
+from game.components.itemcomponent import ItemComponent
 
 
 class PlayerComponent(Component):
     def __init__(self):
         super().__init__()
         self.speed = 500
+        self.weapon : ItemComponent = None
 
         self.idleAnim = AnimatedSprite(
             [assets.dungeonTileSet["knight_f_idle_anim_f0"], assets.dungeonTileSet["knight_f_idle_anim_f1"],
