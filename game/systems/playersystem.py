@@ -3,7 +3,7 @@ from engine.components.rendering.spriterenderer import SpriteRenderer
 from engine.ecs import EntitySystem, Scene, Component
 from engine.engine import Input
 from engine.systems.renderer import RenderingSystem
-from engine.tools.math import MoveTowards
+from engine.tools.math import MoveTowards, Distance
 from game.components.playercomponent import PlayerComponent
 import pygame
 
@@ -42,7 +42,8 @@ class PlayerSystem(EntitySystem):
         else:
             self.playerRenderer.sprite = self.player.idleAnim
 
-        newCameraPosition = MoveTowards(self.cameraPosition,self.player.parentEntity.position,self.game.deltaTime*self.player.speed/10)
+        newCameraPosition = MoveTowards(self.cameraPosition,self.player.parentEntity.position,
+                                        self.game.deltaTime*self.player.speed/10 * Distance(self.player.parentEntity.position,self.cameraPosition)*0.2)
         self.cameraPosition[0] = newCameraPosition[0]
         self.cameraPosition[1] = newCameraPosition[1]
     def OnEnable(self, currentScene : Scene):
