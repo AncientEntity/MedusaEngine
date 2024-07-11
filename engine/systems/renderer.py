@@ -212,4 +212,4 @@ class RenderingSystem(EntitySystem):
 
     def DebugDrawWorldRect(self,color,rect):
         worldP = self.WorldToScreenPosition((rect.x,rect.y))
-        pygame.draw.rect(self._renderTarget,(255,0,0),(worldP[0],worldP[1],rect.w,rect.h))
+        pygame.draw.rect(self._renderTarget,color,(worldP[0],worldP[1],rect.w,rect.h),1)

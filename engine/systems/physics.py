@@ -1,6 +1,7 @@
 import pygame
 
 from engine.components.physicscomponent import PhysicsComponent
+from engine.datatypes.quadtree import QuadNode
 from engine.ecs import Component, EntitySystem, Scene
 from engine.systems.renderer import TilemapRenderer
 
@@ -10,6 +11,10 @@ class PhysicsSystem(EntitySystem):
         super().__init__([PhysicsComponent])
         self.stepsPerFrame = 2
 
+        # Root quad tree for spatial partitioning. Bounds should be a power of 2. 536870912=2^29, 1073741824=2^30
+        # this allows it to divide evenly. Inside QuadNode's class variables the min quad node size is 16=2^4
+        self.quadtree = QuadNode(None,pygame.Rect(-2**29,-2**29,2**30,2**30))
+
     def Update(self,currentScene : Scene):
         for i in range(self.stepsPerFrame):
             self.Step(currentScene,self.game.deltaTime/self.stepsPerFrame)
@@ -17,10 +22,18 @@ class PhysicsSystem(EntitySystem):
     def Step(self, currentScene : Scene, stepTime):
         body : PhysicsComponent
 
+        # Reset body step properties
         for body in currentScene.components[PhysicsComponent]:
             body.ResetCollisionDirections()
             body._lastStepTriggeredWith = body._thisStepTriggeredWith
             body._thisStepTriggeredWith = []
+
+        # Rebuild quad tree (this is only temporary, the branch spatialpartitioning-optimized will instead
+        # update objects based on if they have moved. But this is still faster.
+        self.quadtree = QuadNode(None,pygame.Rect(-2**29,-2**29,2**30,2**30))
+        for body in currentScene.components[PhysicsComponent]:
+            body._overlappingSpatialPartitions.clear()
+            self.quadtree.AddBody(body)
 
         #Physics Component Collision
         for body in currentScene.components[PhysicsComponent]:
@@ -41,10 +54,9 @@ class PhysicsSystem(EntitySystem):
             body.parentEntity.position[0] += body._moveRequest[0]
             body.parentEntity.position[1] += body._moveRequest[1]
 
-
             #Physics Component Collision
             other : PhysicsComponent
-            for other in currentScene.components[PhysicsComponent]:
+            for other in QuadNode.GetBodiesInSharedSpace(body):
                 if(body == other or self.DoBodiesInteract(body,other) == False):
                     continue
 
@@ -71,8 +83,6 @@ class PhysicsSystem(EntitySystem):
                         self.HandlePhysicsCollision(body,bodyPos,bodyBounds,None,otherBounds.center,otherBounds,tilemapRenderer.physicsLayer not in body.collidesWithLayers)
 
             body._moveRequest = None
-
-        pygame.display.update()
 
     def OnNewComponent(self,component : Component):
         if (type(component) == PhysicsComponent and component.mapToSpriteOnStart):
@@ -182,3 +192,11 @@ class PhysicsSystem(EntitySystem):
 
     def DoBodiesInteract(self,body1 : PhysicsComponent,body2 : PhysicsComponent):
         return body1.physicsLayer in body2.collidesWithLayers or body1.physicsLayer in body2.triggersWithLayers or body2.physicsLayer in body1.collidesWithLayers or body2.physicsLayer in body1.triggersWithLayers
+
+    def DebugDrawQuads(self,renderer, quad : QuadNode):
+        if(quad == None):
+            return
+        if(quad.bounds.w <= 1024):
+            renderer.DebugDrawWorldRect((255,0,0),quad.bounds)
+        for c in quad._quadrantChildren:
+            self.DebugDrawQuads(renderer,c)
