@@ -3,6 +3,9 @@
  <editorsettings>
   <export target="../mainlevel.tmj" format="json"/>
  </editorsettings>
+ <properties>
+  <property name="physicsLayer" type="int" value="-1"/>
+ </properties>
  <tileset firstgid="1" source="0x72_DungeonTilesetII_v1.7.tsx"/>
  <layer id="1" name="Walls" width="25" height="25">
   <data encoding="csv">

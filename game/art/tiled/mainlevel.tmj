@@ -41,6 +41,12 @@
  "nextlayerid":3,
  "nextobjectid":1,
  "orientation":"orthogonal",
+ "properties":[
+        {
+         "name":"physicsLayer",
+         "type":"int",
+         "value":-1
+        }],
  "renderorder":"right-down",
  "tiledversion":"1.10.2",
  "tileheight":16,
