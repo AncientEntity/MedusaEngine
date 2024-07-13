@@ -37,8 +37,8 @@ class TestSystem(EntitySystem):
             self.endPos = tilePos
             self.hoverTileLayer.tileMap.SetTile(417, self.endPos[0], self.endPos[1])
         if(self.startPos != None and self.endPos != None):
-            path = self.pathfinding.Solve(self.startPos,self.endPos)
             self.pathTileLayer.tileMap.Clear()
+            path = self.pathfinding.Solve(self.startPos,self.endPos)
             if(path != None):
                 for index in path:
                     self.pathTileLayer.tileMap.SetTile(418,index[0],index[1])
