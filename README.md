@@ -38,14 +38,19 @@ Below is the intended project structure but doesn't necessarily need to be follo
 
 # Demos & Gifs
 
-Knighty McKnightFace Demo [(play here)](https://anciententity.itch.io/knighty-mcknightyface) (source currently lives in master branch)
+Knighty McKnightFace Demo [(play here)](https://anciententity.itch.io/knighty-mcknightyface) (source lives in master branch)
 
 ![python_EA7pzBiGDy](https://github.com/AncientEntity/MedusaEngine/assets/22735861/2d6d4a19-3c53-4a3e-b414-f3aecea981dd)
 
-Knighty McKnightFace Demo [(play here)](https://anciententity.itch.io/knighty-mcknightyface) (source currently lives in master branch)
+Knighty McKnightFace Demo [(play here)](https://anciententity.itch.io/knighty-mcknightyface) (source lives in master branch)
 
 ![python_BFsRluECuz](https://github.com/AncientEntity/MedusaEngine/assets/22735861/7ff670b8-0db8-4f6b-bd8f-63489d57ac3c)
 
-Tiny Factory Demo [(play here)](https://anciententity.itch.io/tiny-factory-remastered) (source currently lives in tiny-factory-remake branch)
+Tiny Factory Demo [(play here)](https://anciententity.itch.io/tiny-factory-remastered) (source lives in tiny-factory-remake branch)
 
 ![chrome_qQIUbQQSkM](https://github.com/AncientEntity/MedusaEngine/assets/22735861/21df0074-4c44-4731-b59e-3c6df15cf031)
+
+A* Pathfinding Demo [(play here)](https://anciententity.itch.io/medusa-astar-demo) (source lives in tilemap-pathfinding)
+
+![python_JWMPJNHslx](https://github.com/user-attachments/assets/3a5f0afc-5813-4d55-9ef9-80f314c2cf8d)
+
