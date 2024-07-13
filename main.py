@@ -1,9 +1,9 @@
 from engine.engine import *
 import asyncio
 
-from game import bulletgame
+from game.PathfindingGame import PathfindingGame
 
 if __name__ == "__main__":
-    gameInstance = Engine(bulletgame.BulletGame())
+    gameInstance = Engine(PathfindingGame())
     asyncio.run(gameInstance.Start())
 
