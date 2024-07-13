@@ -59,6 +59,18 @@ class TilemapPathfinder:
             # Right
             if IsValidIndex((index[0]+1,index[1])):
                 surroundingIndexes.append((index[0]+1,index[1]))
+            # TopLeft
+            if IsValidIndex((index[0]-1,index[1]-1)):
+                surroundingIndexes.append((index[0]-1,index[1]-1))
+            # TopRight
+            if IsValidIndex((index[0]+1,index[1]-1)):
+                surroundingIndexes.append((index[0]+1,index[1]-1))
+            # BottomLeft
+            if IsValidIndex((index[0]-1,index[1]+1)):
+                surroundingIndexes.append((index[0]-1,index[1]+1))
+            # BottomRight
+            if IsValidIndex((index[0]+1,index[1]+1)):
+                surroundingIndexes.append((index[0]+1,index[1]+1))
 
             newIndexes = []
             for index in surroundingIndexes:
