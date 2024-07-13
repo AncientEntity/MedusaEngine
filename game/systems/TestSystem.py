@@ -19,13 +19,9 @@ class TestSystem(EntitySystem):
 
         self.pathfinding : TilemapPathfinder = None
     def Update(self,currentScene : Scene):
-        tilePos = self.hoverTileLayer.WorldPositionToTileIndex(self.renderingSystem.worldMousePosition)
-        if(tilePos == self.startPos):
+        tilePos = self.hoverTileLayer.WorldPointToTileIndexSafe(self.renderingSystem.worldMousePosition)
+        if(tilePos == self.startPos or tilePos == None):
             return
-        if(self.lastPos != self.startPos and self.lastPos != self.endPos):
-            self.hoverTileLayer.tileMap.SetTile(-1,self.lastPos[0],self.lastPos[1])
-            self.hoverTileLayer.tileMap.SetTile(34,tilePos[0],tilePos[1])
-        self.lastPos = tilePos
         if (Input.MouseButtonPressed(0)):
             if(self.startPos != None):
                 self.hoverTileLayer.tileMap.SetTile(-1, self.startPos[0], self.startPos[1])
@@ -38,10 +34,16 @@ class TestSystem(EntitySystem):
             self.hoverTileLayer.tileMap.SetTile(417, self.endPos[0], self.endPos[1])
         if(self.startPos != None and self.endPos != None):
             self.pathTileLayer.tileMap.Clear()
+            self.hoverTileLayer.tileMap.Clear()
             path = self.pathfinding.Solve(self.startPos,self.endPos)
             if(path != None):
                 for index in path:
                     self.pathTileLayer.tileMap.SetTile(418,index[0],index[1])
+
+        if(self.lastPos != self.startPos and self.lastPos != self.endPos):
+            self.hoverTileLayer.tileMap.SetTile(-1,self.lastPos[0],self.lastPos[1])
+            self.hoverTileLayer.tileMap.SetTile(34,tilePos[0],tilePos[1])
+        self.lastPos = tilePos
 
     def OnEnable(self, currentScene : LevelScene):
         self.hoverTileLayer = currentScene.tileMapLayersByName["Hover"]
