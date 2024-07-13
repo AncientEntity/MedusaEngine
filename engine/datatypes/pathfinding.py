@@ -1,9 +1,9 @@
-from engine.components.rendering.tilemaprenderer import Tilemap
+from engine.components.rendering.tilemaprenderer import Tilemap, TilemapRenderer
 
 
 class TilemapPathfinder:
-    def __init__(self, tilemaps : list[Tilemap], blockingPhysicsLayers : list[int], avoidEmptyTiles=True):
-        self.tilemaps : list[Tilemap] = tilemaps
+    def __init__(self, tilemaps : list[TilemapRenderer], blockingPhysicsLayers : list[int], avoidEmptyTiles=True):
+        self.tilemaps : list[TilemapRenderer] = tilemaps
         self.blockingPhysicsLayers = blockingPhysicsLayers # physics layers the pathfinder determines as blocking.
                                                            # give your tiled map layer the property "physicsLayer"
                                                            # to give it a physics layer value.
@@ -12,7 +12,7 @@ class TilemapPathfinder:
     def IsTileBlocking(self, tileIndex) -> bool:
         isEmpty = True
         for layer in self.tilemaps:
-            tileID = layer.GetTileID(tileIndex[0],tileIndex[1])
+            tileID = layer.tileMap.GetTileID(tileIndex[0],tileIndex[1])
             if(tileID == -1):
                 continue
             else:
