@@ -25,6 +25,13 @@ class TilemapPathfinder:
     def Solve(self, startIndex, endIndex):
         nodes = self.CreateEmptyMap()
         headIndexes = [startIndex]
+
+        def IsValidIndex(index):
+            return index[0] >= 0 and index[1] >= 0 and index[0] < len(nodes) and index[1] < len(nodes[0]) and not self.IsTileBlocking(index)
+
+        if not IsValidIndex(startIndex) or not IsValidIndex(endIndex):
+            return None
+
         def CalculateNodeData(nodeIndex, prevNode):
             if(nodes[nodeIndex[0]][nodeIndex[1]] != None):
                 return
@@ -40,10 +47,6 @@ class TilemapPathfinder:
                 path.insert(0,previous)
                 curIndex = previous
             return path
-
-        def IsValidIndex(index):
-            return index[0] > 0 and index[1] > 0 and index[0] < len(nodes) and index[1] < len(nodes[0]) and not self.IsTileBlocking(index)
-
         def GetNextValidIndexes(index):
             surroundingIndexes = []
 
