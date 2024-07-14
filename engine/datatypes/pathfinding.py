@@ -1,6 +1,6 @@
 from engine.components.rendering.tilemaprenderer import TilemapRenderer
 from engine.tools.math import Distance
-
+import time
 
 class TilemapPathfinder:
     def __init__(self, tilemaps : list[TilemapRenderer], blockingPhysicsLayers : list[int], avoidEmptyTiles=True):
@@ -117,3 +117,32 @@ class TilemapPathfinder:
             for y in range(len(self.tilemaps[0].tileMap.map[0])):
                 row.append(None)
         return nodes
+
+
+# TilePathfinderHelper
+# Caches the solved path and only searches again if the path becomes invalid, or if the start/end change.
+# It's possible the solved path will change if the tilemap changes over time and it doesn't update.
+class TilePathfinderHelper:
+    def __init__(self, tilemapPathfinder : TilemapPathfinder):
+        self.pathfinder : TilemapPathfinder = tilemapPathfinder
+        self.cachedPath = None
+        self.cachedStart = None
+        self.cachedEnd = None
+
+        self.cacheLifetime = 10 # If the cache has been alive for more than X seconds, resolve the path regardless
+        self.cacheSolveTime = 0
+    def Solve(self, startIndex, endIndex):
+        startIndex = tuple(startIndex); endIndex = tuple(endIndex)
+        def IsPathValid(path):
+            for index in path:
+                if self.pathfinder.IsTileBlocking(index):
+                    return False
+            return True
+
+        if(self.cachedPath == None or self.cachedStart != startIndex or self.cachedEnd != endIndex or time.time() - self.cacheSolveTime > self.cacheLifetime or not IsPathValid(self.cachedPath)):
+            self.cachedPath = self.pathfinder.Solve(startIndex,endIndex)
+            self.cachedStart = startIndex
+            self.cachedEnd = endIndex
+            self.cacheSolveTime = time.time()
+            print("Regenerated")
+        return self.cachedPath
