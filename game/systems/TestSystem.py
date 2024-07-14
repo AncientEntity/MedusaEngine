@@ -1,5 +1,5 @@
 from engine.components.rendering.tilemaprenderer import Tilemap, TilemapRenderer
-from engine.datatypes.pathfinding import TilemapPathfinder
+from engine.datatypes.pathfinding import TilemapPathfinder, TilePathfinderHelper
 from engine.ecs import EntitySystem, Scene
 from engine.engine import Input
 from engine.scenes.levelscene import LevelScene
@@ -17,7 +17,7 @@ class TestSystem(EntitySystem):
         self.startPos = None
         self.endPos = None
 
-        self.pathfinding : TilemapPathfinder = None
+        self.pathfinding : TilePathfinderHelper = None
     def Update(self,currentScene : Scene):
         tilePos = self.hoverTileLayer.WorldPointToTileIndexSafe(self.renderingSystem.worldMousePosition)
         if(tilePos == self.startPos or tilePos == None):
@@ -49,4 +49,4 @@ class TestSystem(EntitySystem):
         self.hoverTileLayer = currentScene.tileMapLayersByName["Hover"]
         self.pathTileLayer = currentScene.tileMapLayersByName["Path"]
         self.renderingSystem = currentScene.GetSystemByClass(RenderingSystem)
-        self.pathfinding = TilemapPathfinder(list(currentScene.tileMapLayersByName.values()), [0], True)
+        self.pathfinding = TilePathfinderHelper(TilemapPathfinder(list(currentScene.tileMapLayersByName.values()), [0], True))
