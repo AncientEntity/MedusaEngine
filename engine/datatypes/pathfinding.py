@@ -144,5 +144,4 @@ class TilePathfinderHelper:
             self.cachedStart = startIndex
             self.cachedEnd = endIndex
             self.cacheSolveTime = time.time()
-            print("Regenerated")
         return self.cachedPath
