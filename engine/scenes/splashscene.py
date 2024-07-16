@@ -34,4 +34,4 @@ class EngineSplashScreenScene(Scene):
         engineIconEntity = self.CreateEntity("Engine Icon",[0,0],[SpriteRenderer(engineIcon)])
         engineIconEntity.name = "Engine Icon"
 
-engineSplashScreenScene = EngineSplashScreenScene()
+engineSplashScreenScene = EngineSplashScreenScene

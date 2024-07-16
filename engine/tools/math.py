@@ -13,3 +13,9 @@ def MoveTowards(current, target, delta):
         return current
     normalizedVecAndDelta = (x/length*delta,y/length*delta)
     return [current[0]+normalizedVecAndDelta[0],current[1]+normalizedVecAndDelta[1]]
+
+def NormalizeVec(vec):
+    length = math.sqrt(vec[0]*vec[0]+vec[1]*vec[1])
+    if(length == 0):
+        return [0,0]
+    return [vec[0]/length,vec[1]/length]
