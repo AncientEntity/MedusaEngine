@@ -1,4 +1,5 @@
-import math
+import asyncio
+import math, time
 
 from engine.components.physicscomponent import PhysicsComponent
 from engine.components.rendering.spriterenderer import SpriteRenderer
@@ -6,68 +7,73 @@ from engine.datatypes.sprites import Sprite
 from engine.ecs import EntitySystem, Scene, Component
 from engine.engine import Input
 from engine.systems.renderer import RenderingSystem
-from engine.tools.math import MoveTowards, Distance
+from engine.tools.math import MoveTowards, Distance, NormalizeVec
 from game.components.playercomponent import PlayerComponent
 import pygame
 
 class PlayerSystem(EntitySystem):
     def __init__(self):
         super().__init__([PlayerComponent]) #Put target components here
-        self.player : PlayerComponent = None
-        self.physics : PhysicsComponent = None
-        self.playerRenderer : SpriteRenderer = None
 
         self.renderingSystem : RenderingSystem = None
 
         self.cameraPosition = None # Contains the same list that the rendering system has.
-        self.cachedWeaponSpriteRef : Sprite = None
     def Update(self,currentScene : Scene):
-        self.Movement()
-        self.Weapon()
-    def Weapon(self):
-        if self.player.weapon:
-            self.player.weapon.parentEntity.position = [self.player.parentEntity.position[0]+3,self.player.parentEntity.position[1]+5]
-            if(self.cachedWeaponSpriteRef == None):
-                self.cachedWeaponSpriteRef : Sprite = self.player.weapon.parentEntity.GetComponent(SpriteRenderer).sprite
+        for player in currentScene.components[PlayerComponent]:
+            self.Movement(player)
+            self.Weapon(player)
+    def Weapon(self, player : PlayerComponent):
+        if player.weapon:
+            player.weapon.parentEntity.position = [player.parentEntity.position[0]+3,player.parentEntity.position[1]+5]
+            if(player.cachedWeaponSpriteRef == None):
+                player.cachedWeaponSpriteRef : Sprite = player.weapon.parentEntity.GetComponent(SpriteRenderer).sprite
             if(self.renderingSystem.screenMousePosition[0] != 0):
                 ang = -math.degrees(math.atan2(self.renderingSystem.screenMousePosition[1],self.renderingSystem.screenMousePosition[0]))
-                self.cachedWeaponSpriteRef.SetRotation(ang)
-                self.cachedWeaponSpriteRef.SetScale((1.5,1.5))
-    def Movement(self):
+                player.cachedWeaponSpriteRef.SetRotation(ang)
+                player.cachedWeaponSpriteRef.SetScale((1.5,1.5))
+    def Movement(self, player : PlayerComponent):
         moving = False
         movement = [0,0]
-        if(Input.KeyPressed(pygame.K_w)):
+        if(Input.KeyPressed(player.controls["up"])):
             movement[1] = -1
             moving = True
-        elif(Input.KeyPressed(pygame.K_s)):
+        elif(Input.KeyPressed(player.controls["down"])):
             movement[1] = 1
             moving = True
-        if(Input.KeyPressed(pygame.K_a)):
+        if(Input.KeyPressed(player.controls["left"])):
             movement[0] = -1
             moving = True
-            self.playerRenderer.sprite.SetFlipX(True)
-        elif(Input.KeyPressed(pygame.K_d)):
+            player.playerRenderer.sprite.SetFlipX(True)
+        elif(Input.KeyPressed(player.controls["right"])):
             movement[0] = 1
-            self.playerRenderer.sprite.SetFlipX(False)
+            player.playerRenderer.sprite.SetFlipX(False)
             moving = True
+        if(time.time() - player.lastDashTime >= player.dashDelay):
+            if(Input.KeyPressed(player.controls["dash"])):
+                if(player.physics.velocity[0] == 0 and player.physics.velocity[1] == 0):
+                    pass # Cant dash if not moving
+                else:
+                    normalizedVelocity = NormalizeVec(player.physics.velocity)
+                    player.physics.velocity = [normalizedVelocity[0]*player.dashImpulseVelocity,normalizedVelocity[1]*player.dashImpulseVelocity]
+                    player.lastDashTime = time.time()
+                    player.playerRenderer.sprite.SetTint((255, 255, 255))
+        elif(time.time() - player.lastDashTime >= player.dashDelay * 0.1):
+            player.playerRenderer.sprite.SetTint(None)
 
-        self.physics.AddVelocity((movement[0] * self.player.speed * self.game.deltaTime, movement[1] * self.player.speed * self.game.deltaTime))
+        player.physics.AddVelocity((movement[0] * player.speed * self.game.deltaTime, movement[1] * player.speed * self.game.deltaTime))
 
         if(moving):
-            self.playerRenderer.sprite = self.player.runAnim
+            player.playerRenderer.sprite = player.runAnim
         else:
-            self.playerRenderer.sprite = self.player.idleAnim
+            player.playerRenderer.sprite = player.idleAnim
 
-        newCameraPosition = MoveTowards(self.cameraPosition,self.player.parentEntity.position,
-                                        self.game.deltaTime*self.player.speed/10 * Distance(self.player.parentEntity.position,self.cameraPosition)*0.15)
+        newCameraPosition = MoveTowards(self.cameraPosition,player.parentEntity.position,
+                                        self.game.deltaTime*player.speed/10 * Distance(player.parentEntity.position,self.cameraPosition)*0.15)
         self.cameraPosition[0] = newCameraPosition[0]
         self.cameraPosition[1] = newCameraPosition[1]
     def OnEnable(self, currentScene : Scene):
         self.renderingSystem = currentScene.GetSystemByClass(RenderingSystem)
         self.cameraPosition = self.renderingSystem.cameraPosition
-    def OnNewComponent(self,component : Component): #Called when a new component is created into the scene. (Used to initialize that component)
-        self.player = component
-        self.physics = self.player.parentEntity.GetComponent(PhysicsComponent)
-        self.playerRenderer = self.player.parentEntity.GetComponent(SpriteRenderer)
-    def OnDeleteComponent(self, component : Component): #Called when an existing component is destroyed (Use for deinitializing it from the systems involved)
-        self.player = None
+    def OnNewComponent(self,component : PlayerComponent): #Called when a new component is created into the scene. (Used to initialize that component)
+        component.physics = component.parentEntity.GetComponent(PhysicsComponent)
+        component.playerRenderer = component.parentEntity.GetComponent(SpriteRenderer)

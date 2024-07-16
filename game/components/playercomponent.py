@@ -1,4 +1,7 @@
-from engine.datatypes.sprites import AnimatedSprite
+import pygame
+
+from engine.components.physicscomponent import PhysicsComponent
+from engine.datatypes.sprites import AnimatedSprite, Sprite
 from engine.ecs import Component
 from game import assets
 from game.components.itemcomponent import ItemComponent
@@ -9,6 +12,22 @@ class PlayerComponent(Component):
         super().__init__()
         self.speed = 500
         self.weapon : ItemComponent = None
+
+        self.physics : PhysicsComponent = None
+        self.playerRenderer = None
+        self.cachedWeaponSpriteRef : Sprite = None
+
+        self.lastDashTime = 0 # Last time the player dashed
+        self.dashDelay = 0.75
+        self.dashImpulseVelocity = 500
+
+        self.controls = {
+            "up" : pygame.K_w,
+            "down" : pygame.K_s,
+            "left" : pygame.K_a,
+            "right" : pygame.K_d,
+            "dash" : pygame.K_LSHIFT
+        }
 
         self.idleAnim = AnimatedSprite(
             [assets.dungeonTileSet["knight_f_idle_anim_f0"], assets.dungeonTileSet["knight_f_idle_anim_f1"],
