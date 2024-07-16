@@ -20,7 +20,7 @@ class PlayerComponent(Component):
 
         self.lastDashTime = 0 # Last time the player dashed
         self.dashDelay = 0.75
-        self.dashImpulseVelocity = 500
+        self.dashImpulseVelocity = 900
         self.dashTimedEvent : TimedEvent = None
 
         self.afterImages = [] # after image entities used for dashing.
