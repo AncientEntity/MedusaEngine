@@ -2,6 +2,7 @@ import pygame
 
 from engine.components.physicscomponent import PhysicsComponent
 from engine.datatypes.sprites import AnimatedSprite, Sprite
+from engine.datatypes.timedevents import TimedEvent
 from engine.ecs import Component
 from game import assets
 from game.components.itemcomponent import ItemComponent
@@ -20,6 +21,9 @@ class PlayerComponent(Component):
         self.lastDashTime = 0 # Last time the player dashed
         self.dashDelay = 0.75
         self.dashImpulseVelocity = 500
+        self.dashTimedEvent : TimedEvent = None
+
+        self.afterImages = [] # after image entities used for dashing.
 
         self.controls = {
             "up" : pygame.K_w,

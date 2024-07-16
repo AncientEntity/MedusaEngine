@@ -19,6 +19,11 @@ def CreatePlayer(currentScene : LevelScene):
     physicsComponent.offset = (0,6)
     physicsComponent.triggersWithLayers = [5]
 
+    # Create dash after images
+    for i in range(3):
+        spriteRenderer = SpriteRenderer(None,40)
+        playerComponent.afterImages.append(currentScene.CreateEntity("PlayerAfterImage",[0,0],components=[spriteRenderer]))
+
     def OnTriggered(self : PhysicsComponent, other : PhysicsComponent):
         if("Item" in other.parentEntity.name):
             if (other == self.parentEntity.GetComponent(PlayerComponent).weapon):

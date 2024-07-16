@@ -4,6 +4,7 @@ import math, time
 from engine.components.physicscomponent import PhysicsComponent
 from engine.components.rendering.spriterenderer import SpriteRenderer
 from engine.datatypes.sprites import Sprite
+from engine.datatypes.timedevents import TimedEvent
 from engine.ecs import EntitySystem, Scene, Component
 from engine.engine import Input
 from engine.systems.renderer import RenderingSystem
@@ -48,7 +49,9 @@ class PlayerSystem(EntitySystem):
             movement[0] = 1
             player.playerRenderer.sprite.SetFlipX(False)
             moving = True
-        if(time.time() - player.lastDashTime >= player.dashDelay):
+
+        timeSinceDash = time.time() - player.lastDashTime
+        if(timeSinceDash >= player.dashDelay):
             if(Input.KeyPressed(player.controls["dash"])):
                 if(player.physics.velocity[0] == 0 and player.physics.velocity[1] == 0):
                     pass # Cant dash if not moving
@@ -57,8 +60,18 @@ class PlayerSystem(EntitySystem):
                     player.physics.velocity = [normalizedVelocity[0]*player.dashImpulseVelocity,normalizedVelocity[1]*player.dashImpulseVelocity]
                     player.lastDashTime = time.time()
                     player.playerRenderer.sprite.SetTint((255, 255, 255))
-        elif(time.time() - player.lastDashTime >= player.dashDelay * 0.1):
+                    player.dashTimedEvent = TimedEvent(self.HandleAfterImages,(player,),0,0.025,3)
+                    for afterImage in player.afterImages:
+                        afterImage.GetComponent(SpriteRenderer).sprite = None
+        elif(timeSinceDash >= player.dashDelay * 0.1):
             player.playerRenderer.sprite.SetTint(None)
+            for afterImage in player.afterImages:
+                afterImage.GetComponent(SpriteRenderer).sprite = None
+
+        if(player.dashTimedEvent != None):
+            result = player.dashTimedEvent.Tick()
+            if not result:
+                player.dashTimedEvent = None
 
         player.physics.AddVelocity((movement[0] * player.speed * self.game.deltaTime, movement[1] * player.speed * self.game.deltaTime))
 
@@ -77,3 +90,13 @@ class PlayerSystem(EntitySystem):
     def OnNewComponent(self,component : PlayerComponent): #Called when a new component is created into the scene. (Used to initialize that component)
         component.physics = component.parentEntity.GetComponent(PhysicsComponent)
         component.playerRenderer = component.parentEntity.GetComponent(SpriteRenderer)
+    @staticmethod
+    def HandleAfterImages(player : PlayerComponent):
+        curAfterImage = None
+        for afterImage in player.afterImages:
+            if(afterImage.GetComponent(SpriteRenderer).sprite == None):
+                curAfterImage = afterImage
+                break
+        if(curAfterImage != None):
+            curAfterImage.GetComponent(SpriteRenderer).sprite = player.runAnim
+            curAfterImage.position = player.parentEntity.position[:]
