@@ -5,14 +5,12 @@ from engine.datatypes.sprites import AnimatedSprite, Sprite
 from engine.datatypes.timedevents import TimedEvent
 from engine.ecs import Component
 from game import assets
-from game.components.itemcomponent import ItemComponent
 
 
 class PlayerComponent(Component):
     def __init__(self):
         super().__init__()
         self.speed = 500
-        self.weapon : ItemComponent = None
 
         self.physics : PhysicsComponent = None
         self.playerRenderer = None

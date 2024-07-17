@@ -22,16 +22,6 @@ class PlayerSystem(EntitySystem):
     def Update(self,currentScene : Scene):
         for player in currentScene.components[PlayerComponent]:
             self.Movement(player)
-            self.Weapon(player)
-    def Weapon(self, player : PlayerComponent):
-        if player.weapon:
-            player.weapon.parentEntity.position = [player.parentEntity.position[0]+3,player.parentEntity.position[1]+5]
-            if(player.cachedWeaponSpriteRef == None):
-                player.cachedWeaponSpriteRef : Sprite = player.weapon.parentEntity.GetComponent(SpriteRenderer).sprite
-            if(self.renderingSystem.screenMousePosition[0] != 0):
-                ang = -math.degrees(math.atan2(self.renderingSystem.screenMousePosition[1],self.renderingSystem.screenMousePosition[0]))
-                player.cachedWeaponSpriteRef.SetRotation(ang)
-                player.cachedWeaponSpriteRef.SetScale((1.5,1.5))
     def Movement(self, player : PlayerComponent):
         moving = False
         movement = [0,0]
@@ -50,6 +40,20 @@ class PlayerSystem(EntitySystem):
             player.playerRenderer.sprite.SetFlipX(False)
             moving = True
 
+        self.Dash(player)
+
+        player.physics.AddVelocity((movement[0] * player.speed * self.game.deltaTime, movement[1] * player.speed * self.game.deltaTime))
+
+        if(moving):
+            player.playerRenderer.sprite = player.runAnim
+        else:
+            player.playerRenderer.sprite = player.idleAnim
+
+        newCameraPosition = MoveTowards(self.cameraPosition,player.parentEntity.position,
+                                        self.game.deltaTime*player.speed/10 * Distance(player.parentEntity.position,self.cameraPosition)*0.15)
+        self.cameraPosition[0] = newCameraPosition[0]
+        self.cameraPosition[1] = newCameraPosition[1]
+    def Dash(self, player : PlayerComponent):
         timeSinceDash = time.time() - player.lastDashTime
         if(timeSinceDash >= player.dashDelay):
             if(Input.KeyPressed(player.controls["dash"])):
@@ -73,17 +77,6 @@ class PlayerSystem(EntitySystem):
             if not result:
                 player.dashTimedEvent = None
 
-        player.physics.AddVelocity((movement[0] * player.speed * self.game.deltaTime, movement[1] * player.speed * self.game.deltaTime))
-
-        if(moving):
-            player.playerRenderer.sprite = player.runAnim
-        else:
-            player.playerRenderer.sprite = player.idleAnim
-
-        newCameraPosition = MoveTowards(self.cameraPosition,player.parentEntity.position,
-                                        self.game.deltaTime*player.speed/10 * Distance(player.parentEntity.position,self.cameraPosition)*0.15)
-        self.cameraPosition[0] = newCameraPosition[0]
-        self.cameraPosition[1] = newCameraPosition[1]
     def OnEnable(self, currentScene : Scene):
         self.renderingSystem = currentScene.GetSystemByClass(RenderingSystem)
         self.cameraPosition = self.renderingSystem.cameraPosition

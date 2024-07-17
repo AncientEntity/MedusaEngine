@@ -2,7 +2,6 @@ from engine.components.physicscomponent import PhysicsComponent
 from engine.components.rendering.spriterenderer import SpriteRenderer
 from engine.scenes.levelscene import LevelScene
 from game import assets
-from game.components.itemcomponent import ItemComponent
 from game.components.playercomponent import PlayerComponent
 from game.systems.playersystem import PlayerSystem
 
