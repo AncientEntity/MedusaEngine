@@ -24,14 +24,4 @@ def CreatePlayer(currentScene : LevelScene):
         spriteRenderer = SpriteRenderer(None,40)
         playerComponent.afterImages.append(currentScene.CreateEntity("PlayerAfterImage",[0,0],components=[spriteRenderer]))
 
-    def OnTriggered(self : PhysicsComponent, other : PhysicsComponent):
-        if("Item" in other.parentEntity.name):
-            if (other == self.parentEntity.GetComponent(PlayerComponent).weapon):
-                return # Already holding this item
-            else:
-                self.parentEntity.GetComponent(PlayerComponent).weapon = other.parentEntity.GetComponent(ItemComponent)
-                currentScene.GetSystemByClass(PlayerSystem).cachedWeaponSpriteRef = None
-
-    physicsComponent.onTriggerStart.append(OnTriggered)
-
     return currentScene.CreateEntity("Player",[0,0],components=[playerComponent,spriteRenderer,physicsComponent])
