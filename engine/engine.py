@@ -4,6 +4,7 @@ from typing import Type
 import pygame
 import engine.ecs as ecs
 from engine.constants import KEYDOWN, KEYUP, KEYPRESSED, KEYINACTIVE
+from engine.datatypes.timedevents import TimedEvent
 from engine.game import Game
 import time
 from sys import exit
@@ -32,6 +33,8 @@ class Engine:
         self._inputStates = {}
         self.scroll = 0
         Engine._instance = self
+
+        self.activeTimedEvents : list[TimedEvent] = []
 
         self._queuedScene = None # LoadScene sets this, and the update loop will swap scenes if this isn't none.
 
@@ -74,6 +77,7 @@ class Engine:
             #Game Loop
             self.InputTick()
             self._currentScene.Update()
+            self.TickTimedEvents()
 
             await asyncio.sleep(0)
     def Init(self):
@@ -139,6 +143,14 @@ class Engine:
     def Quit(self):
         Log("Game Quitting",LOG_INFO)
         exit(0)
+    def StartTimedEvent(self, timedEvent : TimedEvent):
+        self.activeTimedEvents.append(timedEvent) # todo insert this into the list in order of soonest run.
+    def TickTimedEvents(self):
+        timedEvent: TimedEvent
+        for timedEvent in self.activeTimedEvents[:]:
+            result = timedEvent.Tick()
+            if not result:
+                self.activeTimedEvents.remove(timedEvent)
 
 class Input:
     #Input class functions accessible via Input.KeyPressed, KeyDown, KeyUp

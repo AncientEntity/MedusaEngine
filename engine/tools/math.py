@@ -19,3 +19,7 @@ def NormalizeVec(vec):
     if(length == 0):
         return [0,0]
     return [vec[0]/length,vec[1]/length]
+
+def LookAt(position, target):
+    normalized = NormalizeVec([position[0]-target[0],position[1]-target[1]])
+    return 180-math.degrees(math.atan2(normalized[1],normalized[0]))
