@@ -4,7 +4,6 @@ from typing import Type
 import pygame
 import engine.ecs as ecs
 from engine.constants import KEYDOWN, KEYUP, KEYPRESSED, KEYINACTIVE
-from engine.datatypes.timedevents import TimedEvent
 from engine.game import Game
 import time
 from sys import exit
@@ -33,8 +32,6 @@ class Engine:
         self._inputStates = {}
         self.scroll = 0
         Engine._instance = self
-
-        self.activeTimedEvents : list[TimedEvent] = []
 
         self._queuedScene = None # LoadScene sets this, and the update loop will swap scenes if this isn't none.
 
