@@ -77,7 +77,6 @@ class Engine:
             #Game Loop
             self.InputTick()
             self._currentScene.Update()
-            self.TickTimedEvents()
 
             await asyncio.sleep(0)
     def Init(self):
@@ -143,14 +142,6 @@ class Engine:
     def Quit(self):
         Log("Game Quitting",LOG_INFO)
         exit(0)
-    def StartTimedEvent(self, timedEvent : TimedEvent):
-        self.activeTimedEvents.append(timedEvent) # todo insert this into the list in order of soonest run.
-    def TickTimedEvents(self):
-        timedEvent: TimedEvent
-        for timedEvent in self.activeTimedEvents[:]:
-            result = timedEvent.Tick()
-            if not result:
-                self.activeTimedEvents.remove(timedEvent)
 
 class Input:
     #Input class functions accessible via Input.KeyPressed, KeyDown, KeyUp

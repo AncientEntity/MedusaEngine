@@ -1,3 +1,5 @@
+from engine.datatypes.timedevents import TimedEvent
+
 
 class Component:
     def __init__(self):
@@ -68,8 +70,10 @@ class Scene:
         self.HandleNewComponents()
 
         #Run each system's update.
+        system : EntitySystem
         for system in self.systems:
             system.Update(self)
+            system.TickTimedEvents()
 
     def Init(self):
         for system in self.systems:
@@ -124,6 +128,8 @@ class EntitySystem:
         self.targetComponents = targetComponents
         self.game = None
 
+        self._activeTimedEvents : list[TimedEvent] = []
+
     def Update(self, currentScene: Scene):
         pass
 
@@ -135,3 +141,12 @@ class EntitySystem:
 
     def OnDeleteComponent(self, component : Component): #Called when an existing component is deleted (Use for deinitializing it from the systems involved)
         pass
+
+    def StartTimedEvent(self, timedEvent : TimedEvent):
+        self._activeTimedEvents.append(timedEvent) # todo insert this into the list in order of soonest run.
+    def TickTimedEvents(self):
+        timedEvent: TimedEvent
+        for timedEvent in self._activeTimedEvents[:]:
+            result = timedEvent.Tick()
+            if not result:
+                self._activeTimedEvents.remove(timedEvent)
