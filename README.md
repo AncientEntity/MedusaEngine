@@ -50,7 +50,11 @@ Tiny Factory Demo [(play here)](https://anciententity.itch.io/tiny-factory-remas
 
 ![chrome_qQIUbQQSkM](https://github.com/AncientEntity/MedusaEngine/assets/22735861/21df0074-4c44-4731-b59e-3c6df15cf031)
 
-A* Pathfinding Demo [(play here)](https://anciententity.itch.io/medusa-astar-demo) (source lives in tilemap-pathfinding)
+A* Pathfinding Demo [(play here)](https://anciententity.itch.io/medusa-astar-demo) (source lives in tilemap-pathfinding branch)
 
 ![python_JWMPJNHslx](https://github.com/user-attachments/assets/3a5f0afc-5813-4d55-9ef9-80f314c2cf8d)
+
+Topdown Demo (source lives in topdown branch)
+
+![python_47GFF5ARZ2](https://github.com/user-attachments/assets/f245a29f-c9be-4783-bc2d-40939c6323da)
 
