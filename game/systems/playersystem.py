@@ -8,7 +8,8 @@ from engine.datatypes.timedevents import TimedEvent
 from engine.ecs import EntitySystem, Scene, Component
 from engine.engine import Input
 from engine.systems.renderer import RenderingSystem
-from engine.tools.math import MoveTowards, Distance, NormalizeVec
+from engine.tools.math import MoveTowards, Distance, NormalizeVec, LookAt
+from game.components.GunComponent import GunComponent
 from game.components.playercomponent import PlayerComponent
 import pygame
 
@@ -22,6 +23,19 @@ class PlayerSystem(EntitySystem):
     def Update(self,currentScene : Scene):
         for player in currentScene.components[PlayerComponent]:
             self.Movement(player)
+            self.Weapon(currentScene, player)
+    def Weapon(self,currentScene : Scene, player : PlayerComponent):
+        if(player.heldItem):
+            player.heldItem.position = player.parentEntity.position[:]
+            player.heldItem.GetComponent(SpriteRenderer).sprite.SetRotation(LookAt((0,0),
+                                                                                   self.renderingSystem.screenMousePosition))
+            if(Input.MouseButtonPressed(0)):
+                gunComp : GunComponent = player.heldItem.GetComponent(GunComponent)
+                if(gunComp and gunComp.activeMagazineCount > 0 and time.time() - gunComp.lastShootTime >= gunComp.shootDelay):
+                    gunComp.activeMagazineCount -= 1
+                    gunComp.lastShootTime = time.time()
+                    gunComp.bulletPrefabFunc(currentScene)
+
     def Movement(self, player : PlayerComponent):
         moving = False
         movement = [0,0]
@@ -65,6 +79,7 @@ class PlayerSystem(EntitySystem):
                     player.lastDashTime = time.time()
                     player.playerRenderer.sprite.SetTint((255, 255, 255))
                     player.dashTimedEvent = TimedEvent(self.HandleAfterImages,(player,),0,0.025,3)
+                    self.StartTimedEvent(player.dashTimedEvent)
                     for afterImage in player.afterImages:
                         afterImage.GetComponent(SpriteRenderer).sprite = None
         elif(timeSinceDash >= player.dashDelay * 0.1):
@@ -72,10 +87,10 @@ class PlayerSystem(EntitySystem):
             for afterImage in player.afterImages:
                 afterImage.GetComponent(SpriteRenderer).sprite = None
 
-        if(player.dashTimedEvent != None):
-            result = player.dashTimedEvent.Tick()
-            if not result:
-                player.dashTimedEvent = None
+        #if(player.dashTimedEvent != None):
+        #    result = player.dashTimedEvent.Tick()
+        #    if not result:
+        #        player.dashTimedEvent = None
 
     def OnEnable(self, currentScene : Scene):
         self.renderingSystem = currentScene.GetSystemByClass(RenderingSystem)

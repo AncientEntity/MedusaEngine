@@ -22,6 +22,7 @@ class PlayerComponent(Component):
         self.dashTimedEvent : TimedEvent = None
 
         self.afterImages = [] # after image entities used for dashing.
+        self.heldItem = None
 
         self.controls = {
             "up" : pygame.K_w,
