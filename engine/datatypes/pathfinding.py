@@ -10,6 +10,7 @@ class TilemapPathfinder:
                                                            # to give it a physics layer value.
         self.avoidEmptyTiles = avoidEmptyTiles # Whether it should avoid empty tiles (-1). All layers have to
                                                # be empty for it to consider a tile empty.
+        self.allowDiagonalMovement = True
     def IsTileBlocking(self, tileIndex) -> bool:
         isEmpty = True
         for layer in self.tilemaps:
@@ -62,18 +63,19 @@ class TilemapPathfinder:
             # Right
             if IsValidIndex((index[0]+1,index[1])):
                 surroundingIndexes.append((index[0]+1,index[1]))
-            # TopLeft
-            if IsValidIndex((index[0]-1,index[1]-1)):
-                surroundingIndexes.append((index[0]-1,index[1]-1))
-            # TopRight
-            if IsValidIndex((index[0]+1,index[1]-1)):
-                surroundingIndexes.append((index[0]+1,index[1]-1))
-            # BottomLeft
-            if IsValidIndex((index[0]-1,index[1]+1)):
-                surroundingIndexes.append((index[0]-1,index[1]+1))
-            # BottomRight
-            if IsValidIndex((index[0]+1,index[1]+1)):
-                surroundingIndexes.append((index[0]+1,index[1]+1))
+            if self.allowDiagonalMovement:
+                # TopLeft
+                if IsValidIndex((index[0]-1,index[1]-1)):
+                    surroundingIndexes.append((index[0]-1,index[1]-1))
+                # TopRight
+                if IsValidIndex((index[0]+1,index[1]-1)):
+                    surroundingIndexes.append((index[0]+1,index[1]-1))
+                # BottomLeft
+                if IsValidIndex((index[0]-1,index[1]+1)):
+                    surroundingIndexes.append((index[0]-1,index[1]+1))
+                # BottomRight
+                if IsValidIndex((index[0]+1,index[1]+1)):
+                    surroundingIndexes.append((index[0]+1,index[1]+1))
 
             newIndexes = []
             for index in surroundingIndexes:
@@ -131,6 +133,8 @@ class TilePathfinderHelper:
 
         self.cacheLifetime = 10 # If the cache has been alive for more than X seconds, resolve the path regardless
         self.cacheSolveTime = 0
+
+        self.cachedWorldPath = None
     def Solve(self, startIndex, endIndex):
         startIndex = tuple(startIndex); endIndex = tuple(endIndex)
         def IsPathValid(path):
@@ -144,4 +148,28 @@ class TilePathfinderHelper:
             self.cachedStart = startIndex
             self.cachedEnd = endIndex
             self.cacheSolveTime = time.time()
+            self.cachedWorldPath = None
         return self.cachedPath
+
+    # Uses world position, and returns world position path.
+    def SolveWorld(self, startWorldPosition, endWorldPosition):
+        #Convert world positions to tile indexes. Can be assume that there will be at least
+        # 1 tilemap layer and they all have the same sizes, so using tilemap[0] should be safe.
+        WorldToTileIndex = self.pathfinder.tilemaps[0].WorldPositionToTileIndex
+        TileIndexToWorld = self.pathfinder.tilemaps[0].TileIndexToWorldPosition
+        startIndex = WorldToTileIndex(startWorldPosition)
+        endIndex = WorldToTileIndex(endWorldPosition)
+
+        self.Solve(startIndex,endIndex)
+
+        if not self.cachedPath:
+            return None # no path exists
+
+        # cachedWorldPath gets set to None when cachedPath is updated, so if not None it is good still.
+        if self.cachedWorldPath:
+            return self.cachedWorldPath
+        self.cachedWorldPath = []
+        for pointIndex in self.cachedPath:
+            self.cachedWorldPath.append(TileIndexToWorld(pointIndex,True))
+
+        return self.cachedWorldPath

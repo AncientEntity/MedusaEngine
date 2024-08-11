@@ -6,7 +6,7 @@ class TimedEvent:
         self.args = args
         self.startDelay = startDelay
         self.repeatDelay = repeatDelay
-        self.repeatCount = repeatCount
+        self.repeatCount = repeatCount # If set to None, it repeats forever.
 
         self.creationTime = time.time()
         self.lastRepeatTime = 0
@@ -20,9 +20,12 @@ class TimedEvent:
         self.func(*self.args)
         self.lastRepeatTime = time.time()
 
-        self.repeatCount -= 1
-        if(self.repeatCount <= 0):
-            return False
+        # Reduce repeats left, if repeatCount is None, it repeats forever.
+        if self.repeatCount != None:
+            self.repeatCount -= 1
+            if(self.repeatCount <= 0):
+                return False
+
         return True
     def TimeUntilNextTrigger(self):
         if(self.repeatCount == 0):
