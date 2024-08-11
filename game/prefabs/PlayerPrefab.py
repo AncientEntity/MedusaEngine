@@ -19,6 +19,7 @@ def CreatePlayer(currentScene : LevelScene):
     physicsComponent.bounds = [10,16]
     physicsComponent.offset = (0,6)
     physicsComponent.triggersWithLayers = [1]
+    physicsComponent.physicsLayer = 1
     def OnTrigger(self : PhysicsComponent, other : PhysicsComponent):
         player = self.parentEntity.GetComponent(PlayerComponent)
         if(player.heldItem == other.parentEntity):

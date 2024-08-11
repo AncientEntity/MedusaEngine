@@ -9,7 +9,7 @@ class GunComponent(ItemComponent):
         self.shootDelay = 0.2
         self.reloadTime = 0.8
 
-        self.magazineCount = 8
+        self.magazineCount = 99999999 # 10
         self.ammoReserves = 80
 
         self.activeMagazineCount = self.magazineCount
