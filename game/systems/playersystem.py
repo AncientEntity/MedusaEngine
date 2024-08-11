@@ -1,5 +1,6 @@
 import pygame
 
+from engine.datatypes.timedevents import TimedEvent
 from engine.ecs import EntitySystem, Scene
 from engine.engine import Input
 from engine.systems import physics
@@ -21,21 +22,16 @@ class PlayerSystem(EntitySystem):
             self.PlayerMovement(player)
             RenderingSystem.instance.cameraPosition = player.parentEntity.position
 
-            if self.tintTest % 120 == 0:
-                import random
-                r = (random.randint(0, 255), random.randint(0, 255), random.randint(0, 255), random.randint(0, 255))
-                player.idleAnim.SetTint(r)
-                player.runAnim.SetTint(r)
-        if(self.tintTest >= 0):
-            self.tintTest += 1
         if Input.KeyPressed(pygame.K_g):
             newSkeleton = prefabs.CreateSkeleton(currentScene)
             newSkeleton.position = [player.parentEntity.position[0],player.parentEntity.position[1]-100]
         if Input.KeyDown(pygame.K_q):
-            if(self.tintTest == -1):
-                self.tintTest = 0
+            if player.tintEvent == None:
+                player.tintEvent = TimedEvent(self.DoTint,args=(player,),startDelay=0.25,repeatDelay=0.25,repeatCount=None)
+                self.StartTimedEvent(player.tintEvent)
             else:
-                self.tintTest = -1
+                player.tintEvent.repeatCount = 0
+                player.tintEvent = None
     def PlayerMovement(self,player : PlayerComponent):
         moved = False
         if (Input.KeyPressed(player.controls["up"]) and player.parentEntity.GetComponent(physics.PhysicsComponent).touchingDirections['bottom']):
@@ -58,3 +54,9 @@ class PlayerSystem(EntitySystem):
             self.game.LoadScene(sidescrollingscene.SideScrollingScene)
         if (Input.KeyDown(pygame.K_t) or player.parentEntity.position[1] >= 200):
             self.game.LoadScene(TiledTestScene)
+
+    def DoTint(self, player):
+        import random
+        r = (random.randint(0, 255), random.randint(0, 255), random.randint(0, 255), random.randint(0, 255))
+        player.idleAnim.SetTint(r)
+        player.runAnim.SetTint(r)
