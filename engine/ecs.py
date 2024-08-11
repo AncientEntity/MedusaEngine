@@ -1,3 +1,5 @@
+from engine.datatypes.timedevents import TimedEvent
+
 
 class Component:
     def __init__(self):
@@ -68,8 +70,10 @@ class Scene:
         self.HandleNewComponents()
 
         #Run each system's update.
+        system : EntitySystem
         for system in self.systems:
             system.Update(self)
+            system.TickTimedEvents()
 
     def Init(self):
         for system in self.systems:
@@ -124,6 +128,8 @@ class EntitySystem:
         self.targetComponents = targetComponents
         self.game = None
 
+        self._activeTimedEvents : list[TimedEvent] = []
+
     def Update(self, currentScene: Scene):
         pass
 
@@ -135,3 +141,27 @@ class EntitySystem:
 
     def OnDeleteComponent(self, component : Component): #Called when an existing component is deleted (Use for deinitializing it from the systems involved)
         pass
+
+    def StartTimedEvent(self, timedEvent : TimedEvent):
+        self.InsertTimedEvent(timedEvent)
+        #self._activeTimedEvents.append(timedEvent)
+    def TickTimedEvents(self):
+        timedEvent: TimedEvent
+        index = 0
+        while index < len(self._activeTimedEvents) and self._activeTimedEvents[index].TimeUntilNextTrigger() <= 0:
+            timedEvent = self._activeTimedEvents[index]
+            result = timedEvent.Tick()
+            self._activeTimedEvents.remove(timedEvent)
+            if result:
+                self.InsertTimedEvent(timedEvent)
+                index += 1
+
+    # Inserts timed events in order of when they are supposed to be called.
+    # I'm worried of the possibility of events being placed out of order if insertion takes too long and
+    # timeUntil is now too old... But will test for now.
+    def InsertTimedEvent(self, timedEvent : TimedEvent):
+        timeUntil = timedEvent.TimeUntilNextTrigger()
+        curIndex = 0
+        while(curIndex < len(self._activeTimedEvents) and self._activeTimedEvents[curIndex].TimeUntilNextTrigger() < timeUntil):
+            curIndex += 1
+        self._activeTimedEvents.insert(curIndex, timedEvent)

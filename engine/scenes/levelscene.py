@@ -21,9 +21,9 @@ class LevelScene(Scene):
         super().__init__()
         self.systems = [renderer.RenderingSystem()]
         self.mapJson = tiled.TiledGetRawMapData(tiledFilePath)
-        self.tileMapLayers : list[TilemapRenderer] = []
-        self.tileMapLayersObjectsByName : dict = {}
-        self.tileMapLayersByName : dict = {}
+        self.tileMapLayers : list[Entity] = []
+        self.tileMapLayersObjectsByName : dict[Entity] = {}
+        self.tileMapLayersByName : dict[TilemapRenderer] = {}
         self.worldTileset : SpriteSheet = worldTileset
 
         # Layer0 will have draw order of firstLayerDrawOrder, then Layer1 will have firstLayerDrawOrder+1 and so on.
