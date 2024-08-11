@@ -143,10 +143,25 @@ class EntitySystem:
         pass
 
     def StartTimedEvent(self, timedEvent : TimedEvent):
-        self._activeTimedEvents.append(timedEvent) # todo insert this into the list in order of soonest run.
+        self.InsertTimedEvent(timedEvent)
+        #self._activeTimedEvents.append(timedEvent)
     def TickTimedEvents(self):
         timedEvent: TimedEvent
-        for timedEvent in self._activeTimedEvents[:]:
+        index = 0
+        while index < len(self._activeTimedEvents) and self._activeTimedEvents[index].TimeUntilNextTrigger() <= 0:
+            timedEvent = self._activeTimedEvents[index]
             result = timedEvent.Tick()
-            if not result:
-                self._activeTimedEvents.remove(timedEvent)
+            self._activeTimedEvents.remove(timedEvent)
+            if result:
+                self.InsertTimedEvent(timedEvent)
+                index += 1
+
+    # Inserts timed events in order of when they are supposed to be called.
+    # I'm worried of the possibility of events being placed out of order if insertion takes too long and
+    # timeUntil is now too old... But will test for now.
+    def InsertTimedEvent(self, timedEvent : TimedEvent):
+        timeUntil = timedEvent.TimeUntilNextTrigger()
+        curIndex = 0
+        while(curIndex < len(self._activeTimedEvents) and self._activeTimedEvents[curIndex].TimeUntilNextTrigger() < timeUntil):
+            curIndex += 1
+        self._activeTimedEvents.insert(curIndex, timedEvent)
