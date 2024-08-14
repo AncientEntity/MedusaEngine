@@ -194,7 +194,7 @@ class LevelScene(Scene):
 
         tileIndex = layer.WorldPositionToTileIndex(worldPos)
 
-        if tileIndex[0] > 0 and tileIndex[1] > 0 and tileIndex[0] < len(layer.tileMap.map) and tileIndex[1] < len(layer.tileMap.map[0]):
+        if tileIndex[0] >= 0 and tileIndex[1] >= 0 and tileIndex[0] < len(layer.tileMap.map) and tileIndex[1] < len(layer.tileMap.map[0]):
             return layer.tileMap.GetTileID(tileIndex[0],tileIndex[1])
         else:
             return None

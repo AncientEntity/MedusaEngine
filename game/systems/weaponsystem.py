@@ -21,7 +21,7 @@ class WeaponSystem(EntitySystem):
             self.projectiles.append(component)
             component.physics = component.parentEntity.GetComponent(PhysicsComponent)
 
-            component.physics.velocity = component.velocity
+            #component.physics.velocity = component.velocity
 
             self.StartTimedEvent(TimedEvent(self.DestroyProjectile, (self.currentScene, component.parentEntity),
                                             random.uniform(1, 2), 0,
