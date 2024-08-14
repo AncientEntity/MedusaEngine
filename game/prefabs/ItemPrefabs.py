@@ -8,24 +8,27 @@ from game.components.projectilecomponent import ProjectileComponent
 
 def SpawnProjectileFactory(gunComponent : GunComponent, spriteRenderer, friendly):
     def SpawnProjectile(currentScene: LevelScene):
-        pPhysics = PhysicsComponent()
-        pPhysics.collidesWithLayers = []
-        pPhysics.triggersWithLayers = [0]
-        pPhysics.gravity = None
-        pPhysics.friction = (0, 0)
-        pPhysics.physicsLayer = -1
+        for i in range(10):
+            pPhysics = PhysicsComponent()
+            pPhysics.collidesWithLayers = []
+            pPhysics.triggersWithLayers = [0]
+            pPhysics.gravity = None
+            pPhysics.friction = (0, 0)
+            pPhysics.physicsLayer = -1
+            pPhysics.bounds = (1,1)
+            pPhysics.mapToSpriteOnStart = False
 
-        def OnTriggerStart(self, other):
-            currentScene.DeleteEntity(self.parentEntity)
-        pPhysics.onTriggerStart.append(OnTriggerStart)
+            #def OnTriggerStart(self, other):
+            #    currentScene.DeleteEntity(self.parentEntity)
+            #pPhysics.onTriggerStart.append(OnTriggerStart)
 
-        pSpriteRend = SpriteRenderer(assets.worldTileset[0], 100, False)
-        pSpriteRend.sprite.SetScale((0.25, 0.25))
-        currentScene.CreateEntity("Projectile",
-                                  [int(gunComponent.parentEntity.position[0])
-                                      , int(gunComponent.parentEntity.position[1])]
-                                  , components=[pSpriteRend, pPhysics,
-                                                ProjectileComponent(100, spriteRenderer.sprite._rotation, friendly)])
+            pSpriteRend = SpriteRenderer(assets.worldTileset[0], 100, False)
+            pSpriteRend.sprite.SetScale((0.25, 0.25))
+            currentScene.CreateEntity("Projectile",
+                                      [int(gunComponent.parentEntity.position[0])
+                                          , int(gunComponent.parentEntity.position[1])]
+                                      , components=[pSpriteRend, pPhysics,
+                                                    ProjectileComponent(100, spriteRenderer.sprite._rotation+i*(360/10), friendly)])
     return SpawnProjectile
 
 def CreatePistolPrefab(currentScene : LevelScene):

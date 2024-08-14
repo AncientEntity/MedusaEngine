@@ -29,6 +29,6 @@ class MainScene(LevelScene):
     def LevelStart(self):
         CreatePlayer(self)
         CreatePistolPrefab(self)
-        for i in range(4):
-            test = CreateTestMonster(self)
-            test.position = [random.randint(-200,200),random.randint(-200,200)]
+        #for i in range(5):
+        #    test = CreateTestMonster(self)
+        #    test.position = [random.randint(-300,300),random.randint(-300,300)]

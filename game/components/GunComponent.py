@@ -6,7 +6,7 @@ class GunComponent(ItemComponent):
     def __init__(self):
         super().__init__()
         self.bulletPrefabFunc = None # Func(currentScene)
-        self.shootDelay = 0.2
+        self.shootDelay = 0.01
         self.reloadTime = 0.8
 
         self.magazineCount = 99999999 # 10
