@@ -162,6 +162,9 @@ class EntitySystem:
     def InsertTimedEvent(self, timedEvent : TimedEvent):
         timeUntil = timedEvent.TimeUntilNextTrigger()
         curIndex = 0
-        while(curIndex < len(self._activeTimedEvents) and self._activeTimedEvents[curIndex].TimeUntilNextTrigger() < timeUntil):
-            curIndex += 1
+
+        for curIndex in range(len(self._activeTimedEvents)):
+            if(self._activeTimedEvents[curIndex].TimeUntilNextTrigger() < timeUntil):
+                break
+
         self._activeTimedEvents.insert(curIndex, timedEvent)
