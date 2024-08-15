@@ -16,26 +16,27 @@ class WeaponSystem(EntitySystem):
         self.currentScene = currentScene
     def Update(self, currentScene: LevelScene):
         self.ProjectileUpdate(currentScene)
+        print(len(self.projectiles))
     def OnNewComponent(self,component : Component): #Called when a new component is created into the scene. (Used to initialize that component)
         if(isinstance(component,ProjectileComponent)):
             self.projectiles.append(component)
-            component.physics = component.parentEntity.GetComponent(PhysicsComponent)
-
-            #component.physics.velocity = component.velocity
-
-            self.StartTimedEvent(TimedEvent(self.DestroyProjectile, (self.currentScene, component.parentEntity),
-                                            random.uniform(1, 2), 0,
-                                            1))
     def OnDeleteComponent(self, component : Component): #Called when an existing component is destroyed (Use for deinitializing it from the systems involved)
         if(isinstance(component,ProjectileComponent)):
             self.projectiles.remove(component)
 
-    def DestroyProjectile(self, currentScene : Scene, projectile):
-        currentScene.DeleteEntity(projectile)
     def ProjectileUpdate(self, currentScene : LevelScene):
+        projectilesToRemove = []
+        curTime = time.time()
         for projectile in self.projectiles:
+            if(curTime - projectile.startTime >= projectile.maxLifetime):
+                projectilesToRemove.append(projectile)
+                continue
+
             overlappedTileID = currentScene.GetTileAtWorldPosition(projectile.parentEntity.position, "Walls")
             if overlappedTileID and overlappedTileID != -1:
                 currentScene.DeleteEntity(projectile.parentEntity)
             projectile.parentEntity.position[0] += projectile.velocity[0] * self.game.deltaTime
             projectile.parentEntity.position[1] += projectile.velocity[1] * self.game.deltaTime
+
+        for projectile in projectilesToRemove:
+            currentScene.DeleteEntity(projectile.parentEntity)

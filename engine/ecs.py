@@ -1,4 +1,5 @@
 from engine.datatypes.timedevents import TimedEvent
+import time
 
 
 class Component:
@@ -148,7 +149,8 @@ class EntitySystem:
     def TickTimedEvents(self):
         timedEvent: TimedEvent
         index = 0
-        while index < len(self._activeTimedEvents) and self._activeTimedEvents[index].TimeUntilNextTrigger() <= 0:
+        currentTime = time.time()
+        while index < len(self._activeTimedEvents) and self._activeTimedEvents[index].TimeUntilNextTrigger(currentTime) <= 0:
             timedEvent = self._activeTimedEvents[index]
             result = timedEvent.Tick()
             self._activeTimedEvents.remove(timedEvent)
@@ -160,11 +162,12 @@ class EntitySystem:
     # I'm worried of the possibility of events being placed out of order if insertion takes too long and
     # timeUntil is now too old... But will test for now.
     def InsertTimedEvent(self, timedEvent : TimedEvent):
-        timeUntil = timedEvent.TimeUntilNextTrigger()
+        currentTime = time.time()
+        timeUntil = timedEvent.TimeUntilNextTrigger(currentTime)
         curIndex = 0
 
         for curIndex in range(len(self._activeTimedEvents)):
-            if(self._activeTimedEvents[curIndex].TimeUntilNextTrigger() < timeUntil):
+            if(self._activeTimedEvents[curIndex].TimeUntilNextTrigger(currentTime) < timeUntil):
                 break
 
         self._activeTimedEvents.insert(curIndex, timedEvent)

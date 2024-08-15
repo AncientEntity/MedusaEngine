@@ -1,4 +1,4 @@
-import math
+import math, time
 
 from engine.components.physicscomponent import PhysicsComponent
 from engine.ecs import Component
@@ -14,4 +14,5 @@ class ProjectileComponent(Component):
         self.velocity = [self.speed * math.cos(math.radians(self.speedRotation)),
                                -self.speed * math.sin(math.radians(self.speedRotation))]
 
-        self.physics : PhysicsComponent = None
+        self.startTime = time.time()
+        self.maxLifetime = 5

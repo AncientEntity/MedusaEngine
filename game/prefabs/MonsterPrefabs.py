@@ -11,6 +11,5 @@ def CreateTestMonster(currentScene : LevelScene):
     phys = PhysicsComponent()
     phys.mapToSpriteOnStart = False
     phys.bounds = [8,8]
-
-
+    
     return currentScene.CreateEntity("TestMonster",[0,0],components=[monster,sprite, phys])
