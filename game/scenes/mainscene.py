@@ -1,14 +1,14 @@
 import pygame
 
-from engine.components.rendering.particlecomponent import ParticleEmitterComponent
 from engine.components.rendering.spriterenderer import SpriteRenderer
 from engine.datatypes.spritesheet import SpriteSheet
-from engine.ecs import Entity
 from engine.scenes.levelscene import LevelScene
 from engine.systems.physics import PhysicsSystem
 from engine.systems.renderer import RenderingSystem
 from game import assets
-from game.components.playercomponent import PlayerComponent
+from game.components.actorcomponent import ActorComponent
+from game.drivers.testaidriver import TestAIDriver
+from game.prefabs.GobinPrefab import CreateGoblinPrefab
 from game.prefabs.ItemPrefabs import CreatePistolPrefab
 from game.prefabs.PlayerPrefab import CreatePlayer
 from game.systems.actorsystem import ActorSystem
@@ -33,3 +33,9 @@ class MainScene(LevelScene):
         self.GetSystemByClass(ActorSystem).cameraTarget = player
 
         CreatePistolPrefab(self)
+
+        for i in range(5):
+            eP = CreatePlayer(self)
+            eP.GetComponent(ActorComponent).driver = TestAIDriver()
+        for i in range(5):
+            g = CreateGoblinPrefab(self)
