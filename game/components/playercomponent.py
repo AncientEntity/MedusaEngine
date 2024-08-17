@@ -1,4 +1,3 @@
-import pygame
 
 from engine.components.physicscomponent import PhysicsComponent
 from engine.datatypes.sprites import AnimatedSprite, Sprite
@@ -22,16 +21,6 @@ class PlayerComponent(Component):
         self.dashTimedEvent : TimedEvent = None
 
         self.afterImages = [] # after image entities used for dashing.
-        self.heldItem = None
-
-        self.controls = {
-            "up" : pygame.K_w,
-            "down" : pygame.K_s,
-            "left" : pygame.K_a,
-            "right" : pygame.K_d,
-            "dash" : pygame.K_LSHIFT
-        }
-
         self.idleAnim = AnimatedSprite(
             [assets.dungeonTileSet["knight_f_idle_anim_f0"], assets.dungeonTileSet["knight_f_idle_anim_f1"],
              assets.dungeonTileSet["knight_f_idle_anim_f2"], assets.dungeonTileSet["knight_f_idle_anim_f3"]], 5)

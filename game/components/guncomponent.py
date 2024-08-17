@@ -1,5 +1,5 @@
 from engine.ecs import Component
-from game.components.ItemComponent import ItemComponent
+from game.components.itemcomponent import ItemComponent
 
 
 class GunComponent(ItemComponent):

@@ -16,7 +16,6 @@ class WeaponSystem(EntitySystem):
         self.currentScene = currentScene
     def Update(self, currentScene: LevelScene):
         self.ProjectileUpdate(currentScene)
-        print(len(self.projectiles))
     def OnNewComponent(self,component : Component): #Called when a new component is created into the scene. (Used to initialize that component)
         if(isinstance(component,ProjectileComponent)):
             self.projectiles.append(component)

@@ -1,16 +1,17 @@
 import pygame
 
 from engine.components.rendering.particlecomponent import ParticleEmitterComponent
+from engine.components.rendering.spriterenderer import SpriteRenderer
 from engine.datatypes.spritesheet import SpriteSheet
 from engine.ecs import Entity
 from engine.scenes.levelscene import LevelScene
 from engine.systems.physics import PhysicsSystem
 from engine.systems.renderer import RenderingSystem
+from game import assets
+from game.components.playercomponent import PlayerComponent
 from game.prefabs.ItemPrefabs import CreatePistolPrefab
-from game.prefabs.MonsterPrefabs import CreateTestMonster
 from game.prefabs.PlayerPrefab import CreatePlayer
-from game.systems.groundsystem import GroundSystem
-from game.systems.monstersystem import MonsterSystem
+from game.systems.actorsystem import ActorSystem
 from game.systems.playersystem import PlayerSystem
 import random
 
@@ -21,14 +22,14 @@ class MainScene(LevelScene):
     def __init__(self):
         super().__init__("game/art/tiled/mainlevel.tmj", SpriteSheet("game/art/0x72_DungeonTilesetII_v1.7.png",16), None)
         self.systems.append(PlayerSystem())
+        self.systems.append(ActorSystem())
         self.systems.append(PhysicsSystem())
         self.systems.append(WeaponSystem())
-        self.systems.append(MonsterSystem())
         #self.systems.append(GroundSystem())
         self.GetSystemByClass(RenderingSystem).backgroundColor = (40,25,40)
     def LevelStart(self):
-        CreatePlayer(self)
+        player = CreatePlayer(self)
+        player.GetComponent(SpriteRenderer).sprite = assets.worldTileset[1]
+        self.GetSystemByClass(ActorSystem).cameraTarget = player
+
         CreatePistolPrefab(self)
-        #for i in range(5):
-        #    test = CreateTestMonster(self)
-        #    test.position = [random.randint(-300,300),random.randint(-300,300)]

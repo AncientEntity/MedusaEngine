@@ -2,7 +2,7 @@ from engine.components.physicscomponent import PhysicsComponent
 from engine.components.rendering.spriterenderer import SpriteRenderer
 from engine.scenes.levelscene import LevelScene
 from game import assets
-from game.components.GunComponent import GunComponent
+from game.components.guncomponent import GunComponent
 from game.components.projectilecomponent import ProjectileComponent
 
 

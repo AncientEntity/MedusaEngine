@@ -1,5 +1,8 @@
 import math
 
+def Magnitude(vec):
+    return math.sqrt(vec[0]*vec[0]+vec[1]*vec[1])
+
 def Distance(vec1,vec2):
     a = vec1[0] - vec2[0]
     b = vec1[1] - vec2[1]
