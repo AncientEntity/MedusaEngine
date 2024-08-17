@@ -32,3 +32,10 @@ def NormalizeVec(vec):
 def LookAt(position, target):
     normalized = NormalizeVec([position[0]-target[0],position[1]-target[1]])
     return 180-math.degrees(math.atan2(normalized[1],normalized[0]))
+
+def Clamp(value, min, max):
+    if(value < min):
+        return min
+    elif(value > max):
+        return max
+    return value
