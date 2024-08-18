@@ -1,3 +1,6 @@
+from engine.ecs import Scene
+from game.components.actorcomponent import ActorComponent
+
 
 class DriverBase:
     def __init__(self):
@@ -8,3 +11,7 @@ class DriverBase:
             "right": None,
             "attack1": None
         }
+        self.targetPosition = None
+
+    def Update(self, actor : ActorComponent, currentScene : Scene):
+        pass

@@ -44,6 +44,8 @@ class PlayerSystem(EntitySystem):
         self.Dash(actor.parentEntity.GetComponent(PlayerComponent)) # todo hashtable for actor->parent component in system.
 
     def Dash(self, player : PlayerComponent):
+        if(player == None):
+            return
         timeSinceDash = time.time() - player.lastDashTime
         if(timeSinceDash >= player.dashDelay):
             if(player.physics.velocity[0] == 0 and player.physics.velocity[1] == 0):

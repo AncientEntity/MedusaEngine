@@ -8,6 +8,10 @@ from game.components.actorcomponent import ActorComponent
 from game.components.guncomponent import GunComponent
 import time
 
+from game.drivers.playerdriver import PlayerDriver
+from game.drivers.testaidriver import TestAIDriver
+
+
 class ActorSystem(EntitySystem):
     def __init__(self):
         super().__init__([ActorComponent]) #Put target components here
@@ -34,8 +38,13 @@ class ActorSystem(EntitySystem):
             if not actor.driver:
                 continue
 
+            # Reset movement this tick
             actor._movementThisTick = [0,0]
 
+            # Trigger update
+            actor.driver.Update(actor, currentScene)
+
+            # Handle action update
             for actionName, actionFunc in actor.driver.inputs.items():
                 if actionFunc and actionFunc():
                     # do action
@@ -46,6 +55,13 @@ class ActorSystem(EntitySystem):
 
         if self.cameraTarget:
             self.CameraTick()
+
+        import pygame, random
+        if Input.KeyDown(pygame.K_t):
+            randEnt = self.actors[random.randint(0,len(self.actors)-1)]
+            self.cameraTarget.GetComponent(ActorComponent).driver = TestAIDriver()
+            self.cameraTarget = randEnt.parentEntity
+            randEnt.driver = PlayerDriver()
 
     def OnEnable(self, currentScene : Scene):
         # Grab rendering system and camera position
@@ -93,7 +109,7 @@ class ActorSystem(EntitySystem):
 
     # Attack Actions
     def ActionAttack1(self, actor : ActorComponent, currentScene : Scene):
-        # todo refactor, code here seems messy.
+        # todo refactor, code here seems messy. Also it currently takes screen mouse position, wont work later.
         if(actor.heldItem):
             actor.heldItem.position = actor.parentEntity.position[:]
             actor.heldItem.GetComponent(SpriteRenderer).sprite.SetRotation(LookAt((0,0),

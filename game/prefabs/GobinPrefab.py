@@ -1,5 +1,6 @@
 from engine.components.physicscomponent import PhysicsComponent
 from engine.components.rendering.spriterenderer import SpriteRenderer
+from engine.datatypes.pathfinding import TilePathfinderHelper, TilemapPathfinder
 from engine.scenes.levelscene import LevelScene
 from game import assets
 from game.components.actorcomponent import ActorComponent
@@ -8,8 +9,7 @@ from game.drivers.testaidriver import TestAIDriver
 
 def CreateGoblinPrefab(currentScene: LevelScene):
     actor = ActorComponent()
-    actor.driver = TestAIDriver()
-    actor.speed = 200
+    actor.speed = 400
 
     sprite = SpriteRenderer(assets.dungeonTileSet["goblin_idle_anim_f0"], 50, False)
     phys = PhysicsComponent()

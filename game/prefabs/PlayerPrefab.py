@@ -31,13 +31,15 @@ def CreatePlayer(currentScene : LevelScene):
         if(player.heldItem == other.parentEntity):
             return
 
-        if(other.parentEntity.GetComponent(ItemComponent)):
+        itemComp = other.parentEntity.GetComponent(ItemComponent)
+        if(itemComp and itemComp.held == False):
 
             if(player.heldItem):
                 currentScene.DeleteEntity(player.heldItem)
                 player.heldItem = None
 
             player.heldItem = other.parentEntity
+            itemComp.held = True
     physicsComponent.onTriggerStart.append(OnTrigger)
 
     # Create dash after images
