@@ -42,8 +42,4 @@ class MainScene(LevelScene):
         #    eP.position = [random.randint(-200,200),random.randint(-200,200)]
         for i in range(5):
             g = CreateGoblinPrefab(self)
-            g.GetComponent(ActorComponent).driver = EnemyDriver()
-            g.position = [random.randint(-200,200),random.randint(-200,200)]
-            g.GetComponent(ActorComponent).driver.pathfinder = TilePathfinderHelper(
-                TilemapPathfinder(list(self.tileMapLayersByName.values()),
-                                  [0]))
+            g.position = [random.randint(-200, 200), random.randint(-200, 200)]

@@ -1,4 +1,5 @@
 from engine.components.physicscomponent import PhysicsComponent
+from engine.components.rendering.spriterenderer import SpriteRenderer
 from engine.ecs import Component, Entity
 
 class ActorComponent(Component):
@@ -13,3 +14,6 @@ class ActorComponent(Component):
 
         # Inventory
         self.heldItem : Entity = None
+
+        # Animation
+        self.spriteRenderer : SpriteRenderer = None

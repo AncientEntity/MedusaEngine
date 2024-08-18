@@ -174,6 +174,7 @@ class AnimatedSprite(Sprite):
                 self._sprites[i] = pygame.transform.flip(self._sprites[i], True, False)
             else:
                 self._sprites[i].SetFlipX(flipped)
+        return self
     def SetTint(self,tint):
         for sprite in self._sprites:
             sprite.SetTint(tint)

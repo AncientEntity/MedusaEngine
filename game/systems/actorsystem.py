@@ -73,6 +73,7 @@ class ActorSystem(EntitySystem):
         if(isinstance(component,ActorComponent)):
             self.actors.append(component)
             component.physics = component.parentEntity.GetComponent(PhysicsComponent)
+            component.spriteRenderer = component.parentEntity.GetComponent(SpriteRenderer)
     def OnDeleteComponent(self, component : Component): #Called when an existing component is destroyed (Use for deinitializing it from the systems involved)
         if(isinstance(component,ActorComponent)):
             self.actors.remove(component)
