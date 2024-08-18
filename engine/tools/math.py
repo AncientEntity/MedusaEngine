@@ -1,5 +1,8 @@
 import math
 
+def Magnitude(vec):
+    return math.sqrt(vec[0]*vec[0]+vec[1]*vec[1])
+
 def Distance(vec1,vec2):
     a = vec1[0] - vec2[0]
     b = vec1[1] - vec2[1]
@@ -29,3 +32,10 @@ def NormalizeVec(vec):
 def LookAt(position, target):
     normalized = NormalizeVec([position[0]-target[0],position[1]-target[1]])
     return 180-math.degrees(math.atan2(normalized[1],normalized[0]))
+
+def Clamp(value, min, max):
+    if(value < min):
+        return min
+    elif(value > max):
+        return max
+    return value
