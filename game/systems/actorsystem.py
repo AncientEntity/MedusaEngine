@@ -1,13 +1,16 @@
 from engine.components.physicscomponent import PhysicsComponent
 from engine.components.rendering.spriterenderer import SpriteRenderer
+from engine.datatypes.sprites import Sprite
+from engine.datatypes.timedevents import TimedEvent
 from engine.ecs import EntitySystem, Scene, Component, Entity
 from engine.engine import Input
 from engine.systems.renderer import RenderingSystem
-from engine.tools.math import MoveTowards, Distance, LookAt
+from engine.tools.math import MoveTowards, Distance, LookAt, NormalizeVec, MoveTowardsDelta
 from game.components.actorcomponent import ActorComponent
 from game.components.guncomponent import GunComponent
 import time
 
+from game.components.projectilecomponent import ProjectileComponent
 from game.drivers.playerdriver import PlayerDriver
 from game.drivers.testaidriver import TestAIDriver
 
@@ -15,6 +18,8 @@ from game.drivers.testaidriver import TestAIDriver
 class ActorSystem(EntitySystem):
     def __init__(self):
         super().__init__([ActorComponent]) #Put target components here
+
+        self.currentScene : Scene = None
 
         self.actors : list[ActorComponent] = []
         self.actions = {}
@@ -67,6 +72,7 @@ class ActorSystem(EntitySystem):
         # Grab rendering system and camera position
         self.renderingSystem = currentScene.GetSystemByClass(RenderingSystem)
         self.cameraPosition = self.renderingSystem.cameraPosition
+        self.currentScene = currentScene
 
 
     def OnNewComponent(self,component : Component): #Called when a new component is created into the scene. (Used to initialize that component)
@@ -74,6 +80,7 @@ class ActorSystem(EntitySystem):
             self.actors.append(component)
             component.physics = component.parentEntity.GetComponent(PhysicsComponent)
             component.spriteRenderer = component.parentEntity.GetComponent(SpriteRenderer)
+            component.physics.onTriggerStart.append(self.OnProjectileEnter)
     def OnDeleteComponent(self, component : Component): #Called when an existing component is destroyed (Use for deinitializing it from the systems involved)
         if(isinstance(component,ActorComponent)):
             self.actors.remove(component)
@@ -120,3 +127,33 @@ class ActorSystem(EntitySystem):
                 gunComp.activeMagazineCount -= 1
                 gunComp.lastShootTime = time.time()
                 gunComp.bulletPrefabFunc(currentScene)
+
+    # Health/Damage
+
+    def OnProjectileEnter(self, me : PhysicsComponent, other : PhysicsComponent):
+        projectile : ProjectileComponent = other.parentEntity.GetComponent(ProjectileComponent)
+        meActor : ActorComponent = me.parentEntity.GetComponent(ActorComponent) #todo remove GetComponent.
+        if projectile and projectile.friendly != meActor.friendly and time.time() - meActor._lastDamageTime >= meActor.postHitInvincibility:
+            meActor.heath -= projectile.damage
+            meActor._lastDamageTime = time.time()
+            hitEffectEvent = TimedEvent(self.HitEffect,
+                                        args=(list(meActor.driver.animations.values()),meActor.damageTint),
+                                        startDelay=0,
+                                        repeatDelay=meActor.postHitInvincibility,
+                                        repeatCount=2)
+            self.StartTimedEvent(hitEffectEvent)
+            if(meActor.heath <= 0):
+                self.currentScene.DeleteEntity(me.parentEntity)
+            self.currentScene.DeleteEntity(other.parentEntity)
+
+            normalizedKnockback = NormalizeVec(projectile.velocity)
+            knockbackForce = (normalizedKnockback[0]*projectile.knockbackForce,normalizedKnockback[1]*projectile.knockbackForce)
+            meActor.physics.AddVelocity(knockbackForce)
+
+
+    def HitEffect(self, sprites : list[Sprite], damageTint):
+        for sprite in sprites:
+            if(sprite._tint == None):
+                sprite.SetTint(damageTint)
+            else:
+                sprite.SetTint(None)

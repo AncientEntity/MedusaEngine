@@ -1,8 +1,5 @@
-import pygame
-
 from engine.datatypes.pathfinding import TilePathfinderHelper
 from engine.ecs import Scene
-from engine.engine import Input
 from engine.tools.math import Distance, MoveTowardsDelta
 from game.components.actorcomponent import ActorComponent
 from game.components.playercomponent import PlayerComponent
@@ -26,8 +23,7 @@ class EnemyDriver(DriverBase):
         # Animation
         self.animations = {
             "idle" : None,
-            "left" : None,
-            "right" : None
+            "side" : None,
         }
 
     def GetUp(self):
@@ -56,11 +52,12 @@ class EnemyDriver(DriverBase):
                 if self.animations["idle"]:
                     actor.spriteRenderer.sprite = self.animations["idle"]
             elif self.moveDelta:
-                if self.moveDelta[0] < -0.1 and self.animations["left"]:
-                    actor.spriteRenderer.sprite = self.animations["left"]
-                elif self.moveDelta[0] > 0.1 and self.animations["right"]:
-                    actor.spriteRenderer.sprite = self.animations["right"]
-
+                if self.moveDelta[0] < -0.1 and self.animations["side"]:
+                    actor.spriteRenderer.sprite = self.animations["side"]
+                    self.animations["side"].SetFlipX(True)
+                elif self.moveDelta[0] > 0.1 and self.animations["side"]:
+                    actor.spriteRenderer.sprite = self.animations["side"]
+                    self.animations["side"].SetFlipX(False)
 
     def ClosestPlayer(self, actor : ActorComponent, currentScene : Scene):
         closest = None

@@ -178,6 +178,7 @@ class AnimatedSprite(Sprite):
     def SetTint(self,tint):
         for sprite in self._sprites:
             sprite.SetTint(tint)
+        self._tint = tint
     def SetRotation(self,rotation):
         for sprite in self._sprites:
             sprite.SetRotation(rotation)

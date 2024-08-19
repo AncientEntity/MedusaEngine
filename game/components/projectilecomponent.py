@@ -6,7 +6,8 @@ from engine.ecs import Component
 class ProjectileComponent(Component):
     def __init__(self, speed, rotation, friendly):
         super().__init__()
-        self.damage = 8
+        self.damage = 30
+        self.knockbackForce = 200
         self.speed = speed
         self.speedRotation = rotation
         self.friendly = friendly

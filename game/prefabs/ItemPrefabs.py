@@ -8,15 +8,16 @@ from game.components.projectilecomponent import ProjectileComponent
 
 def SpawnProjectileFactory(gunComponent : GunComponent, spriteRenderer, friendly):
     def SpawnProjectile(currentScene: LevelScene):
-        for i in range(10):
+        phys = PhysicsComponent()
+        phys.physicsLayer = 1
 
-            pSpriteRend = SpriteRenderer(assets.worldTileset[0], 100, False)
-            pSpriteRend.sprite.SetScale((0.25, 0.25))
-            currentScene.CreateEntity("Projectile",
-                                      [int(gunComponent.parentEntity.position[0])
-                                          , int(gunComponent.parentEntity.position[1])]
-                                      , components=[pSpriteRend,
-                                                    ProjectileComponent(100, spriteRenderer.sprite._rotation+i*(360/10), friendly)])
+        pSpriteRend = SpriteRenderer(assets.worldTileset[0], 100, False)
+        pSpriteRend.sprite.SetScale((0.25, 0.25))
+        currentScene.CreateEntity("Projectile",
+                                  [int(gunComponent.parentEntity.position[0])
+                                      , int(gunComponent.parentEntity.position[1])]
+                                  , components=[pSpriteRend, phys,
+                                                ProjectileComponent(100, spriteRenderer.sprite._rotation, friendly)])
     return SpawnProjectile
 
 def CreatePistolPrefab(currentScene : LevelScene):

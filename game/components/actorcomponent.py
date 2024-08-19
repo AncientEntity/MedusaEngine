@@ -17,3 +17,10 @@ class ActorComponent(Component):
 
         # Animation
         self.spriteRenderer : SpriteRenderer = None
+
+        # Health/Damage
+        self.friendly = False
+        self.heath = 100
+        self.damageTint = (200,0,0)
+        self._lastDamageTime = 0
+        self.postHitInvincibility = 0.25

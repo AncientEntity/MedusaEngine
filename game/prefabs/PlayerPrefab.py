@@ -13,6 +13,7 @@ def CreatePlayer(currentScene : LevelScene):
 
     actorComponent = ActorComponent()
     actorComponent.driver = PlayerDriver()
+    actorComponent.friendly = True
 
     playerComponent = PlayerComponent()
 

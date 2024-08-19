@@ -23,14 +23,12 @@ def CreateGoblinPrefab(currentScene: LevelScene):
     phys.mapToSpriteOnStart = False
     phys.bounds = [8, 8]
     phys.friction = [10,10]
+    phys.triggersWithLayers = [1]
 
     actor.driver.animations["idle"] = AnimatedSprite(
         [assets.dungeonTileSet["goblin_idle_anim_f0"], assets.dungeonTileSet["goblin_idle_anim_f1"],
          assets.dungeonTileSet["goblin_idle_anim_f2"], assets.dungeonTileSet["goblin_idle_anim_f3"]], 5)
-    actor.driver.animations["left"] = AnimatedSprite(
-        [assets.dungeonTileSet["goblin_run_anim_f0"], assets.dungeonTileSet["goblin_run_anim_f1"],
-         assets.dungeonTileSet["goblin_run_anim_f2"], assets.dungeonTileSet["goblin_run_anim_f3"]], 10).SetFlipX(True)
-    actor.driver.animations["right"] = AnimatedSprite(
+    actor.driver.animations["side"] = AnimatedSprite(
         [assets.dungeonTileSet["goblin_run_anim_f0"], assets.dungeonTileSet["goblin_run_anim_f1"],
          assets.dungeonTileSet["goblin_run_anim_f2"], assets.dungeonTileSet["goblin_run_anim_f3"]], 10)
 
