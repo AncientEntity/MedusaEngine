@@ -1,5 +1,9 @@
 import pygame
+
+from engine.ecs import Scene
 from engine.engine import Input
+from engine.systems.renderer import RenderingSystem
+from game.components.actorcomponent import ActorComponent
 from game.drivers.driverbase import DriverBase
 
 
@@ -12,3 +16,5 @@ class PlayerDriver(DriverBase):
         self.inputs["right"] = lambda : Input.KeyPressed(pygame.K_d)
         self.inputs["attack1"] = lambda : Input.MouseButtonPressed(0)
         self.inputs["dash"] = lambda : Input.KeyPressed(pygame.K_LSHIFT)
+    def Update(self, actor : ActorComponent, currentScene : Scene):
+        self.targetPosition = currentScene.GetSystemByClass(RenderingSystem).worldMousePosition #todo nope

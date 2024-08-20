@@ -11,7 +11,7 @@ class DriverBase:
             "right": None,
             "attack1": None
         }
-        self.targetPosition = None
+        self.targetPosition = (0,0)
 
     def Update(self, actor : ActorComponent, currentScene : Scene):
         pass

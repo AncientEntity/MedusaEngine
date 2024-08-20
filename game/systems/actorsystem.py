@@ -10,6 +10,7 @@ from game.components.actorcomponent import ActorComponent
 from game.components.guncomponent import GunComponent
 import time
 
+from game.components.playercomponent import PlayerComponent
 from game.components.projectilecomponent import ProjectileComponent
 from game.drivers.playerdriver import PlayerDriver
 from game.drivers.testaidriver import TestAIDriver
@@ -120,15 +121,13 @@ class ActorSystem(EntitySystem):
         # todo refactor, code here seems messy. Also it currently takes screen mouse position, wont work later.
         if(actor.heldItem):
             actor.heldItem.position = actor.parentEntity.position[:]
-            actor.heldItem.GetComponent(SpriteRenderer).sprite.SetRotation(LookAt((0,0),
-                                                                                   self.renderingSystem.screenMousePosition))
+            actor.heldItem.GetComponent(SpriteRenderer).sprite.SetRotation(LookAt(actor.parentEntity.position,
+                                                                                  actor.driver.targetPosition))
             gunComp : GunComponent = actor.heldItem.GetComponent(GunComponent)
             if(gunComp and gunComp.activeMagazineCount > 0 and time.time() - gunComp.lastShootTime >= gunComp.shootDelay):
                 gunComp.activeMagazineCount -= 1
                 gunComp.lastShootTime = time.time()
                 gunComp.bulletPrefabFunc(currentScene)
-
-    # Health/Damage
 
     def OnProjectileEnter(self, me : PhysicsComponent, other : PhysicsComponent):
         projectile : ProjectileComponent = other.parentEntity.GetComponent(ProjectileComponent)
@@ -137,7 +136,7 @@ class ActorSystem(EntitySystem):
             meActor.heath -= projectile.damage
             meActor._lastDamageTime = time.time()
             hitEffectEvent = TimedEvent(self.HitEffect,
-                                        args=(list(meActor.driver.animations.values()),meActor.damageTint),
+                                        args=(meActor,),
                                         startDelay=0,
                                         repeatDelay=meActor.postHitInvincibility,
                                         repeatCount=2)
@@ -151,9 +150,14 @@ class ActorSystem(EntitySystem):
             meActor.physics.AddVelocity(knockbackForce)
 
 
-    def HitEffect(self, sprites : list[Sprite], damageTint):
+    def HitEffect(self, actor : ActorComponent):
+        if isinstance(actor.driver, PlayerDriver):
+            player : PlayerComponent = actor.parentEntity.GetComponent(PlayerComponent)
+            sprites = [player.idleAnim,player.runAnim]
+        else:
+            sprites = list(actor.driver.animations.values())
         for sprite in sprites:
             if(sprite._tint == None):
-                sprite.SetTint(damageTint)
+                sprite.SetTint(actor.damageTint)
             else:
                 sprite.SetTint(None)

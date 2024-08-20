@@ -4,6 +4,7 @@ from engine.tools.math import Distance, MoveTowardsDelta
 from game.components.actorcomponent import ActorComponent
 from game.components.playercomponent import PlayerComponent
 from game.drivers.driverbase import DriverBase
+import random
 
 
 class EnemyDriver(DriverBase):
@@ -13,7 +14,7 @@ class EnemyDriver(DriverBase):
         self.inputs["down"] = self.GetDown
         self.inputs["left"] = self.GetLeft
         self.inputs["right"] = self.GetRight
-        self.inputs["attack1"] = None # todo attacking
+        self.inputs["attack1"] = lambda : random.randint(0,100) >= 5 # todo attacking
 
         # Movement
         self.agroRange = 120
@@ -44,6 +45,7 @@ class EnemyDriver(DriverBase):
                 self.moveDelta = MoveTowardsDelta(actor.parentEntity.position,
                                              self.pathfinder.cachedWorldPath[1],
                                              1)
+            self.targetPosition = closestPlayer.parentEntity.position[:]
 
         # Animation
         if actor.spriteRenderer:

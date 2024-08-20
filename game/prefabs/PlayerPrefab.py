@@ -45,7 +45,7 @@ def CreatePlayer(currentScene : LevelScene):
 
     # Create dash after images
     for i in range(3):
-        spriteRenderer = SpriteRenderer(None,40)
-        playerComponent.afterImages.append(currentScene.CreateEntity("PlayerAfterImage",[0,0],components=[spriteRenderer]))
+        afterSpriteRenderer = SpriteRenderer(None,40)
+        playerComponent.afterImages.append(currentScene.CreateEntity("PlayerAfterImage",[0,0],components=[afterSpriteRenderer]))
 
     return currentScene.CreateEntity("Player",[0,0],components=[actorComponent,spriteRenderer,physicsComponent, playerComponent])

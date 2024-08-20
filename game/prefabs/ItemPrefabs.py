@@ -20,7 +20,7 @@ def SpawnProjectileFactory(gunComponent : GunComponent, spriteRenderer, friendly
                                                 ProjectileComponent(100, spriteRenderer.sprite._rotation, friendly)])
     return SpawnProjectile
 
-def CreatePistolPrefab(currentScene : LevelScene):
+def CreatePistolPrefab(currentScene : LevelScene, friendly=True):
     gunComponent = GunComponent()
     spriteRenderer = SpriteRenderer(assets.worldTileset[0],60,False)
     spriteRenderer.sprite.SetScale((0.5,0.5))
@@ -30,6 +30,6 @@ def CreatePistolPrefab(currentScene : LevelScene):
     physics.physicsLayer = 1
 
 
-    gunComponent.bulletPrefabFunc = SpawnProjectileFactory(gunComponent, spriteRenderer, True)
+    gunComponent.bulletPrefabFunc = SpawnProjectileFactory(gunComponent, spriteRenderer, friendly)
 
     return currentScene.CreateEntity("Gun",[0,40],components=[gunComponent,spriteRenderer,physics])

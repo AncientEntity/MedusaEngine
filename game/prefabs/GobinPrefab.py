@@ -6,13 +6,14 @@ from engine.scenes.levelscene import LevelScene
 from game import assets
 from game.components.actorcomponent import ActorComponent
 from game.drivers.enemydriver import EnemyDriver
-from game.drivers.testaidriver import TestAIDriver
+from game.prefabs.ItemPrefabs import CreatePistolPrefab
 
 
 def CreateGoblinPrefab(currentScene: LevelScene):
     actor = ActorComponent()
     actor.speed = 400
     actor.driver = EnemyDriver()
+    actor.heldItem = CreatePistolPrefab(currentScene, False)
 
     actor.driver.pathfinder = TilePathfinderHelper(
         TilemapPathfinder(list(currentScene.tileMapLayersByName.values()),

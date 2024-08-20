@@ -7,6 +7,8 @@ class Component:
         self.parentEntity : Entity = None
         self.enabled = True # This only works if the given EntitySystem supports it.
 
+        # Tracks whether the component has been put through OnNewComponent/OnDeleteComponent on entity systems.
+        self._registered = False
 
 class Scene:
     def __init__(self):
@@ -85,14 +87,18 @@ class Scene:
             system.OnEnable(self) #Pass self into on enable (which is the scene)
 
     def HandleNewComponents(self): #Runs OnNewComponent for each new component (just added to the scene) for every system that it relates to.
+        startComp : Component
         for startComp in self._newComponentQueue:
             for system in self.systems:
                 if self.SystemUsesComponent(startComp, system):
                     # if(type(component) in system.targetComponents): #swapped out for the above line as that function considers inheritance.
                     system.OnNewComponent(startComp)
+            startComp._registered = True
         self._newComponentQueue = []
 
     def HandleDeleteComponent(self,component : Component):
+        if not component._registered:
+            return
         for system in self.systems:
             if self.SystemUsesComponent(component,system):
             #if(type(component) in system.targetComponents): #swapped out for the above line as that function considers inheritance.

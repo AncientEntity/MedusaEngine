@@ -72,8 +72,8 @@ class RenderingSystem(EntitySystem):
 
         self.rawMousePosition = pygame.mouse.get_pos()
         self.screenMousePosition = ((self.rawMousePosition[0] - self._screenSize[0] / 2) / self.renderScale,(self.rawMousePosition[1] - self._screenSize[1] / 2) / self.renderScale)
-        self.worldMousePosition = (round((self.rawMousePosition[0] + self.cameraPosition[0] - self._screenSize[0] / 2) / self.renderScale),
-                                   round((self.rawMousePosition[1] + self.cameraPosition[1] - self._screenSize[1] / 2) / self.renderScale))
+        self.worldMousePosition = (self.screenMousePosition[0]+self.cameraPosition[0],
+                                   self.screenMousePosition[1]+self.cameraPosition[1])
 
         #Loop through sorted render order and render everything out.
         component : RendererComponent

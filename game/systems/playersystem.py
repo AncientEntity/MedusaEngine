@@ -55,7 +55,7 @@ class PlayerSystem(EntitySystem):
                 player.physics.velocity = [normalizedVelocity[0]*player.dashImpulseVelocity,normalizedVelocity[1]*player.dashImpulseVelocity]
                 player.lastDashTime = time.time()
                 player.playerRenderer.sprite.SetTint((255, 255, 255))
-                player.dashTimedEvent = TimedEvent(self.HandleAfterImages,(player,),0,0.025,3)
+                player.dashTimedEvent = TimedEvent(self.HandleAfterImages,(player,),0,0.025,4)
                 self.StartTimedEvent(player.dashTimedEvent)
                 for afterImage in player.afterImages:
                     afterImage.GetComponent(SpriteRenderer).sprite = None
