@@ -6,7 +6,7 @@ from game.components.guncomponent import GunComponent
 from game.components.projectilecomponent import ProjectileComponent
 
 
-def SpawnProjectileFactory(gunComponent : GunComponent, spriteRenderer, friendly):
+def SpawnProjectileFactory(gunComponent : GunComponent, spriteRenderer):
     def SpawnProjectile(currentScene: LevelScene):
         phys = PhysicsComponent()
         phys.physicsLayer = 1
@@ -17,11 +17,12 @@ def SpawnProjectileFactory(gunComponent : GunComponent, spriteRenderer, friendly
                                   [int(gunComponent.parentEntity.position[0])
                                       , int(gunComponent.parentEntity.position[1])]
                                   , components=[pSpriteRend, phys,
-                                                ProjectileComponent(100, spriteRenderer.sprite._rotation, friendly)])
+                                                ProjectileComponent(100, spriteRenderer.sprite._rotation, gunComponent.friendly)])
     return SpawnProjectile
 
 def CreatePistolPrefab(currentScene : LevelScene, friendly=True):
     gunComponent = GunComponent()
+    gunComponent.friendly = friendly
     spriteRenderer = SpriteRenderer(assets.worldTileset[0],60,False)
     spriteRenderer.sprite.SetScale((0.5,0.5))
     physics = PhysicsComponent()
@@ -30,6 +31,6 @@ def CreatePistolPrefab(currentScene : LevelScene, friendly=True):
     physics.physicsLayer = 1
 
 
-    gunComponent.bulletPrefabFunc = SpawnProjectileFactory(gunComponent, spriteRenderer, friendly)
+    gunComponent.bulletPrefabFunc = SpawnProjectileFactory(gunComponent, spriteRenderer)
 
     return currentScene.CreateEntity("Gun",[0,40],components=[gunComponent,spriteRenderer,physics])

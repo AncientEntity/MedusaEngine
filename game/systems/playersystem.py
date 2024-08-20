@@ -7,10 +7,8 @@ from engine.datatypes.sprites import Sprite
 from engine.datatypes.timedevents import TimedEvent
 from engine.ecs import EntitySystem, Scene, Component
 from engine.engine import Input
-from engine.systems.renderer import RenderingSystem
 from engine.tools.math import MoveTowards, Distance, NormalizeVec, LookAt, Magnitude
 from game.components.actorcomponent import ActorComponent
-from game.components.guncomponent import GunComponent
 from game.components.playercomponent import PlayerComponent
 import pygame
 
@@ -26,6 +24,8 @@ class PlayerSystem(EntitySystem):
     def Update(self,currentScene : Scene):
         for player in currentScene.components[PlayerComponent]:
             self.Animate(player)
+        if Input.KeyPressed(pygame.K_g):
+            self.game.LoadScene(self.game._game.startingScene)
 
     def Animate(self, player : PlayerComponent):
 
@@ -72,8 +72,12 @@ class PlayerSystem(EntitySystem):
         if(curAfterImage != None):
             curAfterImage.GetComponent(SpriteRenderer).sprite = player.runAnim
             curAfterImage.position = player.parentEntity.position[:]
+
+            player.physics.triggersWithLayers = []
         else:
             # Should be done, now remove after images and reset player tint.
             player.playerRenderer.sprite.SetTint(None)
             for afterImage in player.afterImages:
                 afterImage.GetComponent(SpriteRenderer).sprite = None
+
+            player.physics.triggersWithLayers = [1]

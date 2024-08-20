@@ -14,3 +14,5 @@ class GunComponent(ItemComponent):
 
         self.activeMagazineCount = self.magazineCount
         self.lastShootTime = 0
+
+        self.friendly = True

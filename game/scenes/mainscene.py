@@ -31,7 +31,6 @@ class MainScene(LevelScene):
         self.GetSystemByClass(RenderingSystem).backgroundColor = (40,25,40)
     def LevelStart(self):
         player = CreatePlayer(self)
-        player.GetComponent(SpriteRenderer).sprite = assets.worldTileset[1]
         self.GetSystemByClass(ActorSystem).cameraTarget = player
 
         CreatePistolPrefab(self)

@@ -4,6 +4,7 @@ from engine.datatypes.sprites import AnimatedSprite
 from engine.scenes.levelscene import LevelScene
 from game import assets
 from game.components.actorcomponent import ActorComponent
+from game.components.guncomponent import GunComponent
 from game.components.itemcomponent import ItemComponent
 from game.components.playercomponent import PlayerComponent
 from game.drivers.playerdriver import PlayerDriver
@@ -14,6 +15,7 @@ def CreatePlayer(currentScene : LevelScene):
     actorComponent = ActorComponent()
     actorComponent.driver = PlayerDriver()
     actorComponent.friendly = True
+    actorComponent.heath = 200
 
     playerComponent = PlayerComponent()
 
@@ -34,13 +36,16 @@ def CreatePlayer(currentScene : LevelScene):
 
         itemComp = other.parentEntity.GetComponent(ItemComponent)
         if(itemComp and itemComp.held == False):
-
             if(player.heldItem):
                 currentScene.DeleteEntity(player.heldItem)
                 player.heldItem = None
 
             player.heldItem = other.parentEntity
             itemComp.held = True
+
+            gunComp = other.parentEntity.GetComponent(GunComponent)
+            if(gunComp):
+                gunComp.friendly = True
     physicsComponent.onTriggerStart.append(OnTrigger)
 
     # Create dash after images
