@@ -15,6 +15,7 @@ class PlayerDriver(DriverBase):
         self.inputs["left"] = lambda : Input.KeyPressed(pygame.K_a)
         self.inputs["right"] = lambda : Input.KeyPressed(pygame.K_d)
         self.inputs["attack1"] = lambda : Input.MouseButtonPressed(0)
+        self.inputs["reload"] = lambda : Input.KeyDown(pygame.K_r)
         self.inputs["dash"] = lambda : Input.KeyPressed(pygame.K_LSHIFT)
     def Update(self, actor : ActorComponent, currentScene : Scene):
         self.targetPosition = currentScene.GetSystemByClass(RenderingSystem).worldMousePosition #todo nope

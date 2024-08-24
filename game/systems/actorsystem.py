@@ -5,7 +5,7 @@ from engine.datatypes.timedevents import TimedEvent
 from engine.ecs import EntitySystem, Scene, Component, Entity
 from engine.engine import Input
 from engine.systems.renderer import RenderingSystem
-from engine.tools.math import MoveTowards, Distance, LookAt, NormalizeVec, MoveTowardsDelta
+from engine.tools.math import MoveTowards, Distance, LookAt, NormalizeVec, MoveTowardsDelta, Clamp
 from game.components.actorcomponent import ActorComponent
 from game.components.guncomponent import GunComponent
 import time
@@ -31,6 +31,7 @@ class ActorSystem(EntitySystem):
         self.RegisterAction("left", self.ActionMoveLeft)
         self.RegisterAction("right", self.ActionMoveRight)
         self.RegisterAction("attack1", self.ActionAttack1)
+        self.RegisterAction("reload", self.ActionReload)
 
         # Rendering/Camera
         self.renderingSystem : RenderingSystem = None
@@ -124,8 +125,8 @@ class ActorSystem(EntitySystem):
             actor.heldItem.GetComponent(SpriteRenderer).sprite.SetRotation(LookAt(actor.parentEntity.position,
                                                                                   actor.driver.targetPosition))
             gunComp : GunComponent = actor.heldItem.GetComponent(GunComponent)
-            if(gunComp and gunComp.activeMagazineCount > 0 and time.time() - gunComp.lastShootTime >= gunComp.shootDelay):
-                gunComp.activeMagazineCount -= 1
+            if(gunComp and gunComp.ammo > 0 and time.time() - gunComp.lastShootTime >= gunComp.shootDelay):
+                gunComp.ammo -= 1
                 gunComp.lastShootTime = time.time()
                 gunComp.bulletPrefabFunc(currentScene)
 
@@ -161,3 +162,20 @@ class ActorSystem(EntitySystem):
                 sprite.SetTint(actor.damageTint)
             else:
                 sprite.SetTint(None)
+
+    # Reloading
+    def ActionReload(self, actor : ActorComponent, currentScene : Scene):
+        gun : GunComponent = actor.heldItem.GetComponent(GunComponent)
+        if gun:
+            if gun.isReloading or gun.ammo >= gun.ammoPerMagazine:
+                return
+
+            reloadEvent = TimedEvent(self.FinishReload,(gun,),gun.reloadTime,1,1)
+            self.StartTimedEvent(reloadEvent)
+            gun.isReloading = True
+
+    def FinishReload(self, gun : GunComponent):
+        gun.isReloading = False
+        ammoToAdd = Clamp(gun.ammoPerMagazine - gun.ammo, 0, gun.ammoReserves)
+        gun.ammo += ammoToAdd
+        gun.ammoReserves -= ammoToAdd

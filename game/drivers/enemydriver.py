@@ -4,7 +4,7 @@ from engine.tools.math import Distance, MoveTowardsDelta
 from game.components.actorcomponent import ActorComponent
 from game.components.playercomponent import PlayerComponent
 from game.drivers.driverbase import DriverBase
-import random
+import time
 
 
 class EnemyDriver(DriverBase):
@@ -14,7 +14,8 @@ class EnemyDriver(DriverBase):
         self.inputs["down"] = self.GetDown
         self.inputs["left"] = self.GetLeft
         self.inputs["right"] = self.GetRight
-        self.inputs["attack1"] = lambda : random.randint(0,100) >= 5 # todo attacking
+        self.inputs["attack1"] = lambda : self.lastClosestPlayer != None # todo attacking
+        self.inputs["reload"] = self.ShouldReload # todo attacking
 
         # Movement
         self.agroRange = 120
@@ -27,6 +28,9 @@ class EnemyDriver(DriverBase):
             "side" : None,
         }
 
+        self.lastClosestPlayer = None
+        self.lastReloadAttempt = time.time()
+
     def GetUp(self):
         return self.moveDelta and self.moveDelta[1] < 0
     def GetDown(self):
@@ -38,14 +42,14 @@ class EnemyDriver(DriverBase):
 
     def Update(self, actor : ActorComponent, currentScene : Scene):
         # Pathfinding
-        closestPlayer = self.ClosestPlayer(actor, currentScene)
-        if closestPlayer:
-            self.pathfinder.SolveWorld(actor.parentEntity.position,closestPlayer.parentEntity.position)
+        self.lastClosestPlayer = self.ClosestPlayer(actor, currentScene)
+        if self.lastClosestPlayer:
+            self.pathfinder.SolveWorld(actor.parentEntity.position,self.lastClosestPlayer.parentEntity.position)
             if self.pathfinder.cachedWorldPath and len(self.pathfinder.cachedWorldPath) > 2:
                 self.moveDelta = MoveTowardsDelta(actor.parentEntity.position,
                                              self.pathfinder.cachedWorldPath[1],
                                              1)
-            self.targetPosition = closestPlayer.parentEntity.position[:]
+            self.targetPosition = self.lastClosestPlayer.parentEntity.position[:]
 
         # Animation
         if actor.spriteRenderer:
@@ -71,3 +75,10 @@ class EnemyDriver(DriverBase):
                 closest = player
                 distance = dist
         return closest
+
+    def ShouldReload(self):
+        curTime = time.time()
+        if curTime - self.lastReloadAttempt > 3 or self.lastClosestPlayer == None:
+            self.lastReloadAttempt = curTime
+            return True
+        return False

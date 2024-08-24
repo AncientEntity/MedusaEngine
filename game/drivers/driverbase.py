@@ -9,7 +9,8 @@ class DriverBase:
             "down": None,
             "left": None,
             "right": None,
-            "attack1": None
+            "attack1": None,
+            "reload": None
         }
         self.targetPosition = (0,0)
 

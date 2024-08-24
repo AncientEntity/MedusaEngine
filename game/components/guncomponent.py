@@ -6,13 +6,15 @@ class GunComponent(ItemComponent):
     def __init__(self):
         super().__init__()
         self.bulletPrefabFunc = None # Func(currentScene)
-        self.shootDelay = 0.15
-        self.reloadTime = 0.8
+        self.shootDelay = 0.4
+        self.reloadTime = 1
 
-        self.magazineCount = 99999999 # 10
+        self.ammoPerMagazine = 10
         self.ammoReserves = 80
+        self.ammo = self.ammoPerMagazine
 
-        self.activeMagazineCount = self.magazineCount
         self.lastShootTime = 0
 
         self.friendly = True
+
+        self.isReloading = False
