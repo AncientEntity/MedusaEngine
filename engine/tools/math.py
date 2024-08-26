@@ -30,8 +30,8 @@ def NormalizeVec(vec):
     return [vec[0]/length,vec[1]/length]
 
 def LookAt(position, target):
-    normalized = NormalizeVec([position[0]-target[0],position[1]-target[1]])
-    return 180-math.degrees(math.atan2(normalized[1],normalized[0]))
+    normalized = [target[0]-position[0],target[1]-position[1]]
+    return math.degrees(math.atan2(-normalized[1],normalized[0])) # we apply -y as pygame displays negative as going up.
 
 def Clamp(value, min, max):
     if(value < min):
