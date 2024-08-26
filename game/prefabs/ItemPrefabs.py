@@ -11,26 +11,52 @@ def SpawnProjectileFactory(gunComponent : GunComponent, spriteRenderer):
         phys = PhysicsComponent()
         phys.physicsLayer = 1
 
-        pSpriteRend = SpriteRenderer(assets.worldTileset[0], 100, False)
-        pSpriteRend.sprite.SetScale((0.25, 0.25))
+        pSpriteRend = SpriteRenderer(gunComponent.projectileSprite, 100, False)
+        pSpriteRend.sprite.SetRotation(spriteRenderer.sprite._rotation)
+        pSpriteRend.sprite.SetScale((0.5, 0.5))
+
+        projectile = ProjectileComponent(gunComponent.projectileSpeed,
+                                         spriteRenderer.sprite._rotation-gunComponent.spriteRotationOffset,
+                                         gunComponent.friendly)
+        projectile.damage = gunComponent.damage
+
         currentScene.CreateEntity("Projectile",
                                   [int(gunComponent.parentEntity.position[0])
                                       , int(gunComponent.parentEntity.position[1])]
                                   , components=[pSpriteRend, phys,
-                                                ProjectileComponent(100, spriteRenderer.sprite._rotation, gunComponent.friendly)])
+                                                projectile])
     return SpawnProjectile
 
-def CreatePistolPrefab(currentScene : LevelScene, friendly=True):
+def CreateWoodenBowPrefab(currentScene : LevelScene, friendly=True):
     gunComponent = GunComponent()
+    gunComponent.spriteRotationOffset = -45
     gunComponent.friendly = friendly
-    spriteRenderer = SpriteRenderer(assets.worldTileset[0],60,False)
-    spriteRenderer.sprite.SetScale((0.5,0.5))
+    gunComponent.projectileSprite = assets.itemTileset["flint_arrow"]
+    spriteRenderer = SpriteRenderer(assets.itemTileset["wooden_bow"],60,False)
+    spriteRenderer.sprite.SetScale((1,1))
     physics = PhysicsComponent()
     physics.collidesWithLayers = []
     physics.triggersWithLayers = []
     physics.physicsLayer = 1
 
+    gunComponent.bulletPrefabFunc = SpawnProjectileFactory(gunComponent, spriteRenderer)
+
+    return currentScene.CreateEntity("WoodenBow",[0,40],components=[gunComponent,spriteRenderer,physics])
+
+def CreateSlingshotPrefab(currentScene : LevelScene, friendly=True):
+    gunComponent = GunComponent()
+    gunComponent.spriteRotationOffset = 60
+    gunComponent.friendly = friendly
+    gunComponent.projectileSprite = assets.itemTileset["stone_rock"]
+    gunComponent.damage = 60
+    gunComponent.projectileSpeed = 400
+    spriteRenderer = SpriteRenderer(assets.itemTileset["slingshot"],60,False)
+    spriteRenderer.sprite.SetScale((1,1))
+    physics = PhysicsComponent()
+    physics.collidesWithLayers = []
+    physics.triggersWithLayers = []
+    physics.physicsLayer = 1
 
     gunComponent.bulletPrefabFunc = SpawnProjectileFactory(gunComponent, spriteRenderer)
 
-    return currentScene.CreateEntity("Gun",[0,40],components=[gunComponent,spriteRenderer,physics])
+    return currentScene.CreateEntity("Slingshot",[0,40],components=[gunComponent,spriteRenderer,physics])

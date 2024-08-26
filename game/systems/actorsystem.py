@@ -122,9 +122,10 @@ class ActorSystem(EntitySystem):
         # todo refactor, code here seems messy. Also it currently takes screen mouse position, wont work later.
         if(actor.heldItem):
             actor.heldItem.position = actor.parentEntity.position[:]
-            actor.heldItem.GetComponent(SpriteRenderer).sprite.SetRotation(LookAt(actor.parentEntity.position,
-                                                                                  actor.driver.targetPosition))
             gunComp : GunComponent = actor.heldItem.GetComponent(GunComponent)
+            actor.heldItem.GetComponent(SpriteRenderer).sprite.SetRotation(LookAt(actor.parentEntity.position,
+                                                                                  actor.driver.targetPosition)+
+                                                                           gunComp.spriteRotationOffset)
             if(gunComp and gunComp.ammo > 0 and time.time() - gunComp.lastShootTime >= gunComp.shootDelay):
                 gunComp.ammo -= 1
                 gunComp.lastShootTime = time.time()

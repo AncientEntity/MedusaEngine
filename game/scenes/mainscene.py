@@ -11,7 +11,7 @@ from game.components.actorcomponent import ActorComponent
 from game.drivers.enemydriver import EnemyDriver
 from game.drivers.testaidriver import TestAIDriver
 from game.prefabs.GobinPrefab import CreateGoblinPrefab
-from game.prefabs.ItemPrefabs import CreatePistolPrefab
+from game.prefabs.ItemPrefabs import CreateWoodenBowPrefab, CreateSlingshotPrefab
 from game.prefabs.PlayerPrefab import CreatePlayer
 from game.systems.actorsystem import ActorSystem
 from game.systems.playersystem import PlayerSystem
@@ -33,7 +33,7 @@ class MainScene(LevelScene):
         player = CreatePlayer(self)
         self.GetSystemByClass(ActorSystem).cameraTarget = player
 
-        CreatePistolPrefab(self)
+        CreateSlingshotPrefab(self)
 
         #for i in range(5):
         #    eP = CreatePlayer(self)

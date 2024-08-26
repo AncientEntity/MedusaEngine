@@ -12,6 +12,9 @@ class GunComponent(ItemComponent):
         self.ammoPerMagazine = 10
         self.ammoReserves = 80
         self.ammo = self.ammoPerMagazine
+        self.damage = 100
+        self.projectileSprite = None
+        self.projectileSpeed = 100
 
         self.lastShootTime = 0
 
