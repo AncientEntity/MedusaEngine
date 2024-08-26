@@ -103,6 +103,7 @@ class Scene:
             if self.SystemUsesComponent(component,system):
             #if(type(component) in system.targetComponents): #swapped out for the above line as that function considers inheritance.
                 system.OnDeleteComponent(component)
+        component._registered = False
 
     def SystemUsesComponent(self, component : Component, system):
         for componentType in system.targetComponents:
