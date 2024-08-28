@@ -183,6 +183,7 @@ class RenderingSystem(EntitySystem):
         if not textRenderer.screenSpace:
             renderPosition = self.WorldToScreenPosition(renderPosition)
         else:
+            #for the user we center 0,0 on the screen but when drawing 0,0 is the top left. So we fix it here.
             renderPosition = (renderPosition[0] + self._scaledHalfSize[0], renderPosition[1] + self._scaledHalfSize[1])
 
         self._renderTarget.blit(actualSprite, (renderPosition[0], renderPosition[1]))
