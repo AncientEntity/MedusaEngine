@@ -55,6 +55,7 @@ def CreateSlingshotPrefab(currentScene : LevelScene, friendly=True):
     gunComponent.projectileSprite = assets.itemTileset["stone_rock"]
     gunComponent.damage = 60
     gunComponent.projectileSpeed = 150
+    gunComponent.spriteRotateHalf = True
     spriteRenderer = SpriteRenderer(assets.itemTileset["slingshot"],60,False)
     spriteRenderer.sprite.SetScale((1,1))
     physics = PhysicsComponent()
