@@ -89,7 +89,7 @@ class PlayerSystem(EntitySystem):
             curAfterImage.GetComponent(SpriteRenderer).sprite = player.runAnim
             curAfterImage.position = player.parentEntity.position[:]
 
-            player.physics.triggersWithLayers = []
+            player.physics.triggersWithLayers = [PHYSICS_OBJECTS]
         else:
             # Should be done, now remove after images and reset player tint.
             player.playerRenderer.sprite.SetTint(None)

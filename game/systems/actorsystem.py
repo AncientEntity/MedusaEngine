@@ -129,9 +129,10 @@ class ActorSystem(EntitySystem):
             weaponRotation = LookAt(actor.parentEntity.position,actor.driver.targetPosition)+gunComp.spriteRotationOffset
 
             weaponSprite.SetRotation(weaponRotation)
-            shouldFlip = True if weaponRotation <= -45 or weaponRotation >= 145 else False
-            weaponSprite.SetFlipY(shouldFlip)
-            weaponSprite.SetFlipX(shouldFlip)
+            if gunComp.spriteRotateHalf:
+                shouldFlip = True if weaponRotation <= -45 or weaponRotation >= 145 else False
+                weaponSprite.SetFlipY(shouldFlip)
+                weaponSprite.SetFlipX(shouldFlip)
 
             if(gunComp and gunComp.ammo > 0 and time.time() - gunComp.lastShootTime >= gunComp.shootDelay):
                 gunComp.ammo -= 1

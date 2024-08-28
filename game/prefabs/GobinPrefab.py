@@ -15,10 +15,11 @@ def CreateGoblinPrefab(currentScene: LevelScene):
     actor.speed = 400
     actor.driver = EnemyDriver()
     actor.heldItem = CreateSlingshotPrefab(currentScene, False)
+    actor.heldItem.held = True
 
     actor.driver.pathfinder = TilePathfinderHelper(
         TilemapPathfinder(list(currentScene.tileMapLayersByName.values()),
-                          [0]))
+                          [PHYSICS_WALLS]))
 
     sprite = SpriteRenderer(assets.dungeonTileSet["goblin_idle_anim_f0"], 50, False)
     phys = PhysicsComponent()

@@ -39,6 +39,9 @@ def CreatePlayer(currentScene : LevelScene):
         if(itemComp and itemComp.held == False):
             if(player.heldItem):
                 currentScene.DeleteEntity(player.heldItem)
+                currentGun = player.heldItem.GetComponent(GunComponent)
+                if currentGun:
+                    currentGun.uiAmmoPrefabHandler.Delete(currentScene)
                 player.heldItem = None
 
             player.heldItem = other.parentEntity
@@ -47,7 +50,6 @@ def CreatePlayer(currentScene : LevelScene):
             gunComp : GunComponent = other.parentEntity.GetComponent(GunComponent)
             if(gunComp):
                 gunComp.friendly = True
-                gunComp.uiAmmoPrefabHandler.Delete(currentScene)
 
     physicsComponent.onTriggerStart.append(OnTrigger)
 

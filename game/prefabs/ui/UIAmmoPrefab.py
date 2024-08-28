@@ -75,7 +75,14 @@ class UIAmmoPrefabHandler:
     def LerpAmmo(self):
         if self.ammoLerp == self.gun.ammo:
             return
-        if time.time() - self.lastAmmoChange >= self.lerpDelay:
+
+        lastLerpTime = time.time() - self.lastAmmoChange
+        if lastLerpTime >= self.lerpDelay*5:
+            self.ammoLerp = self.gun.ammo
+            self.lastAmmoChange = time.time()
+            return
+
+        if lastLerpTime >= self.lerpDelay:
             if self.ammoLerp < self.gun.ammo:
                 self.ammoLerp += 1
             else:

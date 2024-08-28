@@ -37,6 +37,8 @@ def CreateWoodenBowPrefab(currentScene : LevelScene, friendly=True):
     gunComponent.friendly = friendly
     gunComponent.damage = 80
     gunComponent.ammoPerMagazine = 5
+    gunComponent.ammo = 5
+    gunComponent.projectileSpeed = 150
     gunComponent.projectileSprite = assets.itemTileset["flint_arrow"]
     spriteRenderer = SpriteRenderer(assets.itemTileset["wooden_bow"],60,False)
     spriteRenderer.sprite.SetScale((1,1))

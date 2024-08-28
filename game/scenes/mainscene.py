@@ -33,13 +33,13 @@ class MainScene(LevelScene):
         player = CreatePlayer(self)
         self.GetSystemByClass(ActorSystem).cameraTarget = player
 
-        #CreateWoodenBowPrefab(self)
-        CreateSlingshotPrefab(self)
+        CreateWoodenBowPrefab(self)
+        #CreateSlingshotPrefab(self)
 
         #for i in range(5):
         #    eP = CreatePlayer(self)
         #    eP.GetComponent(ActorComponent).driver = TestAIDriver()
         #    eP.position = [random.randint(-200,200),random.randint(-200,200)]
-        #for i in range(5):
-        #    g = CreateGoblinPrefab(self)
-        #    g.position = [random.randint(-200, 200), random.randint(-200, 200)]
+        for i in range(5):
+            g = CreateGoblinPrefab(self)
+            g.position = [random.randint(-200, 200), random.randint(-200, 200)]
