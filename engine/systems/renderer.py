@@ -168,7 +168,7 @@ class RenderingSystem(EntitySystem):
                 finalSprite = GetSprite(particle.sprite)
                 self._renderTarget.blit(finalSprite,self.FinalPositionOfSprite(particle.position,finalSprite))
 
-    def RenderTextRenderer(self,textRenderer : TextRenderer):
+    def RenderTextRenderer(self, textRenderer: TextRenderer):
         if (textRenderer._render == None):
             return
 
@@ -177,13 +177,20 @@ class RenderingSystem(EntitySystem):
         if (actualSprite == None):
             return
 
-        if (False == self.IsOnScreenSprite(actualSprite, textRenderer.parentEntity.position, textRenderer.screenSpace)):
-            return
-        renderPosition = self.FinalPositionOfSprite(textRenderer.parentEntity.position,
-                                                    actualSprite, screenSpace=textRenderer.screenSpace)
+        renderPosition = (textRenderer.parentEntity.position[0] - textRenderer._alignOffset[0],
+                          textRenderer.parentEntity.position[1] - textRenderer._alignOffset[1])
 
+        if not textRenderer.screenSpace:
+            renderPosition = self.WorldToScreenPosition(renderPosition)
+        else:
+            #for the user we center 0,0 on the screen but when drawing 0,0 is the top left. So we fix it here.
+            renderPosition = (renderPosition[0] + self._scaledHalfSize[0], renderPosition[1] + self._scaledHalfSize[1])
 
-        self._renderTarget.blit(actualSprite, (renderPosition[0]-textRenderer._alignOffset[0],renderPosition[1]-textRenderer._alignOffset[1]))
+        self._renderTarget.blit(actualSprite, (renderPosition[0], renderPosition[1]))
+
+        # Debug circle at parent entity position todo remove this once certain feature works as should.
+        #pygame.draw.circle(self._renderTarget, (0, 0, 255),
+        #                   self.WorldToScreenPosition(textRenderer.parentEntity.position), 2)
 
     def WorldToScreenPosition(self,position):
         return [round(position[0] - self.cameraPosition[0] + self._scaledHalfSize[0]), round(position[1] - self.cameraPosition[1] + self._scaledHalfSize[1])]
