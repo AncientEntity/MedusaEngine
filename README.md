@@ -56,5 +56,5 @@ A* Pathfinding Demo [(play here)](https://anciententity.itch.io/medusa-astar-dem
 
 Topdown Demo (source lives in topdown branch)
 
-![python_47GFF5ARZ2](https://github.com/user-attachments/assets/f245a29f-c9be-4783-bc2d-40939c6323da)
+![python_rD6TbX63Ze](https://github.com/user-attachments/assets/5e480697-b03d-4236-8e07-4f03de67615e)
 
