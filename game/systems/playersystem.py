@@ -12,6 +12,7 @@ from game.components.actorcomponent import ActorComponent
 from game.components.playercomponent import PlayerComponent
 import pygame
 
+from game.constants import PHYSICS_ENEMIES, PHYSICS_OBJECTS, PHYSICS_PROJECTILES
 from game.systems.actorsystem import ActorSystem
 
 
@@ -41,9 +42,9 @@ class PlayerSystem(EntitySystem):
             player.playerRenderer.sprite = player.idleAnim
 
     def ActionPlayerDash(self, actor : ActorComponent, currentScene : Scene):
-        self.Dash(actor.parentEntity.GetComponent(PlayerComponent)) # todo hashtable for actor->parent component in system.
+        self.Dash(actor.parentEntity.GetComponent(PlayerComponent), currentScene) # todo hashtable for actor->parent component in system.
 
-    def Dash(self, player : PlayerComponent):
+    def Dash(self, player : PlayerComponent, currentScene : Scene):
         if(player == None):
             return
         timeSinceDash = time.time() - player.lastDashTime
@@ -59,6 +60,11 @@ class PlayerSystem(EntitySystem):
                 self.StartTimedEvent(player.dashTimedEvent)
                 for afterImage in player.afterImages:
                     afterImage.GetComponent(SpriteRenderer).sprite = None
+
+                actor : ActorComponent = player.parentEntity.GetComponent(ActorComponent)
+                if actor and actor.hitEffectEvent:
+                    currentScene.GetSystemByClass(ActorSystem).CancelTimedEvent(actor.hitEffectEvent)
+
     def OnNewComponent(self,component : PlayerComponent): #Called when a new component is created into the scene. (Used to initialize that component)
         component.physics = component.parentEntity.GetComponent(PhysicsComponent)
         component.playerRenderer = component.parentEntity.GetComponent(SpriteRenderer)
@@ -80,4 +86,4 @@ class PlayerSystem(EntitySystem):
             for afterImage in player.afterImages:
                 afterImage.GetComponent(SpriteRenderer).sprite = None
 
-            player.physics.triggersWithLayers = [1]
+            player.physics.triggersWithLayers = [PHYSICS_ENEMIES, PHYSICS_OBJECTS, PHYSICS_PROJECTILES]

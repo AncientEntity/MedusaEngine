@@ -4,12 +4,16 @@ from engine.scenes.levelscene import LevelScene
 from game import assets
 from game.components.guncomponent import GunComponent
 from game.components.projectilecomponent import ProjectileComponent
+from game.constants import PHYSICS_OBJECTS, PHYSICS_PROJECTILES
 
 
 def SpawnProjectileFactory(gunComponent : GunComponent, spriteRenderer):
     def SpawnProjectile(currentScene: LevelScene):
         phys = PhysicsComponent()
-        phys.physicsLayer = 1
+        phys.physicsLayer = PHYSICS_PROJECTILES
+
+        phys.collidesWithLayers = []
+        phys.triggersWithLayers = []
 
         pSpriteRend = SpriteRenderer(gunComponent.projectileSprite, 100, False)
         pSpriteRend.sprite.SetRotation(spriteRenderer.sprite._rotation)
@@ -31,13 +35,14 @@ def CreateWoodenBowPrefab(currentScene : LevelScene, friendly=True):
     gunComponent = GunComponent()
     gunComponent.spriteRotationOffset = -45
     gunComponent.friendly = friendly
+    gunComponent.damage = 80
     gunComponent.projectileSprite = assets.itemTileset["flint_arrow"]
     spriteRenderer = SpriteRenderer(assets.itemTileset["wooden_bow"],60,False)
     spriteRenderer.sprite.SetScale((1,1))
     physics = PhysicsComponent()
     physics.collidesWithLayers = []
     physics.triggersWithLayers = []
-    physics.physicsLayer = 1
+    physics.physicsLayer = PHYSICS_OBJECTS
 
     gunComponent.bulletPrefabFunc = SpawnProjectileFactory(gunComponent, spriteRenderer)
 
@@ -49,13 +54,13 @@ def CreateSlingshotPrefab(currentScene : LevelScene, friendly=True):
     gunComponent.friendly = friendly
     gunComponent.projectileSprite = assets.itemTileset["stone_rock"]
     gunComponent.damage = 60
-    gunComponent.projectileSpeed = 400
+    gunComponent.projectileSpeed = 150
     spriteRenderer = SpriteRenderer(assets.itemTileset["slingshot"],60,False)
     spriteRenderer.sprite.SetScale((1,1))
     physics = PhysicsComponent()
     physics.collidesWithLayers = []
     physics.triggersWithLayers = []
-    physics.physicsLayer = 1
+    physics.physicsLayer = PHYSICS_OBJECTS
 
     gunComponent.bulletPrefabFunc = SpawnProjectileFactory(gunComponent, spriteRenderer)
 

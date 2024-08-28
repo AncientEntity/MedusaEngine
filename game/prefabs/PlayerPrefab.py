@@ -7,6 +7,7 @@ from game.components.actorcomponent import ActorComponent
 from game.components.guncomponent import GunComponent
 from game.components.itemcomponent import ItemComponent
 from game.components.playercomponent import PlayerComponent
+from game.constants import PHYSICS_PLAYER, PHYSICS_ENEMIES, PHYSICS_WALLS, PHYSICS_OBJECTS, PHYSICS_PROJECTILES
 from game.drivers.playerdriver import PlayerDriver
 
 
@@ -24,11 +25,11 @@ def CreatePlayer(currentScene : LevelScene):
     physicsComponent = PhysicsComponent()
     physicsComponent.mapToSpriteOnStart = False
     physicsComponent.friction = [10,10]
-    physicsComponent.collidesWithLayers = [0]
+    physicsComponent.collidesWithLayers = [PHYSICS_WALLS]
     physicsComponent.bounds = [10,16]
     physicsComponent.offset = (0,6)
-    physicsComponent.triggersWithLayers = [1]
-    physicsComponent.physicsLayer = 1
+    physicsComponent.triggersWithLayers = [PHYSICS_ENEMIES, PHYSICS_OBJECTS, PHYSICS_PROJECTILES]
+    physicsComponent.physicsLayer = PHYSICS_PLAYER
     def OnTrigger(self : PhysicsComponent, other : PhysicsComponent):
         player = self.parentEntity.GetComponent(ActorComponent)
         if(player.heldItem == other.parentEntity):

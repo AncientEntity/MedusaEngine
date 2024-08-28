@@ -137,12 +137,12 @@ class ActorSystem(EntitySystem):
         if projectile and projectile.friendly != meActor.friendly and time.time() - meActor._lastDamageTime >= meActor.postHitInvincibility:
             meActor.heath -= projectile.damage
             meActor._lastDamageTime = time.time()
-            hitEffectEvent = TimedEvent(self.HitEffect,
+            meActor.hitEffectEvent = TimedEvent(self.HitEffect,
                                         args=(meActor,),
                                         startDelay=0,
                                         repeatDelay=meActor.postHitInvincibility,
                                         repeatCount=2)
-            self.StartTimedEvent(hitEffectEvent)
+            self.StartTimedEvent(meActor.hitEffectEvent)
             if(meActor.heath <= 0):
                 self.currentScene.DeleteEntity(me.parentEntity)
             self.currentScene.DeleteEntity(other.parentEntity)
@@ -152,12 +152,19 @@ class ActorSystem(EntitySystem):
             meActor.physics.AddVelocity(knockbackForce)
 
 
+    # todo redo this to have a give tint/remove tint event. Prevents other things from effecting the logic...
     def HitEffect(self, actor : ActorComponent):
         if isinstance(actor.driver, PlayerDriver):
             player : PlayerComponent = actor.parentEntity.GetComponent(PlayerComponent)
             sprites = [player.idleAnim,player.runAnim]
         else:
             sprites = list(actor.driver.animations.values())
+
+        # If _tint exists then we are about to remove it, so we remove the hitEffectEvent.
+        if sprites[0]._tint:
+            actor.hitEffectEvent = None
+
+        # If no tint, then give it a tint, otherwise set to no tint.
         for sprite in sprites:
             if(sprite._tint == None):
                 sprite.SetTint(actor.damageTint)

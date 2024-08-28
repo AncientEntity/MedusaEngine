@@ -152,7 +152,13 @@ class EntitySystem:
 
     def StartTimedEvent(self, timedEvent : TimedEvent):
         self.InsertTimedEvent(timedEvent)
-        #self._activeTimedEvents.append(timedEvent)
+    def CancelTimedEvent(self, timedEvent : TimedEvent):
+        for index in range(len(self._activeTimedEvents)):
+            if(self._activeTimedEvents[index] == timedEvent):
+                self._activeTimedEvents.pop(index)
+                return True
+        return False
+
     def TickTimedEvents(self):
         timedEvent: TimedEvent
         index = 0

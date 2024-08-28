@@ -33,7 +33,7 @@ class MainScene(LevelScene):
         player = CreatePlayer(self)
         self.GetSystemByClass(ActorSystem).cameraTarget = player
 
-        CreateSlingshotPrefab(self)
+        CreateWoodenBowPrefab(self)
 
         #for i in range(5):
         #    eP = CreatePlayer(self)
