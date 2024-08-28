@@ -3,6 +3,7 @@ import random
 import pygame.font
 
 from engine.components.rendering.textrenderer import TextRenderer
+from engine.constants import ALIGN_TOPLEFT
 from engine.scenes.levelscene import LevelScene
 from engine.systems.physics import PhysicsSystem
 from game import prefabs
@@ -26,8 +27,9 @@ class TiledTestScene(LevelScene):
 
         self.worldTextTest = self.CreateEntity("World Text Test",[-150,0],[TextRenderer("World Test String :)", pygame.font.SysFont("Arial",12))])
         self.worldTextTest.GetComponent(TextRenderer).screenSpace = False
-        self.screenSpaceText = self.CreateEntity("Screen Text Test",[-30,-30],[TextRenderer("Screen Text Test", pygame.font.SysFont("Arial",12))])
+        self.screenSpaceText = self.CreateEntity("Screen Text Test",[-130,-95],[TextRenderer("Screen Text Test", pygame.font.SysFont("Arial",12))])
         self.screenSpaceText.GetComponent(TextRenderer).screenSpace = True
+        self.screenSpaceText.GetComponent(TextRenderer).SetAlign(ALIGN_TOPLEFT)
 
         def SpawnEnemyAbovePlayer(s,o):
             if(o.parentEntity.name == "Player"):
