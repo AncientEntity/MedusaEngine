@@ -188,8 +188,9 @@ class RenderingSystem(EntitySystem):
 
         self._renderTarget.blit(actualSprite, (renderPosition[0], renderPosition[1]))
 
-        pygame.draw.circle(self._renderTarget, (0, 0, 255),
-                           self.WorldToScreenPosition(textRenderer.parentEntity.position), 2)
+        # Debug circle at parent entity position todo remove this once certain feature works as should.
+        #pygame.draw.circle(self._renderTarget, (0, 0, 255),
+        #                   self.WorldToScreenPosition(textRenderer.parentEntity.position), 2)
 
     def WorldToScreenPosition(self,position):
         return [round(position[0] - self.cameraPosition[0] + self._scaledHalfSize[0]), round(position[1] - self.cameraPosition[1] + self._scaledHalfSize[1])]
