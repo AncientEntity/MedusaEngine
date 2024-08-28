@@ -36,6 +36,7 @@ def CreateWoodenBowPrefab(currentScene : LevelScene, friendly=True):
     gunComponent.spriteRotationOffset = -45
     gunComponent.friendly = friendly
     gunComponent.damage = 80
+    gunComponent.ammoPerMagazine = 5
     gunComponent.projectileSprite = assets.itemTileset["flint_arrow"]
     spriteRenderer = SpriteRenderer(assets.itemTileset["wooden_bow"],60,False)
     spriteRenderer.sprite.SetScale((1,1))
@@ -54,6 +55,8 @@ def CreateSlingshotPrefab(currentScene : LevelScene, friendly=True):
     gunComponent.friendly = friendly
     gunComponent.projectileSprite = assets.itemTileset["stone_rock"]
     gunComponent.damage = 60
+    gunComponent.ammoPerMagazine = 8
+    gunComponent.ammo = 8
     gunComponent.projectileSpeed = 150
     gunComponent.spriteRotateHalf = True
     spriteRenderer = SpriteRenderer(assets.itemTileset["slingshot"],60,False)

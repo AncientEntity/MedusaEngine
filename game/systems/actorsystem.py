@@ -122,6 +122,8 @@ class ActorSystem(EntitySystem):
         if(actor.heldItem):
             actor.heldItem.position = actor.parentEntity.position[:]
             gunComp : GunComponent = actor.heldItem.GetComponent(GunComponent)
+            if gunComp.isReloading:
+                return
 
             weaponSprite = actor.heldItem.GetComponent(SpriteRenderer).sprite
             weaponRotation = LookAt(actor.parentEntity.position,actor.driver.targetPosition)+gunComp.spriteRotationOffset
@@ -183,6 +185,7 @@ class ActorSystem(EntitySystem):
             if gun.isReloading or gun.ammo >= gun.ammoPerMagazine:
                 return
 
+            gun.ammo = 0
             reloadEvent = TimedEvent(self.FinishReload,(gun,),gun.reloadTime,1,1)
             self.StartTimedEvent(reloadEvent)
             gun.isReloading = True
