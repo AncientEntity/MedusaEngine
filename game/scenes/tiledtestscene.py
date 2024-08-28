@@ -25,6 +25,9 @@ class TiledTestScene(LevelScene):
         self.player.position = self.GetRandomTiledObjectByName("SPAWN")["position"][:]
 
         self.worldTextTest = self.CreateEntity("World Text Test",[-150,0],[TextRenderer("World Test String :)", pygame.font.SysFont("Arial",12))])
+        self.worldTextTest.GetComponent(TextRenderer).screenSpace = False
+        self.screenSpaceText = self.CreateEntity("Screen Text Test",[-30,-30],[TextRenderer("Screen Text Test", pygame.font.SysFont("Arial",12))])
+        self.screenSpaceText.GetComponent(TextRenderer).screenSpace = True
 
         def SpawnEnemyAbovePlayer(s,o):
             if(o.parentEntity.name == "Player"):

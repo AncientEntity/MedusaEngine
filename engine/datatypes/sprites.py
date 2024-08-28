@@ -26,6 +26,7 @@ class Sprite:
         self.sprite = None  # Set in self.RefreshSprite ran at bottom of __init__.
 
         self._flipX = False
+        self._flipY = False
         self.ignoreCollision = False
         self._tint = None
         self._color = None
@@ -64,9 +65,9 @@ class Sprite:
         if(self._alpha != None):
             self.sprite.set_alpha(self._alpha)
 
-        #Handle FlipX
-        if(self._flipX):
-            self.sprite = pygame.transform.flip(self.sprite, True, False)
+        #Handle FlipX/FlipY
+        if(self._flipX or self._flipY):
+            self.sprite = pygame.transform.flip(self.sprite, self._flipX == True, self._flipY == True)
 
         #Handle rotation
         if(self._rotation):
@@ -79,6 +80,14 @@ class Sprite:
             return
 
         self._flipX = flipped
+        self.RefreshSprite()
+        return self
+
+    def SetFlipY(self, flipped):
+        if(self._flipY == flipped):
+            return
+
+        self._flipY = flipped
         self.RefreshSprite()
         return self
 
