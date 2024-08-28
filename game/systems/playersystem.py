@@ -9,26 +9,28 @@ from engine.ecs import EntitySystem, Scene, Component
 from engine.engine import Input
 from engine.tools.math import MoveTowards, Distance, NormalizeVec, LookAt, Magnitude
 from game.components.actorcomponent import ActorComponent
+from game.components.guncomponent import GunComponent
 from game.components.playercomponent import PlayerComponent
 import pygame
 
 from game.constants import PHYSICS_ENEMIES, PHYSICS_OBJECTS, PHYSICS_PROJECTILES
+from game.prefabs.ui.UIAmmoPrefab import UIAmmoPrefabHandler
 from game.systems.actorsystem import ActorSystem
 
 
 class PlayerSystem(EntitySystem):
     def __init__(self):
         super().__init__([PlayerComponent]) #Put target components here
-
     def OnEnable(self, currentScene : Scene):
         currentScene.GetSystemByClass(ActorSystem).RegisterAction("dash",self.ActionPlayerDash)
     def Update(self,currentScene : Scene):
+        player : PlayerComponent
         for player in currentScene.components[PlayerComponent]:
-            self.Animate(player)
+            self.Animate(player, currentScene)
         if Input.KeyPressed(pygame.K_g):
             self.game.LoadScene(self.game._game.startingScene)
 
-    def Animate(self, player : PlayerComponent):
+    def Animate(self, player : PlayerComponent, currentScene : Scene):
 
         moving = Magnitude(player.physics.velocity) > 0.1
 
@@ -40,6 +42,12 @@ class PlayerSystem(EntitySystem):
                 player.playerRenderer.sprite.SetFlipX(True)
         else:
             player.playerRenderer.sprite = player.idleAnim
+
+        # Render Ammo UI
+        if player.actor.heldItem:
+            heldGun: GunComponent = player.actor.heldItem.GetComponent(GunComponent)
+            if heldGun:
+                heldGun.uiAmmoPrefabHandler.Render(currentScene)
 
     def ActionPlayerDash(self, actor : ActorComponent, currentScene : Scene):
         self.Dash(actor.parentEntity.GetComponent(PlayerComponent), currentScene) # todo hashtable for actor->parent component in system.
@@ -68,6 +76,8 @@ class PlayerSystem(EntitySystem):
     def OnNewComponent(self,component : PlayerComponent): #Called when a new component is created into the scene. (Used to initialize that component)
         component.physics = component.parentEntity.GetComponent(PhysicsComponent)
         component.playerRenderer = component.parentEntity.GetComponent(SpriteRenderer)
+        component.actor = component.parentEntity.GetComponent(ActorComponent)
+
     @staticmethod
     def HandleAfterImages(player : PlayerComponent):
         curAfterImage = None

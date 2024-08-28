@@ -1,5 +1,5 @@
-from engine.ecs import Component
 from game.components.itemcomponent import ItemComponent
+from game.prefabs.ui.UIAmmoPrefab import UIAmmoPrefabHandler
 
 
 class GunComponent(ItemComponent):
@@ -21,3 +21,5 @@ class GunComponent(ItemComponent):
         self.friendly = True
 
         self.isReloading = False
+
+        self.uiAmmoPrefabHandler : UIAmmoPrefabHandler = UIAmmoPrefabHandler(self)

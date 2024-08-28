@@ -44,9 +44,11 @@ def CreatePlayer(currentScene : LevelScene):
             player.heldItem = other.parentEntity
             itemComp.held = True
 
-            gunComp = other.parentEntity.GetComponent(GunComponent)
+            gunComp : GunComponent = other.parentEntity.GetComponent(GunComponent)
             if(gunComp):
                 gunComp.friendly = True
+                gunComp.uiAmmoPrefabHandler.Delete(currentScene)
+
     physicsComponent.onTriggerStart.append(OnTrigger)
 
     # Create dash after images

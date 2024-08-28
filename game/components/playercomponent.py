@@ -4,6 +4,7 @@ from engine.datatypes.sprites import AnimatedSprite, Sprite
 from engine.datatypes.timedevents import TimedEvent
 from engine.ecs import Component
 from game import assets
+from game.components.actorcomponent import ActorComponent
 
 
 class PlayerComponent(Component):
@@ -13,6 +14,7 @@ class PlayerComponent(Component):
 
         self.physics : PhysicsComponent = None
         self.playerRenderer = None
+        self.actor : ActorComponent = None
         self.cachedWeaponSpriteRef : Sprite = None
 
         self.lastDashTime = 0 # Last time the player dashed

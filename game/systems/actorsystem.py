@@ -15,7 +15,6 @@ from game.components.projectilecomponent import ProjectileComponent
 from game.drivers.playerdriver import PlayerDriver
 from game.drivers.testaidriver import TestAIDriver
 
-
 class ActorSystem(EntitySystem):
     def __init__(self):
         super().__init__([ActorComponent]) #Put target components here

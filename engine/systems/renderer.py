@@ -104,9 +104,10 @@ class RenderingSystem(EntitySystem):
         if (spriteSurface == None):
             return
 
-        # Verify what is being drawn is on the screen
-        if (False == self.IsOnScreenSprite(spriteSurface, spriteRenderer.parentEntity.position)):
-            return
+        # Verify what is being drawn is on the screen (todo check for screen space properly)
+        if not spriteRenderer.screenSpace:
+            if (False == self.IsOnScreenSprite(spriteSurface, spriteRenderer.parentEntity.position)):
+                return
 
         finalPosition = self.FinalPositionOfSprite(spriteRenderer.parentEntity.position, spriteSurface, spriteRenderer.screenSpace)
         self._renderTarget.blit(spriteSurface, finalPosition)
