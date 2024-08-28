@@ -72,8 +72,8 @@ class RenderingSystem(EntitySystem):
 
         self.rawMousePosition = pygame.mouse.get_pos()
         self.screenMousePosition = ((self.rawMousePosition[0] - self._screenSize[0] / 2) / self.renderScale,(self.rawMousePosition[1] - self._screenSize[1] / 2) / self.renderScale)
-        self.worldMousePosition = (round((self.rawMousePosition[0] + self.cameraPosition[0] - self._screenSize[0] / 2) / self.renderScale),
-                                   round((self.rawMousePosition[1] + self.cameraPosition[1] - self._screenSize[1] / 2) / self.renderScale))
+        self.worldMousePosition = (self.screenMousePosition[0]+self.cameraPosition[0],
+                                   self.screenMousePosition[1]+self.cameraPosition[1])
 
         #Loop through sorted render order and render everything out.
         component : RendererComponent
@@ -105,7 +105,7 @@ class RenderingSystem(EntitySystem):
             return
 
         # Verify what is being drawn is on the screen
-        if (False == self.IsOnScreenSprite(spriteSurface, spriteRenderer.parentEntity.position)):
+        if (False == self.IsOnScreenSprite(spriteSurface, spriteRenderer.parentEntity.position, spriteRenderer.screenSpace)):
             return
 
         finalPosition = self.FinalPositionOfSprite(spriteRenderer.parentEntity.position, spriteSurface, spriteRenderer.screenSpace)
@@ -168,7 +168,7 @@ class RenderingSystem(EntitySystem):
                 finalSprite = GetSprite(particle.sprite)
                 self._renderTarget.blit(finalSprite,self.FinalPositionOfSprite(particle.position,finalSprite))
 
-    def RenderTextRenderer(self,textRenderer : TextRenderer):
+    def RenderTextRenderer(self, textRenderer: TextRenderer):
         if (textRenderer._render == None):
             return
 
@@ -177,18 +177,20 @@ class RenderingSystem(EntitySystem):
         if (actualSprite == None):
             return
 
-        renderPosition = textRenderer.parentEntity.position
-        if(textRenderer.screenSpace == True):
-            #if in screen space convert to screen space
+        renderPosition = (textRenderer.parentEntity.position[0] - textRenderer._alignOffset[0],
+                          textRenderer.parentEntity.position[1] - textRenderer._alignOffset[1])
+
+        if not textRenderer.screenSpace:
             renderPosition = self.WorldToScreenPosition(renderPosition)
         else:
-            # If in world space, verify what is being drawn is on the screen
-            if (False == self.IsOnScreenSprite(actualSprite, textRenderer.parentEntity.position)):
-                return
-            renderPosition = self.FinalPositionOfSprite(renderPosition, actualSprite, screenSpace=textRenderer.screenSpace)
+            #for the user we center 0,0 on the screen but when drawing 0,0 is the top left. So we fix it here.
+            renderPosition = (renderPosition[0] + self._scaledHalfSize[0], renderPosition[1] + self._scaledHalfSize[1])
 
+        self._renderTarget.blit(actualSprite, (renderPosition[0], renderPosition[1]))
 
-        self._renderTarget.blit(actualSprite, (renderPosition[0]-textRenderer._alignOffset[0],renderPosition[1]-textRenderer._alignOffset[1]))
+        # Debug circle at parent entity position todo remove this once certain feature works as should.
+        #pygame.draw.circle(self._renderTarget, (0, 0, 255),
+        #                   self.WorldToScreenPosition(textRenderer.parentEntity.position), 2)
 
     def WorldToScreenPosition(self,position):
         return [round(position[0] - self.cameraPosition[0] + self._scaledHalfSize[0]), round(position[1] - self.cameraPosition[1] + self._scaledHalfSize[1])]
@@ -203,11 +205,18 @@ class RenderingSystem(EntitySystem):
             #for the user we center 0,0 on the screen but when drawing 0,0 is the top left. So we fix it here.
             return (topLeftPosition[0]+self._scaledHalfSize[0],topLeftPosition[1]+self._scaledHalfSize[1])
 
-    def IsOnScreenSprite(self, sprite : pygame.Surface, position) -> bool:
-        return self.IsOnScreenRect(pygame.Rect(position[0]-sprite.get_width()//2,position[1]-sprite.get_height()//2,sprite.get_width(),sprite.get_height()))
+    def IsOnScreenSprite(self, sprite : pygame.Surface, position, screenSpace=False) -> bool:
+        if not screenSpace:
+            return self.IsOnScreenRect(pygame.Rect(position[0]-sprite.get_width()//2,position[1]-sprite.get_height()//2,sprite.get_width(),sprite.get_height()))
+        else:
+            return self.IsOnScreenSpaceRect(pygame.Rect(position[0]-sprite.get_width()//2,position[1]-sprite.get_height()//2,sprite.get_width(),sprite.get_height()))
 
     def IsOnScreenRect(self,rect : pygame.Rect):
         screenBounds = pygame.Rect(self.cameraPosition[0] - self._scaledHalfSize[0],self.cameraPosition[1] - self._scaledHalfSize[1],self._scaledScreenSize[0],self._scaledScreenSize[1])
+        return screenBounds.colliderect(rect)
+
+    def IsOnScreenSpaceRect(self, rect : pygame.Rect):
+        screenBounds = pygame.Rect(-self._scaledHalfSize[0],-self._scaledHalfSize[1],self._scaledScreenSize[0],self._scaledScreenSize[1])
         return screenBounds.colliderect(rect)
 
     def DebugDrawWorldRect(self,color,rect):
