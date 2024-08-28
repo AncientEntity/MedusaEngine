@@ -12,6 +12,7 @@ import platform
 
 from engine.logging import Log, LOG_ERRORS, LOG_INFO, LOG_WARNINGS
 from engine.scenes import splashscene
+from engine.tools.console import Console
 
 
 class Engine:
@@ -34,6 +35,8 @@ class Engine:
         Engine._instance = self
 
         self._queuedScene = None # LoadScene sets this, and the update loop will swap scenes if this isn't none.
+
+        self.console : Console = Console()
 
         self.LoadGame() #Loads self._game into the engine
     def LoadGame(self):
@@ -75,6 +78,10 @@ class Engine:
             self.InputTick()
             self._currentScene.Update()
 
+            # Console
+            if self.console.enabled:
+                self.console.Tick()
+
             await asyncio.sleep(0)
     def Init(self):
         Log("Game Initializing",LOG_INFO)
@@ -85,6 +92,7 @@ class Engine:
         if(self._game.icon != None):
             pygame.display.set_icon(self._game.icon)
         self.LoadScene(self._currentScene)
+        self.console.Init()
 
         Log("Game Initialized",LOG_INFO)
 
