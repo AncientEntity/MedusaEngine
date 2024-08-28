@@ -39,6 +39,9 @@ class UIAmmoPrefabHandler:
             currentY += random.randint(-1,1)
 
         if not self.ammoBottom:
+            # If ammoBottom doesnt exist it is the first time, therefore force ammo lerp
+            self.ammoLerp = self.gun.ammo
+
             botSpriteRenderer = SpriteRenderer(assets.uiTileset["ammo_bottom"])
             botSpriteRenderer.screenSpace = True
             self.ammoBottom = currentScene.CreateEntity("UIAmmoBottom", [currentX, currentY],
@@ -77,10 +80,6 @@ class UIAmmoPrefabHandler:
             return
 
         lastLerpTime = time.time() - self.lastAmmoChange
-        if lastLerpTime >= self.lerpDelay*5:
-            self.ammoLerp = self.gun.ammo
-            self.lastAmmoChange = time.time()
-            return
 
         if lastLerpTime >= self.lerpDelay:
             if self.ammoLerp < self.gun.ammo:
