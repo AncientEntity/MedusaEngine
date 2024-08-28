@@ -30,9 +30,13 @@ class UIAmmoPrefabHandler:
         self.ammoMiddle = []
 
     def Render(self, currentScene : Scene):
-        #import random
+        import random
         currentX = -120 #random.randint(-115,-110)
         currentY = 90
+
+        if self.gun.isReloading:
+            currentX += random.randint(-1,1)
+            currentY += random.randint(-1,1)
 
         if not self.ammoBottom:
             botSpriteRenderer = SpriteRenderer(assets.uiTileset["ammo_bottom"])
