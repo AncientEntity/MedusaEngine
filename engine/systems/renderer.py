@@ -104,10 +104,9 @@ class RenderingSystem(EntitySystem):
         if (spriteSurface == None):
             return
 
-        # Verify what is being drawn is on the screen (todo check for screen space properly)
-        if not spriteRenderer.screenSpace:
-            if (False == self.IsOnScreenSprite(spriteSurface, spriteRenderer.parentEntity.position)):
-                return
+        # Verify what is being drawn is on the screen
+        if (False == self.IsOnScreenSprite(spriteSurface, spriteRenderer.parentEntity.position, spriteRenderer.screenSpace)):
+            return
 
         finalPosition = self.FinalPositionOfSprite(spriteRenderer.parentEntity.position, spriteSurface, spriteRenderer.screenSpace)
         self._renderTarget.blit(spriteSurface, finalPosition)
@@ -178,15 +177,10 @@ class RenderingSystem(EntitySystem):
         if (actualSprite == None):
             return
 
-        renderPosition = textRenderer.parentEntity.position
-        if(textRenderer.screenSpace == True):
-            #if in screen space convert to screen space
-            renderPosition = self.WorldToScreenPosition(renderPosition)
-        else:
-            # If in world space, verify what is being drawn is on the screen
-            if (False == self.IsOnScreenSprite(actualSprite, textRenderer.parentEntity.position)):
-                return
-            renderPosition = self.FinalPositionOfSprite(renderPosition, actualSprite, screenSpace=textRenderer.screenSpace)
+        if (False == self.IsOnScreenSprite(actualSprite, textRenderer.parentEntity.position, textRenderer.screenSpace)):
+            return
+        renderPosition = self.FinalPositionOfSprite(textRenderer.parentEntity.position,
+                                                    actualSprite, screenSpace=textRenderer.screenSpace)
 
 
         self._renderTarget.blit(actualSprite, (renderPosition[0]-textRenderer._alignOffset[0],renderPosition[1]-textRenderer._alignOffset[1]))
@@ -204,11 +198,18 @@ class RenderingSystem(EntitySystem):
             #for the user we center 0,0 on the screen but when drawing 0,0 is the top left. So we fix it here.
             return (topLeftPosition[0]+self._scaledHalfSize[0],topLeftPosition[1]+self._scaledHalfSize[1])
 
-    def IsOnScreenSprite(self, sprite : pygame.Surface, position) -> bool:
-        return self.IsOnScreenRect(pygame.Rect(position[0]-sprite.get_width()//2,position[1]-sprite.get_height()//2,sprite.get_width(),sprite.get_height()))
+    def IsOnScreenSprite(self, sprite : pygame.Surface, position, screenSpace=False) -> bool:
+        if not screenSpace:
+            return self.IsOnScreenRect(pygame.Rect(position[0]-sprite.get_width()//2,position[1]-sprite.get_height()//2,sprite.get_width(),sprite.get_height()))
+        else:
+            return self.IsOnScreenSpaceRect(pygame.Rect(position[0]-sprite.get_width()//2,position[1]-sprite.get_height()//2,sprite.get_width(),sprite.get_height()))
 
     def IsOnScreenRect(self,rect : pygame.Rect):
         screenBounds = pygame.Rect(self.cameraPosition[0] - self._scaledHalfSize[0],self.cameraPosition[1] - self._scaledHalfSize[1],self._scaledScreenSize[0],self._scaledScreenSize[1])
+        return screenBounds.colliderect(rect)
+
+    def IsOnScreenSpaceRect(self, rect : pygame.Rect):
+        screenBounds = pygame.Rect(-self._scaledHalfSize[0],-self._scaledHalfSize[1],self._scaledScreenSize[0],self._scaledScreenSize[1])
         return screenBounds.colliderect(rect)
 
     def DebugDrawWorldRect(self,color,rect):
