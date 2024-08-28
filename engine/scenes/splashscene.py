@@ -13,7 +13,7 @@ class EngineSplashScreenLoadNextScene(EntitySystem):
         self.timeLeft = 1.8
     def Update(self, currentScene: Scene):
         self.timeLeft -= self.game.deltaTime
-        greyColor = Clamp(255 * (self.timeLeft / 2) + 80, 0, 255)
+        greyColor = Clamp(255 * (self.timeLeft / 2) + 35, 0, 255)
         currentScene.engineNameEntity.GetComponent(SpriteRenderer).sprite.SetColor((greyColor,greyColor,greyColor))
         currentScene.engineIconEntity.GetComponent(SpriteRenderer).sprite.SetColor((greyColor,greyColor,greyColor))
 
@@ -35,8 +35,8 @@ class EngineSplashScreenScene(Scene):
         self.engineNameEntity.name = "Engine Name Text"
 
         engineIcon = pygame.image.load("engine/art/logo.png")
-        engineIcon = pygame.transform.scale(engineIcon,(engineIcon.get_width()*(self.game.display.get_width()//300),engineIcon.get_height()*(self.game.display.get_height()//300)))
         self.engineIconEntity = self.CreateEntity("Engine Icon",[0,0],[SpriteRenderer(engineIcon)])
+        self.engineIconEntity.GetComponent(SpriteRenderer).sprite.SetScale((3,3))
         self.engineIconEntity.name = "Engine Icon"
 
         RenderingSystem.instance.backgroundColor = (0,0,0)
