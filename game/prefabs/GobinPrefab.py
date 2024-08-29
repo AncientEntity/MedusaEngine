@@ -5,6 +5,7 @@ from engine.datatypes.sprites import AnimatedSprite
 from engine.scenes.levelscene import LevelScene
 from game import assets
 from game.components.actorcomponent import ActorComponent
+from game.components.itemcomponent import ItemComponent
 from game.constants import PHYSICS_PLAYER, PHYSICS_ENEMIES, PHYSICS_PROJECTILES, PHYSICS_WALLS
 from game.drivers.enemydriver import EnemyDriver
 from game.prefabs.ItemPrefabs import CreateWoodenBowPrefab, CreateSlingshotPrefab
@@ -15,7 +16,7 @@ def CreateGoblinPrefab(currentScene: LevelScene):
     actor.speed = 400
     actor.driver = EnemyDriver()
     actor.heldItem = CreateSlingshotPrefab(currentScene, False)
-    actor.heldItem.held = True
+    actor.heldItem.GetComponent(ItemComponent).held = True
 
     actor.driver.pathfinder = TilePathfinderHelper(
         TilemapPathfinder(list(currentScene.tileMapLayersByName.values()),
