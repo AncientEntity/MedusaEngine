@@ -8,6 +8,8 @@ class UIHealthPrefabHandler(UIStatsBarPrefab):
 
         super().__init__()
 
+        self.minHealthShakePercent = 0.15
+
         self.lerpDelay = 0.01
         self.startingX = -120
 
@@ -31,4 +33,4 @@ class UIHealthPrefabHandler(UIStatsBarPrefab):
     def GetValueMax(self) -> int:
         return self.actor.maxHealth // 4
     def GetShouldShake(self) -> bool:
-        return False
+        return self.actor.health / self.actor.maxHealth <= self.minHealthShakePercent

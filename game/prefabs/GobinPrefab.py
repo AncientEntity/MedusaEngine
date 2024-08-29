@@ -26,7 +26,7 @@ def CreateGoblinPrefab(currentScene: LevelScene):
     phys.mapToSpriteOnStart = False
     phys.bounds = [8, 8]
     phys.friction = [10,10]
-    phys.collidesWithLayers = [PHYSICS_PLAYER, PHYSICS_WALLS]
+    phys.collidesWithLayers = [PHYSICS_WALLS, PHYSICS_ENEMIES]
     phys.triggersWithLayers = [PHYSICS_PROJECTILES]
     phys.physicsLayer = PHYSICS_ENEMIES
 

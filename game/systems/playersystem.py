@@ -21,7 +21,10 @@ from game.systems.actorsystem import ActorSystem
 class PlayerSystem(EntitySystem):
     def __init__(self):
         super().__init__([PlayerComponent]) #Put target components here
+
+        self.currentScene : Scene = None
     def OnEnable(self, currentScene : Scene):
+        self.currentScene = currentScene
         currentScene.GetSystemByClass(ActorSystem).RegisterAction("dash",self.ActionPlayerDash)
     def Update(self,currentScene : Scene):
         player : PlayerComponent
@@ -80,6 +83,15 @@ class PlayerSystem(EntitySystem):
         component.physics = component.parentEntity.GetComponent(PhysicsComponent)
         component.playerRenderer = component.parentEntity.GetComponent(SpriteRenderer)
         component.actor = component.parentEntity.GetComponent(ActorComponent)
+
+    def OnDeleteComponent(self, component : Component):
+        # Delete and remove the health UI and gun ammo UI of player.
+        actor : ActorComponent = component.parentEntity.GetComponent(ActorComponent)
+        component.healthUI.Delete(self.currentScene)
+        if actor.heldItem:
+            gun : GunComponent = actor.heldItem.GetComponent(GunComponent)
+            if gun:
+                gun.uiAmmoPrefabHandler.Delete(self.currentScene)
 
     @staticmethod
     def HandleAfterImages(player : PlayerComponent):
