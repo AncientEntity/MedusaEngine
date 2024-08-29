@@ -10,6 +10,7 @@ from game.components.actorcomponent import ActorComponent
 from game.components.guncomponent import GunComponent
 import time
 
+from game.components.itemcomponent import ItemComponent
 from game.components.playercomponent import PlayerComponent
 from game.components.projectilecomponent import ProjectileComponent
 from game.drivers.playerdriver import PlayerDriver
@@ -153,6 +154,8 @@ class ActorSystem(EntitySystem):
             self.StartTimedEvent(meActor.hitEffectEvent)
             if(meActor.health <= 0):
                 self.currentScene.DeleteEntity(me.parentEntity)
+                if meActor.heldItem:
+                    meActor.heldItem.GetComponent(ItemComponent).held = False
             self.currentScene.DeleteEntity(other.parentEntity)
 
             normalizedKnockback = NormalizeVec(projectile.velocity)
@@ -174,7 +177,7 @@ class ActorSystem(EntitySystem):
 
         # If no tint, then give it a tint, otherwise set to no tint.
         for sprite in sprites:
-            if(sprite._tint == None):
+            if(actor.hitEffectEvent):
                 sprite.SetTint(actor.damageTint)
             else:
                 sprite.SetTint(None)
