@@ -9,6 +9,7 @@ from game.components.itemcomponent import ItemComponent
 from game.components.playercomponent import PlayerComponent
 from game.constants import PHYSICS_PLAYER, PHYSICS_ENEMIES, PHYSICS_WALLS, PHYSICS_OBJECTS, PHYSICS_PROJECTILES
 from game.drivers.playerdriver import PlayerDriver
+from game.prefabs.ui.UIHealthPrefab import UIHealthPrefabHandler
 
 
 def CreatePlayer(currentScene : LevelScene):
@@ -16,9 +17,11 @@ def CreatePlayer(currentScene : LevelScene):
     actorComponent = ActorComponent()
     actorComponent.driver = PlayerDriver()
     actorComponent.friendly = True
-    actorComponent.heath = 200
+    actorComponent.health = 200
+    actorComponent.maxHealth = 200
 
     playerComponent = PlayerComponent()
+    playerComponent.healthUI = UIHealthPrefabHandler(actorComponent)
 
     spriteRenderer = SpriteRenderer(None)
     spriteRenderer.drawOrder = 50

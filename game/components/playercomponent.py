@@ -5,6 +5,7 @@ from engine.datatypes.timedevents import TimedEvent
 from engine.ecs import Component
 from game import assets
 from game.components.actorcomponent import ActorComponent
+from game.prefabs.ui.UIHealthPrefab import UIHealthPrefabHandler
 
 
 class PlayerComponent(Component):
@@ -16,6 +17,8 @@ class PlayerComponent(Component):
         self.playerRenderer = None
         self.actor : ActorComponent = None
         self.cachedWeaponSpriteRef : Sprite = None
+
+        self.healthUI : UIHealthPrefabHandler = None
 
         self.lastDashTime = 0 # Last time the player dashed
         self.dashDelay = 0.75

@@ -22,7 +22,8 @@ class ActorComponent(Component):
 
         # Health/Damage
         self.friendly = False
-        self.heath = 100
+        self.health = 100
+        self.maxHealth = 100
         self.damageTint = (200,0,0)
         self._lastDamageTime = 0
         self.postHitInvincibility = 0.25

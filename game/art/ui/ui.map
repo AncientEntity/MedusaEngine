@@ -1,3 +1,15 @@
 ammo_top 1 1 10 3
 ammo 1 4 10 4
 ammo_bottom 1 8 10 3
+
+health_top 1 12 10 3
+health_1 1 16 10 1
+health_2 1 17 10 1
+health_3 1 18 10 1
+health_4 1 19 10 1
+health_5 1 20 10 1
+health_6 1 21 10 1
+health_7 1 22 10 1
+health_8 1 23 10 1
+health_empty 1 25 10 1
+health_bottom 1 27 10 3

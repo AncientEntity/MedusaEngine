@@ -49,6 +49,9 @@ class PlayerSystem(EntitySystem):
             if heldGun:
                 heldGun.uiAmmoPrefabHandler.Render(currentScene)
 
+        # Render Health
+        player.healthUI.Render(currentScene)
+
     def ActionPlayerDash(self, actor : ActorComponent, currentScene : Scene):
         self.Dash(actor.parentEntity.GetComponent(PlayerComponent), currentScene) # todo hashtable for actor->parent component in system.
 

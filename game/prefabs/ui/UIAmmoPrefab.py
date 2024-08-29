@@ -1,89 +1,24 @@
-from engine.components.rendering.spriterenderer import SpriteRenderer
-from engine.ecs import Scene
 from game import assets
-import time
+from game.prefabs.ui.UIStatsBarPrefab import UIStatsBarPrefab
 
-class UIAmmoPrefabHandler:
+
+class UIAmmoPrefabHandler(UIStatsBarPrefab):
     def __init__(self, gun):
         self.gun = gun
 
-        self.ammoTop = None
-        self.ammoBottom = None
-        self.ammoMiddle = []
+        super().__init__()
 
-        self.ammoLerp = self.gun.ammo
-        self.lastAmmoChange = 0
-        self.lerpDelay = 0.02
+        self.startingX = -108
 
-    def Delete(self, currentScene : Scene):
-        if self.ammoTop:
-            currentScene.DeleteEntity(self.ammoTop)
-
-        if self.ammoBottom:
-            currentScene.DeleteEntity(self.ammoBottom)
-
-        for ammo in self.ammoMiddle:
-            currentScene.DeleteEntity(ammo)
-
-        self.ammoTop = None
-        self.ammoBottom = None
-        self.ammoMiddle = []
-
-    def Render(self, currentScene : Scene):
-        import random
-        currentX = -120 #random.randint(-115,-110)
-        currentY = 90
-
-        if self.gun.isReloading:
-            currentX += random.randint(-1,1)
-            currentY += random.randint(-1,1)
-
-        if not self.ammoBottom:
-            # If ammoBottom doesnt exist it is the first time, therefore force ammo lerp
-            self.ammoLerp = self.gun.ammo
-
-            botSpriteRenderer = SpriteRenderer(assets.uiTileset["ammo_bottom"])
-            botSpriteRenderer.screenSpace = True
-            self.ammoBottom = currentScene.CreateEntity("UIAmmoBottom", [currentX, currentY],
-                                                        components=[botSpriteRenderer])
-        else:
-            self.ammoBottom.position = [currentX, currentY]
-
-        self.LerpAmmo()
-
-        for i in range(self.gun.ammoPerMagazine):
-            if i > self.ammoLerp-1:
-                if i < len(self.ammoMiddle):
-                    self.ammoMiddle[i].position = [99999, 99999]
-                continue
-
-            currentY -= 5
-            if i >= len(self.ammoMiddle):
-                spriteRenderer = SpriteRenderer(assets.uiTileset["ammo"])
-                spriteRenderer.screenSpace = True
-                self.ammoMiddle.append(currentScene.CreateEntity("UIAmmo", [currentX, currentY],
-                                                                 components=[spriteRenderer]))
-            else:
-                self.ammoMiddle[i].position = [currentX, currentY]
-
-        if not self.ammoTop:
-            topSpriteRenderer = SpriteRenderer(assets.uiTileset["ammo_top"])
-            topSpriteRenderer.screenSpace = True
-            self.ammoTop = currentScene.CreateEntity("UIAmmoTop", [currentX, currentY - 5],
-                                                     components=[topSpriteRenderer])
-        else:
-            self.ammoTop.position = [currentX, currentY - 5]
+        self.topSprite = assets.uiTileset["ammo_top"]
+        self.midSprites = [ assets.uiTileset["ammo"]]
+        self.midEmptySprite = None
+        self.bottomSprite = assets.uiTileset["ammo_bottom"]
 
 
-    def LerpAmmo(self):
-        if self.ammoLerp == self.gun.ammo:
-            return
-
-        lastLerpTime = time.time() - self.lastAmmoChange
-
-        if lastLerpTime >= self.lerpDelay:
-            if self.ammoLerp < self.gun.ammo:
-                self.ammoLerp += 1
-            else:
-                self.ammoLerp -= 1
-            self.lastAmmoChange = time.time()
+    def GetValue(self) -> int:
+        return self.gun.ammo
+    def GetValueMax(self) -> int:
+        return self.gun.ammoPerMagazine
+    def GetShouldShake(self) -> bool:
+        return self.gun.isReloading

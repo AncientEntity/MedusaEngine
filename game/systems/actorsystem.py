@@ -143,7 +143,7 @@ class ActorSystem(EntitySystem):
         projectile : ProjectileComponent = other.parentEntity.GetComponent(ProjectileComponent)
         meActor : ActorComponent = me.parentEntity.GetComponent(ActorComponent) #todo remove GetComponent.
         if projectile and projectile.friendly != meActor.friendly and time.time() - meActor._lastDamageTime >= meActor.postHitInvincibility:
-            meActor.heath -= projectile.damage
+            meActor.health -= projectile.damage
             meActor._lastDamageTime = time.time()
             meActor.hitEffectEvent = TimedEvent(self.HitEffect,
                                         args=(meActor,),
@@ -151,7 +151,7 @@ class ActorSystem(EntitySystem):
                                         repeatDelay=meActor.postHitInvincibility,
                                         repeatCount=2)
             self.StartTimedEvent(meActor.hitEffectEvent)
-            if(meActor.heath <= 0):
+            if(meActor.health <= 0):
                 self.currentScene.DeleteEntity(me.parentEntity)
             self.currentScene.DeleteEntity(other.parentEntity)
 
