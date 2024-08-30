@@ -7,16 +7,17 @@ from game import assets
 from game.components.actorcomponent import ActorComponent
 from game.components.itemcomponent import ItemComponent
 from game.constants import PHYSICS_PLAYER, PHYSICS_ENEMIES, PHYSICS_PROJECTILES, PHYSICS_WALLS
-from game.drivers.enemydriver import EnemyDriver
+from game.drivers.walkingenemydriver import WalkingEnemyDriver
 from game.prefabs.ItemPrefabs import CreateWoodenBowPrefab, CreateSlingshotPrefab
 
 
 def CreateGoblinPrefab(currentScene: LevelScene):
     actor = ActorComponent()
     actor.speed = 400
-    actor.driver = EnemyDriver()
+    actor.driver = WalkingEnemyDriver()
     actor.heldItem = CreateSlingshotPrefab(currentScene, False)
     actor.heldItem.GetComponent(ItemComponent).held = True
+    actor.destroyItemOnDeath = True
 
     actor.driver.pathfinder = TilePathfinderHelper(
         TilemapPathfinder(list(currentScene.tileMapLayersByName.values()),

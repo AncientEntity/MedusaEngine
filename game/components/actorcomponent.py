@@ -15,6 +15,7 @@ class ActorComponent(Component):
 
         # Inventory
         self.heldItem : Entity = None
+        self.destroyItemOnDeath = False
 
         # Animation
         self.spriteRenderer : SpriteRenderer = None

@@ -7,7 +7,7 @@ from game.drivers.driverbase import DriverBase
 import time
 
 
-class EnemyDriver(DriverBase):
+class WalkingEnemyDriver(DriverBase):
     def __init__(self):
         super().__init__()
         self.inputs["up"] = self.GetUp

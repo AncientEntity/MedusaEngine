@@ -8,8 +8,9 @@ from engine.systems.physics import PhysicsSystem
 from engine.systems.renderer import RenderingSystem
 from game import assets
 from game.components.actorcomponent import ActorComponent
-from game.drivers.enemydriver import EnemyDriver
+from game.drivers.walkingenemydriver import WalkingEnemyDriver
 from game.drivers.testaidriver import TestAIDriver
+from game.prefabs.FloatingSwordPrefab import CreateFloatingSwordPrefab
 from game.prefabs.GobinPrefab import CreateGoblinPrefab
 from game.prefabs.ItemPrefabs import CreateWoodenBowPrefab, CreateSlingshotPrefab
 from game.prefabs.PlayerPrefab import CreatePlayer
@@ -41,5 +42,5 @@ class MainScene(LevelScene):
         #    eP.GetComponent(ActorComponent).driver = TestAIDriver()
         #    eP.position = [random.randint(-200,200),random.randint(-200,200)]
         for i in range(5):
-            g = CreateGoblinPrefab(self)
+            g = CreateFloatingSwordPrefab(self)
             g.position = [random.randint(-200, 200), random.randint(-200, 200)]

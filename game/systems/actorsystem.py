@@ -156,6 +156,8 @@ class ActorSystem(EntitySystem):
                 self.currentScene.DeleteEntity(me.parentEntity)
                 if meActor.heldItem:
                     meActor.heldItem.GetComponent(ItemComponent).held = False
+                    if meActor.destroyItemOnDeath:
+                        self.currentScene.DeleteEntity(meActor.heldItem)
             self.currentScene.DeleteEntity(other.parentEntity)
 
             normalizedKnockback = NormalizeVec(projectile.velocity)
@@ -184,6 +186,9 @@ class ActorSystem(EntitySystem):
 
     # Reloading
     def ActionReload(self, actor : ActorComponent, currentScene : Scene):
+        if not actor.heldItem:
+            return
+
         gun : GunComponent = actor.heldItem.GetComponent(GunComponent)
         if gun:
             if gun.isReloading or gun.ammo >= gun.ammoPerMagazine:
