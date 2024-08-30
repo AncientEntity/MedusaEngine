@@ -157,8 +157,8 @@ class ActorSystem(EntitySystem):
         if not meActor or not otherActor:
             return
         if otherActor.meleeDamage > 0:
-            normalizedKnockback = NormalizeVec((otherActor.parentEntity.position[0]-meActor.parentEntity.position[0],
-                                                otherActor.parentEntity.position[1]-meActor.parentEntity.position[1]))
+            normalizedKnockback = NormalizeVec((meActor.parentEntity.position[0]-otherActor.parentEntity.position[0],
+                                                meActor.parentEntity.position[1]-otherActor.parentEntity.position[1]))
             knockbackForce = (
                 normalizedKnockback[0] * otherActor.meleeKnockbackForce, normalizedKnockback[1] * otherActor.meleeKnockbackForce)
             self.DoDamage(meActor, otherActor.meleeDamage, knockbackForce)

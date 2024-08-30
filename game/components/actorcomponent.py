@@ -27,7 +27,7 @@ class ActorComponent(Component):
         self.maxHealth = 100
         self.damageTint = (200,0,0)
         self.meleeDamage = 25
-        self.meleeKnockbackForce = 250
+        self.meleeKnockbackForce = 80
 
         self._lastDamageTime = 0
         self.postHitInvincibility = 0.25

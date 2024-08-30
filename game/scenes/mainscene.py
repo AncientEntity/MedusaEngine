@@ -42,5 +42,8 @@ class MainScene(LevelScene):
         #    eP.GetComponent(ActorComponent).driver = TestAIDriver()
         #    eP.position = [random.randint(-200,200),random.randint(-200,200)]
         for i in range(5):
-            g = CreateFloatingSwordPrefab(self)
+            if random.randint(0,100) <= 25:
+                g = CreateFloatingSwordPrefab(self)
+            else:
+                g = CreateGoblinPrefab(self)
             g.position = [random.randint(-200, 200), random.randint(-200, 200)]

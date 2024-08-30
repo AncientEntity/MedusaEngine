@@ -43,7 +43,6 @@ class FloatingSwordDriver(DriverBase):
                                                                                self.moveDelta[1] * actor.speed))
             self.lastMoveUpdate = time.time()
         elif timeSince >= self.moveUpdateDelay or actor.spriteRenderer.sprite._rotation != self.finalSpinRotation:
-            print(actor.spriteRenderer.sprite._rotation,self.finalSpinRotation)
             if actor.spriteRenderer.sprite._rotation == None:
                 actor.spriteRenderer.sprite._rotation = 0
             actor.spriteRenderer.sprite.SetRotation((actor.spriteRenderer.sprite._rotation + 1) % 360)
