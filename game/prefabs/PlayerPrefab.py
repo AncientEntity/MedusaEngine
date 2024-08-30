@@ -19,6 +19,7 @@ def CreatePlayer(currentScene : LevelScene):
     actorComponent.friendly = True
     actorComponent.health = 200
     actorComponent.maxHealth = 200
+    actorComponent.meleeDamage = 0
 
     playerComponent = PlayerComponent()
     playerComponent.healthUI = UIHealthPrefabHandler(actorComponent)

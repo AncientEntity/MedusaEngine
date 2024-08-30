@@ -82,6 +82,7 @@ class ActorSystem(EntitySystem):
             self.actors.append(component)
             component.physics = component.parentEntity.GetComponent(PhysicsComponent)
             component.spriteRenderer = component.parentEntity.GetComponent(SpriteRenderer)
+            component.physics.onTriggerStart.append(self.OnActorsInteract)
             component.physics.onTriggerStart.append(self.OnProjectileEnter)
     def OnDeleteComponent(self, component : Component): #Called when an existing component is destroyed (Use for deinitializing it from the systems involved)
         if(isinstance(component,ActorComponent)):
@@ -144,26 +145,41 @@ class ActorSystem(EntitySystem):
         projectile : ProjectileComponent = other.parentEntity.GetComponent(ProjectileComponent)
         meActor : ActorComponent = me.parentEntity.GetComponent(ActorComponent) #todo remove GetComponent.
         if projectile and projectile.friendly != meActor.friendly and time.time() - meActor._lastDamageTime >= meActor.postHitInvincibility:
-            meActor.health -= projectile.damage
-            meActor._lastDamageTime = time.time()
-            meActor.hitEffectEvent = TimedEvent(self.HitEffect,
-                                        args=(meActor,),
-                                        startDelay=0,
-                                        repeatDelay=meActor.postHitInvincibility,
-                                        repeatCount=2)
-            self.StartTimedEvent(meActor.hitEffectEvent)
-            if(meActor.health <= 0):
-                self.currentScene.DeleteEntity(me.parentEntity)
-                if meActor.heldItem:
-                    meActor.heldItem.GetComponent(ItemComponent).held = False
-                    if meActor.destroyItemOnDeath:
-                        self.currentScene.DeleteEntity(meActor.heldItem)
+            normalizedKnockback = NormalizeVec(projectile.velocity)
+            knockbackForce = (
+                normalizedKnockback[0] * projectile.knockbackForce, normalizedKnockback[1] * projectile.knockbackForce)
+            self.DoDamage(meActor, projectile.damage, knockbackForce)
             self.currentScene.DeleteEntity(other.parentEntity)
 
-            normalizedKnockback = NormalizeVec(projectile.velocity)
-            knockbackForce = (normalizedKnockback[0]*projectile.knockbackForce,normalizedKnockback[1]*projectile.knockbackForce)
-            meActor.physics.AddVelocity(knockbackForce)
+    def OnActorsInteract(self, me : PhysicsComponent, other : PhysicsComponent):
+        meActor : ActorComponent = me.parentEntity.GetComponent(ActorComponent)
+        otherActor : ActorComponent = other.parentEntity.GetComponent(ActorComponent)
+        if not meActor or not otherActor:
+            return
+        if otherActor.meleeDamage > 0:
+            normalizedKnockback = NormalizeVec((otherActor.parentEntity.position[0]-meActor.parentEntity.position[0],
+                                                otherActor.parentEntity.position[1]-meActor.parentEntity.position[1]))
+            knockbackForce = (
+                normalizedKnockback[0] * otherActor.meleeKnockbackForce, normalizedKnockback[1] * otherActor.meleeKnockbackForce)
+            self.DoDamage(meActor, otherActor.meleeDamage, knockbackForce)
 
+    def DoDamage(self, actor : ActorComponent, damageAmount : int, knockbackVelocity):
+        actor.health -= damageAmount
+        actor._lastDamageTime = time.time()
+        actor.hitEffectEvent = TimedEvent(self.HitEffect,
+                                            args=(actor,),
+                                            startDelay=0,
+                                            repeatDelay=actor.postHitInvincibility,
+                                            repeatCount=2)
+        self.StartTimedEvent(actor.hitEffectEvent)
+        if (actor.health <= 0):
+            self.currentScene.DeleteEntity(actor.parentEntity)
+            if actor.heldItem:
+                actor.heldItem.GetComponent(ItemComponent).held = False
+                if actor.destroyItemOnDeath:
+                    self.currentScene.DeleteEntity(actor.heldItem)
+
+        actor.physics.AddVelocity(knockbackVelocity)
 
     # todo redo this to have a give tint/remove tint event. Prevents other things from effecting the logic...
     def HitEffect(self, actor : ActorComponent):
