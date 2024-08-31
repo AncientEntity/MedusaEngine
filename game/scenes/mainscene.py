@@ -37,12 +37,15 @@ class MainScene(LevelScene):
         CreateWoodenBowPrefab(self)
         #CreateSlingshotPrefab(self)
 
+        #g = CreateFloatingSwordPrefab(self)
+        #g.position = [100, 110]
+
         #for i in range(5):
         #    eP = CreatePlayer(self)
         #    eP.GetComponent(ActorComponent).driver = TestAIDriver()
         #    eP.position = [random.randint(-200,200),random.randint(-200,200)]
         for i in range(5):
-            if random.randint(0,100) <= 100:
+            if random.randint(0,100) <= 25:
                 g = CreateFloatingSwordPrefab(self)
             else:
                 g = CreateGoblinPrefab(self)

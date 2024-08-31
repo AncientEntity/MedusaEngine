@@ -10,6 +10,7 @@ class UIStatsBarPrefab:
         self.midSprites = []
         self.midEmptySprite = None
         self.bottomSprite = None
+        self.drawOrder = 200
 
         self.startingX = -120
         self.startingY = 90
@@ -52,6 +53,7 @@ class UIStatsBarPrefab:
 
             botSpriteRenderer = SpriteRenderer(self.bottomSprite)
             botSpriteRenderer.screenSpace = True
+            botSpriteRenderer.drawOrder = self.drawOrder
             self.statsBottom = currentScene.CreateEntity("UIStatBottom", [currentX, currentY],
                                                          components=[botSpriteRenderer])
         else:
@@ -72,6 +74,7 @@ class UIStatsBarPrefab:
             if i >= len(self.statsMiddle):
                 spriteRenderer = SpriteRenderer(self.midSprites[random.randint(0,len(self.midSprites)-1)])
                 spriteRenderer.screenSpace = True
+                spriteRenderer.drawOrder = self.drawOrder
                 self.statsMiddle.append(currentScene.CreateEntity("UIStatCenter", [currentX, currentY],
                                                                   components=[spriteRenderer]))
             else:
@@ -80,6 +83,7 @@ class UIStatsBarPrefab:
         if not self.statsTop:
             topSpriteRenderer = SpriteRenderer(self.topSprite)
             topSpriteRenderer.screenSpace = True
+            topSpriteRenderer.drawOrder = self.drawOrder
             self.statsTop = currentScene.CreateEntity("UIStatTop", [currentX, currentY - self.margin],
                                                       components=[topSpriteRenderer])
         else:

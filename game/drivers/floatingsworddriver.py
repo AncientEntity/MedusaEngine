@@ -2,7 +2,7 @@ from engine.components.physicscomponent import PhysicsComponent
 from engine.components.rendering.spriterenderer import SpriteRenderer
 from engine.datatypes.pathfinding import TilePathfinderHelper
 from engine.ecs import Scene
-from engine.tools.math import Distance, MoveTowardsDelta, LookAt
+from engine.tools.math import Distance, MoveTowardsDelta, LookAt, LerpRotation
 from game.components.actorcomponent import ActorComponent
 from game.components.playercomponent import PlayerComponent
 from game.drivers.driverbase import DriverBase
@@ -18,6 +18,7 @@ class FloatingSwordDriver(DriverBase):
         self.pathfinder : TilePathfinderHelper = None # Must be set in prefab.
         self.moveDelta = None
 
+        self.spinSpeed = 650
         self.moveUpdateDelay = 2
         self.spinDuration = 1
         self.finalSpinRotation = 0
@@ -44,7 +45,11 @@ class FloatingSwordDriver(DriverBase):
         elif timeSince >= self.moveUpdateDelay or actor.spriteRenderer.sprite._rotation != self.finalSpinRotation:
             if actor.spriteRenderer.sprite._rotation == None:
                 actor.spriteRenderer.sprite._rotation = 0
-            actor.spriteRenderer.sprite.SetRotation((actor.spriteRenderer.sprite._rotation + 1) % 360)
+
+            targetRotation = self.finalSpinRotation if timeSince <= self.moveUpdateDelay else actor.spriteRenderer.sprite._rotation+180
+            actor.spriteRenderer.sprite.SetRotation(LerpRotation(actor.spriteRenderer.sprite._rotation,
+                                                                 targetRotation,
+                                                                 self.spinSpeed * currentScene.game.deltaTime))
             return
 
 
