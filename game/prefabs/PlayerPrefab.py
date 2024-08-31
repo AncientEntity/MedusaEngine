@@ -14,7 +14,7 @@ from game.prefabs.ui.UIHealthPrefab import UIHealthPrefabHandler
 
 def CreatePlayer(currentScene : LevelScene):
 
-    actorComponent = ActorComponent()
+    actorComponent : ActorComponent = ActorComponent()
     actorComponent.driver = PlayerDriver()
     actorComponent.friendly = True
     actorComponent.health = 200
@@ -23,6 +23,9 @@ def CreatePlayer(currentScene : LevelScene):
 
     playerComponent = PlayerComponent()
     playerComponent.healthUI = UIHealthPrefabHandler(actorComponent)
+
+    actorComponent.hitEffectSprites.append(playerComponent.idleAnim)
+    actorComponent.hitEffectSprites.append(playerComponent.runAnim)
 
     spriteRenderer = SpriteRenderer(None)
     spriteRenderer.drawOrder = 50

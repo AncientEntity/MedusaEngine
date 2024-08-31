@@ -1,5 +1,6 @@
 from engine.components.physicscomponent import PhysicsComponent
 from engine.components.rendering.spriterenderer import SpriteRenderer
+from engine.datatypes.sprites import Sprite
 from engine.datatypes.timedevents import TimedEvent
 from engine.ecs import Component, Entity
 
@@ -7,6 +8,7 @@ class ActorComponent(Component):
     def __init__(self):
         super().__init__()
         self.driver = None
+        self.alive = True
 
         # Movement
         self._movementThisTick = [0,0]
@@ -19,6 +21,7 @@ class ActorComponent(Component):
 
         # Animation
         self.spriteRenderer : SpriteRenderer = None
+        self.hitEffectSprites : list[Sprite] = [] # Sprites in here get tinted on hit.
         self.hitEffectEvent : TimedEvent = None # The current hit effect event (coloured tint on hit).
 
         # Health/Damage

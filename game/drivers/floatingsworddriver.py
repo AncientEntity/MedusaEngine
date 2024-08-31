@@ -18,18 +18,17 @@ class FloatingSwordDriver(DriverBase):
         self.pathfinder : TilePathfinderHelper = None # Must be set in prefab.
         self.moveDelta = None
 
-        self.lastMoveUpdate = time.time()
         self.moveUpdateDelay = 2
         self.spinDuration = 1
         self.finalSpinRotation = 0
-
+        self._lastMoveUpdate = time.time() - self.moveUpdateDelay
 
         # Animations
         self.animations = {}
     def Update(self, actor : ActorComponent, currentScene : Scene):
         # Pathfinding
 
-        timeSince = time.time() - self.lastMoveUpdate
+        timeSince = time.time() - self._lastMoveUpdate
 
         if timeSince >= self.moveUpdateDelay+self.spinDuration:
             lastClosestPlayer = self.ClosestPlayer(actor, currentScene)
@@ -41,7 +40,7 @@ class FloatingSwordDriver(DriverBase):
                     LookAt(actor.parentEntity.position, lastClosestPlayer.parentEntity.position)-45) % 360
                 actor.parentEntity.GetComponent(PhysicsComponent).AddVelocity((self.moveDelta[0] * actor.speed,
                                                                                self.moveDelta[1] * actor.speed))
-            self.lastMoveUpdate = time.time()
+            self._lastMoveUpdate = time.time()
         elif timeSince >= self.moveUpdateDelay or actor.spriteRenderer.sprite._rotation != self.finalSpinRotation:
             if actor.spriteRenderer.sprite._rotation == None:
                 actor.spriteRenderer.sprite._rotation = 0

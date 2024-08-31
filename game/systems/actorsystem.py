@@ -42,7 +42,7 @@ class ActorSystem(EntitySystem):
     def Update(self,currentScene : Scene):
         actor : ActorComponent
         for actor in self.actors:
-            if not actor.driver:
+            if not actor.driver or not actor.alive:
                 continue
 
             # Reset movement this tick
@@ -154,7 +154,7 @@ class ActorSystem(EntitySystem):
     def OnActorsInteract(self, me : PhysicsComponent, other : PhysicsComponent):
         meActor : ActorComponent = me.parentEntity.GetComponent(ActorComponent)
         otherActor : ActorComponent = other.parentEntity.GetComponent(ActorComponent)
-        if not meActor or not otherActor:
+        if not meActor or not otherActor or not otherActor.alive:
             return
         if otherActor.meleeDamage > 0:
             normalizedKnockback = NormalizeVec((meActor.parentEntity.position[0]-otherActor.parentEntity.position[0],
@@ -166,36 +166,39 @@ class ActorSystem(EntitySystem):
     def DoDamage(self, actor : ActorComponent, damageAmount : int, knockbackVelocity):
         actor.health -= damageAmount
         actor._lastDamageTime = time.time()
+        self.HitEffect(actor,True)
         actor.hitEffectEvent = TimedEvent(self.HitEffect,
-                                            args=(actor,),
-                                            startDelay=0,
-                                            repeatDelay=actor.postHitInvincibility,
-                                            repeatCount=2)
+                                            args=(actor,False),
+                                            startDelay=actor.postHitInvincibility,
+                                            repeatDelay=0,
+                                            repeatCount=1)
         self.StartTimedEvent(actor.hitEffectEvent)
         if (actor.health <= 0):
-            self.currentScene.DeleteEntity(actor.parentEntity)
+            # Delayed actor delete, and disable driver. So it still has the hit effect event.
+            delayedDeleteEvent = TimedEvent(self.currentScene.DeleteEntity,
+                       args=(actor.parentEntity,),
+                       startDelay=0.25,
+                       repeatDelay=0,
+                       repeatCount=1)
+            actor.alive = False
+            self.StartTimedEvent(delayedDeleteEvent)
+
+            if actor.physics:
+                actor.physics.velocity = [0,0]
+                actor.physics.physicsLayer = -1
+
+            # Delete heldItem if actor.destroyItemOnDeath
             if actor.heldItem:
                 actor.heldItem.GetComponent(ItemComponent).held = False
                 if actor.destroyItemOnDeath:
                     self.currentScene.DeleteEntity(actor.heldItem)
-
-        actor.physics.AddVelocity(knockbackVelocity)
+        else:
+            actor.physics.AddVelocity(knockbackVelocity)
 
     # todo redo this to have a give tint/remove tint event. Prevents other things from effecting the logic...
-    def HitEffect(self, actor : ActorComponent):
-        if isinstance(actor.driver, PlayerDriver):
-            player : PlayerComponent = actor.parentEntity.GetComponent(PlayerComponent)
-            sprites = [player.idleAnim,player.runAnim]
-        else:
-            sprites = list(actor.driver.animations.values())
-
-        # If _tint exists then we are about to remove it, so we remove the hitEffectEvent.
-        if sprites[0]._tint:
-            actor.hitEffectEvent = None
-
-        # If no tint, then give it a tint, otherwise set to no tint.
-        for sprite in sprites:
-            if(actor.hitEffectEvent):
+    def HitEffect(self, actor : ActorComponent, enable):
+        for sprite in actor.hitEffectSprites:
+            if(enable):
                 sprite.SetTint(actor.damageTint)
             else:
                 sprite.SetTint(None)

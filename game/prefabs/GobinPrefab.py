@@ -15,8 +15,8 @@ def CreateGoblinPrefab(currentScene: LevelScene):
     actor = ActorComponent()
     actor.speed = 400
     actor.driver = WalkingEnemyDriver()
-    #actor.heldItem = CreateSlingshotPrefab(currentScene, False)
-    #actor.heldItem.GetComponent(ItemComponent).held = True
+    actor.heldItem = CreateSlingshotPrefab(currentScene, False)
+    actor.heldItem.GetComponent(ItemComponent).held = True
     actor.destroyItemOnDeath = True
 
     actor.driver.pathfinder = TilePathfinderHelper(
@@ -38,5 +38,8 @@ def CreateGoblinPrefab(currentScene: LevelScene):
     actor.driver.animations["side"] = AnimatedSprite(
         [assets.dungeonTileSet["goblin_run_anim_f0"], assets.dungeonTileSet["goblin_run_anim_f1"],
          assets.dungeonTileSet["goblin_run_anim_f2"], assets.dungeonTileSet["goblin_run_anim_f3"]], 10)
+
+    actor.hitEffectSprites.append(actor.driver.animations["idle"])
+    actor.hitEffectSprites.append(actor.driver.animations["side"])
 
     return currentScene.CreateEntity("Gobin", [0, 0], components=[actor, sprite, phys])

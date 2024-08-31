@@ -29,5 +29,7 @@ def CreateFloatingSwordPrefab(currentScene: LevelScene):
     phys.physicsLayer = PHYSICS_ENEMIES
 
     actor.driver.animations["idle"] = sprite.sprite
+    actor.hitEffectSprites.append(actor.driver.animations["idle"])
+
 
     return currentScene.CreateEntity("Floating Sword Enemy", [0, 0], components=[actor, sprite, phys])
