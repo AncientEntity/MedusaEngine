@@ -203,6 +203,7 @@ class ActorSystem(EntitySystem):
             else:
                 sprite.SetTint(None)
 
+
     # Reloading
     def ActionReload(self, actor : ActorComponent, currentScene : Scene):
         if not actor.heldItem:

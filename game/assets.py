@@ -9,3 +9,6 @@ itemTileset = SpriteSheet("game/art/items/items.png",-1,"game/art/items/items.ma
 
 # UI
 uiTileset = SpriteSheet("game/art/ui/ui.png",-1,"game/art/ui/ui.map")
+
+# Enemies
+lichEye = SpriteSheet("game/art/monsters/lich.png",-1, "game/art/monsters/lich.map")

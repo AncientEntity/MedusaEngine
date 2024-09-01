@@ -13,6 +13,7 @@ from game.drivers.testaidriver import TestAIDriver
 from game.prefabs.FloatingSwordPrefab import CreateFloatingSwordPrefab
 from game.prefabs.GobinPrefab import CreateGoblinPrefab
 from game.prefabs.ItemPrefabs import CreateWoodenBowPrefab, CreateSlingshotPrefab
+from game.prefabs.LichEyePrefab import CreateLichEyePrefab
 from game.prefabs.PlayerPrefab import CreatePlayer
 from game.systems.actorsystem import ActorSystem
 from game.systems.playersystem import PlayerSystem
@@ -45,8 +46,9 @@ class MainScene(LevelScene):
         #    eP.GetComponent(ActorComponent).driver = TestAIDriver()
         #    eP.position = [random.randint(-200,200),random.randint(-200,200)]
         for i in range(5):
-            if random.randint(0,100) <= 25:
-                g = CreateFloatingSwordPrefab(self)
-            else:
-                g = CreateGoblinPrefab(self)
+            #if random.randint(0,100) <= 25:
+            #    g = CreateFloatingSwordPrefab(self)
+            #else:
+            #    g = CreateGoblinPrefab(self)
+            g = CreateLichEyePrefab(self)
             g.position = [random.randint(-200, 200), random.randint(-200, 200)]
