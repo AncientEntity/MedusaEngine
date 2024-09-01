@@ -18,7 +18,9 @@ class WalkingEnemyDriver(DriverBase):
         self.inputs["reload"] = self.ShouldReload # todo attacking
 
         # Movement
-        self.agroRange = 120
+        self.agroRange = 150
+        self.targetStopDistance = 55 # Wont try to move closer than this.
+        self.directMovementThreshold = 12 # Threshold at which it no longer pathfinds, and just heads straight to target
         self.pathfinder : TilePathfinderHelper = None # Must be set in prefab.
         self.moveDelta = None
 
@@ -44,12 +46,23 @@ class WalkingEnemyDriver(DriverBase):
         # Pathfinding
         self.lastClosestPlayer = self.ClosestPlayer(actor, currentScene)
         if self.lastClosestPlayer:
+            distance = Distance(self.lastClosestPlayer.parentEntity.position,actor.parentEntity.position)
             self.pathfinder.SolveWorld(actor.parentEntity.position,self.lastClosestPlayer.parentEntity.position)
-            if self.pathfinder.cachedWorldPath and len(self.pathfinder.cachedWorldPath) > 2:
+            if self.targetStopDistance and distance <= self.targetStopDistance and self.HasDirectPath():
+                self.moveDelta = None
+            elif distance <= self.directMovementThreshold:
                 self.moveDelta = MoveTowardsDelta(actor.parentEntity.position,
-                                             self.pathfinder.cachedWorldPath[1],
-                                             1)
+                                                  self.lastClosestPlayer.parentEntity.position,
+                                                  1)
+            else:
+                if self.pathfinder.cachedWorldPath and len(self.pathfinder.cachedWorldPath) > 2:
+                    self.moveDelta = MoveTowardsDelta(actor.parentEntity.position,
+                                                 self.pathfinder.cachedWorldPath[1],
+                                                 1)
             self.targetPosition = self.lastClosestPlayer.parentEntity.position[:]
+
+        else:
+            self.moveDelta = None
 
         # Animation
         if actor.spriteRenderer:
@@ -82,3 +95,18 @@ class WalkingEnemyDriver(DriverBase):
             self.lastReloadAttempt = curTime
             return True
         return False
+
+    # See if path only goes in the same direction/has line of sight...
+    def HasDirectPath(self):
+        if not self.pathfinder.cachedWorldPath or len(self.pathfinder.cachedWorldPath) <= 1:
+            return True
+
+        increasingX = self.pathfinder.cachedWorldPath[1][0] >= self.pathfinder.cachedWorldPath[0][0]
+        increasingY = self.pathfinder.cachedWorldPath[1][1] >= self.pathfinder.cachedWorldPath[0][1]
+        for i in range(len(self.pathfinder.cachedWorldPath)-1):
+            stepIncreasingX = (self.pathfinder.cachedWorldPath[i+1][0] >= self.pathfinder.cachedWorldPath[i][0]) == increasingX
+            stepIncreasingY = (self.pathfinder.cachedWorldPath[i+1][1] >= self.pathfinder.cachedWorldPath[i][1]) == increasingX
+            if stepIncreasingX != increasingX or stepIncreasingY != increasingY:
+                return False
+        return True
+
