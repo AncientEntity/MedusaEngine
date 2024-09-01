@@ -10,7 +10,7 @@ from game.components.itemcomponent import ItemComponent
 from game.constants import PHYSICS_PLAYER, PHYSICS_ENEMIES, PHYSICS_PROJECTILES, PHYSICS_WALLS
 from game.drivers.floatingsworddriver import FloatingSwordDriver
 from game.drivers.walkingenemydriver import WalkingEnemyDriver
-from game.prefabs.ItemPrefabs import CreateWoodenBowPrefab, CreateSlingshotPrefab
+from game.prefabs.ItemPrefabs import CreateWoodenBowPrefab, CreateSlingshotPrefab, CreateLichFireballPrefab
 from pygame import Rect
 
 
@@ -18,6 +18,7 @@ def CreateLichEyePrefab(currentScene: LevelScene):
     actor = ActorComponent()
     actor.speed = 85
     actor.driver = WalkingEnemyDriver()
+    actor.heldItem = CreateLichFireballPrefab(currentScene)
     actor.meleeDamage = 25
     actor.meleeKnockbackForce = 200
 

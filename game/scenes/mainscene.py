@@ -1,19 +1,9 @@
-import pygame
-
-from engine.components.rendering.spriterenderer import SpriteRenderer
-from engine.datatypes.pathfinding import TilePathfinderHelper, TilemapPathfinder
 from engine.datatypes.spritesheet import SpriteSheet
 from engine.scenes.levelscene import LevelScene
 from engine.systems.physics import PhysicsSystem
 from engine.systems.renderer import RenderingSystem
-from game import assets
-from game.components.actorcomponent import ActorComponent
-from game.drivers.walkingenemydriver import WalkingEnemyDriver
-from game.drivers.testaidriver import TestAIDriver
-from game.prefabs.FloatingSwordPrefab import CreateFloatingSwordPrefab
-from game.prefabs.GobinPrefab import CreateGoblinPrefab
-from game.prefabs.ItemPrefabs import CreateWoodenBowPrefab, CreateSlingshotPrefab
-from game.prefabs.LichEyePrefab import CreateLichEyePrefab
+from game.prefabs.ItemPrefabs import CreateWoodenBowPrefab
+from game.prefabs.enemies.LichEyePrefab import CreateLichEyePrefab
 from game.prefabs.PlayerPrefab import CreatePlayer
 from game.systems.actorsystem import ActorSystem
 from game.systems.playersystem import PlayerSystem
