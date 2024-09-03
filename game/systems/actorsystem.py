@@ -197,10 +197,14 @@ class ActorSystem(EntitySystem):
 
     # todo redo this to have a give tint/remove tint event. Prevents other things from effecting the logic...
     def HitEffect(self, actor : ActorComponent, enable):
+        sprite : Sprite
         for sprite in actor.hitEffectSprites:
-            if enable:
+            if not sprite:
+                continue
+
+            if enable and not sprite.get_tint():
                 sprite.SetTint(actor.damageTint)
-            else:
+            elif sprite.get_tint() == actor.damageTint:
                 sprite.SetTint(None)
 
 
