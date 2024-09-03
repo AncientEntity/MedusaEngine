@@ -4,6 +4,7 @@ from engine.datatypes.sprites import Sprite
 from engine.datatypes.timedevents import TimedEvent
 from engine.ecs import Component, Entity
 from game.prefabs.ui.UIHealthPrefab import UIHealthPrefabHandler
+from game.prefabs.ui.UIXPPrefab import UIXPrefabHandler
 
 
 class ActorComponent(Component):
@@ -34,6 +35,11 @@ class ActorComponent(Component):
         self.meleeDamage = 25
         self.meleeKnockbackForce = 80
         self.healthUI : UIHealthPrefabHandler = UIHealthPrefabHandler(self)
+
+        # XP
+        self.xp = 0
+        self.xpPerLevel = 100
+        self.xpUI : UIXPrefabHandler = UIXPrefabHandler(self)
 
 
         self._lastDamageTime = 0

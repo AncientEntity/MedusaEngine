@@ -18,7 +18,7 @@ class UIDashPrefab(UIBasePrefab):
 
         self.xWhenGun = -95
         self.xWhenNoGun = -108
-        self.startingY = 85
+        self.startingY = 78
 
     def Render(self, currentScene : Scene):
         if not self.uiEntity:

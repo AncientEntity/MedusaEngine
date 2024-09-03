@@ -94,6 +94,7 @@ class ActorSystem(EntitySystem):
                 gun: GunComponent = component.heldItem.GetComponent(GunComponent)
                 if gun:
                     gun.uiAmmoPrefabHandler.Delete(self.currentScene)
+            component.xpUI.Delete(self.currentScene)
 
 
     def RegisterAction(self, name, func):
@@ -132,6 +133,9 @@ class ActorSystem(EntitySystem):
 
         # Render Health
         actor.healthUI.Render(self.currentScene)
+
+        # Render XP
+        actor.xpUI.Render(self.currentScene)
 
     # General Actor Actions
     def ActionMoveUp(self, actor: ActorComponent, currentScene: Scene):

@@ -15,7 +15,7 @@ class UIStatsBarPrefab(UIBasePrefab):
         self.drawOrder = 200
 
         self.startingX = -120
-        self.startingY = 90
+        self.startingY = 85
 
         self.statsTop = None
         self.statsBottom = None
@@ -25,7 +25,7 @@ class UIStatsBarPrefab(UIBasePrefab):
         self.lastLerpChange = 0
         self.lerpDelay = 0.02
 
-        self.margin = 5
+        self.margin = (0,5)
 
     def Delete(self, currentScene : Scene):
         if self.statsTop:
@@ -72,7 +72,8 @@ class UIStatsBarPrefab(UIBasePrefab):
                     else:
                         self.statsMiddle[i].GetComponent(SpriteRenderer).sprite = self.midEmptySprite
 
-            currentY -= self.margin
+            currentX -= self.margin[0]
+            currentY -= self.margin[1]
             if i >= len(self.statsMiddle):
                 spriteRenderer = SpriteRenderer(self.midSprites[random.randint(0,len(self.midSprites)-1)])
                 spriteRenderer.screenSpace = True
@@ -86,10 +87,10 @@ class UIStatsBarPrefab(UIBasePrefab):
             topSpriteRenderer = SpriteRenderer(self.topSprite)
             topSpriteRenderer.screenSpace = True
             topSpriteRenderer.drawOrder = self.drawOrder
-            self.statsTop = currentScene.CreateEntity("UIStatTop", [currentX, currentY - self.margin],
+            self.statsTop = currentScene.CreateEntity("UIStatTop", [currentX, currentY - self.margin[1]],
                                                       components=[topSpriteRenderer])
         else:
-            self.statsTop.position = [currentX, currentY - self.margin]
+            self.statsTop.position = [currentX, currentY - self.margin[1]]
 
 
     def LerpValue(self):

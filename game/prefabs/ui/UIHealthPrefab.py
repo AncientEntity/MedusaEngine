@@ -25,7 +25,7 @@ class UIHealthPrefabHandler(UIStatsBarPrefab):
         self.midSprites.append(assets.uiTileset["health_7"])
         self.midSprites.append(assets.uiTileset["health_8"])
         self.midEmptySprite = assets.uiTileset["health_empty"]
-        self.margin = 1
+        self.margin = (0,1)
 
 
     def GetValue(self) -> int:
