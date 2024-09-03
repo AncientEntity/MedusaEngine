@@ -2,7 +2,9 @@ from engine.datatypes.spritesheet import SpriteSheet
 from engine.scenes.levelscene import LevelScene
 from engine.systems.physics import PhysicsSystem
 from engine.systems.renderer import RenderingSystem
-from game.prefabs.ItemPrefabs import CreateWoodenBowPrefab
+from game.prefabs.ItemPrefabs import CreateWoodenBowPrefab, CreateLichFireballPrefab
+from game.prefabs.enemies.FloatingSwordPrefab import CreateFloatingSwordPrefab
+from game.prefabs.enemies.GobinPrefab import CreateGoblinPrefab
 from game.prefabs.enemies.LichEyePrefab import CreateLichEyePrefab
 from game.prefabs.PlayerPrefab import CreatePlayer
 from game.systems.actorsystem import ActorSystem
@@ -25,6 +27,7 @@ class MainScene(LevelScene):
         player = CreatePlayer(self)
         self.GetSystemByClass(ActorSystem).cameraTarget = player
 
+        #CreateLichFireballPrefab(self)
         CreateWoodenBowPrefab(self)
         #CreateSlingshotPrefab(self)
 
@@ -36,9 +39,11 @@ class MainScene(LevelScene):
         #    eP.GetComponent(ActorComponent).driver = TestAIDriver()
         #    eP.position = [random.randint(-200,200),random.randint(-200,200)]
         for i in range(5):
-            #if random.randint(0,100) <= 25:
-            #    g = CreateFloatingSwordPrefab(self)
-            #else:
-            #    g = CreateGoblinPrefab(self)
-            g = CreateLichEyePrefab(self)
+            r = random.randint(0,100)
+            if r <= 50:
+                g = CreateGoblinPrefab(self)
+            elif r <= 80:
+                g = CreateFloatingSwordPrefab(self)
+            else:
+                g = CreateLichEyePrefab(self)
             g.position = [random.randint(-200, 200), random.randint(-200, 200)]

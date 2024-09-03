@@ -3,6 +3,7 @@ from pygame import Rect
 from engine.components.physicscomponent import PhysicsComponent
 from engine.components.rendering.particlecomponent import ParticleEmitterComponent
 from engine.components.rendering.spriterenderer import SpriteRenderer
+from engine.datatypes.sprites import Sprite
 from engine.scenes.levelscene import LevelScene
 from game import assets
 from game.components.guncomponent import GunComponent
@@ -94,14 +95,14 @@ def CreateLichFireballPrefab(currentScene : LevelScene, friendly=False):
     gunComponent = GunComponent()
     gunComponent.spriteRotationOffset = 60
     gunComponent.friendly = friendly
-    gunComponent.projectileSprite = assets.itemTileset["stone_rock"].copy()
-    gunComponent.projectileSprite.set_alpha(0)
+    gunComponent.projectileSprite = Sprite(assets.itemTileset["stone_rock"])
+    gunComponent.projectileSprite.SetAlpha(0)
     gunComponent.damage = 25
     gunComponent.ammoPerMagazine = 8
     gunComponent.ammo = 8
     gunComponent.projectileSpeed = 100
     gunComponent.spriteRotateHalf = True
-    gunComponent.shootDelay = 0.65
+    gunComponent.shootDelay = 0.8
 
     # Needs sprite renderer to track rotation, but enabled = False so it doesnt appear.
     spriteRenderer = SpriteRenderer(assets.itemTileset["slingshot"],60,False)
