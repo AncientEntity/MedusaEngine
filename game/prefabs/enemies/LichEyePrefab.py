@@ -22,6 +22,7 @@ def CreateLichEyePrefab(currentScene: LevelScene):
     actor.heldItem.GetComponent(ItemComponent).held = True
     actor.meleeDamage = 25
     actor.meleeKnockbackForce = 200
+    actor.destroyItemOnDeath = True
 
     actor.driver.pathfinder = TilePathfinderHelper(
         TilemapPathfinder(list(currentScene.tileMapLayersByName.values()),

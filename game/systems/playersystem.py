@@ -46,6 +46,8 @@ class PlayerSystem(EntitySystem):
         else:
             player.playerRenderer.sprite = player.idleAnim
 
+        player.dashUI.Render(currentScene)
+
     def ActionPlayerDash(self, actor : ActorComponent, currentScene : Scene):
         self.Dash(actor.parentEntity.GetComponent(PlayerComponent), currentScene) # todo hashtable for actor->parent component in system.
 
@@ -78,6 +80,8 @@ class PlayerSystem(EntitySystem):
     def OnDeleteComponent(self, component : Component):
         # Delete and remove the health UI and gun ammo UI of player.
         actor : ActorComponent = component.parentEntity.GetComponent(ActorComponent)
+        component.dashUI.Delete(self.currentScene)
+
 
     @staticmethod
     def HandleAfterImages(player : PlayerComponent):

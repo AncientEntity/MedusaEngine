@@ -9,6 +9,7 @@ from game.components.itemcomponent import ItemComponent
 from game.components.playercomponent import PlayerComponent
 from game.constants import PHYSICS_PLAYER, PHYSICS_ENEMIES, PHYSICS_WALLS, PHYSICS_OBJECTS, PHYSICS_PROJECTILES
 from game.drivers.playerdriver import PlayerDriver
+from game.prefabs.ui.UIDashPrefab import UIDashPrefab
 from game.prefabs.ui.UIHealthPrefab import UIHealthPrefabHandler
 
 
@@ -22,6 +23,7 @@ def CreatePlayer(currentScene : LevelScene):
     actorComponent.meleeDamage = 0
 
     playerComponent = PlayerComponent()
+    playerComponent.dashUI = UIDashPrefab(playerComponent, actorComponent)
 
     actorComponent.hitEffectSprites.append(playerComponent.idleAnim)
     actorComponent.hitEffectSprites.append(playerComponent.runAnim)

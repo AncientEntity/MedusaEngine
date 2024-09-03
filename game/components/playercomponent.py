@@ -5,6 +5,7 @@ from engine.datatypes.timedevents import TimedEvent
 from engine.ecs import Component
 from game import assets
 from game.components.actorcomponent import ActorComponent
+from game.prefabs.ui.UIDashPrefab import UIDashPrefab
 from game.prefabs.ui.UIHealthPrefab import UIHealthPrefabHandler
 
 
@@ -22,6 +23,7 @@ class PlayerComponent(Component):
         self.dashDelay = 0.75
         self.dashImpulseVelocity = 900
         self.dashTimedEvent : TimedEvent = None
+        self.dashUI : UIDashPrefab = None
 
         self.afterImages = [] # after image entities used for dashing.
         self.idleAnim = AnimatedSprite(

@@ -3,7 +3,9 @@ from engine.ecs import Scene
 import time
 import random
 
-class UIStatsBarPrefab:
+from game.prefabs.ui.UIBasePrefab import UIBasePrefab
+
+class UIStatsBarPrefab(UIBasePrefab):
     def __init__(self):
 
         self.topSprite = None
