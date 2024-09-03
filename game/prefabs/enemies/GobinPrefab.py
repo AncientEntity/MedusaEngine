@@ -16,8 +16,9 @@ def CreateGoblinPrefab(currentScene: LevelScene):
     actor.speed = 400
     actor.driver = WalkingEnemyDriver()
     actor.heldItem = CreateSlingshotPrefab(currentScene, False)
-    actor.heldItem.GetComponent(ItemComponent).held = True
+    actor.heldItem.GetComponent(ItemComponent).owningActor = actor
     actor.destroyItemOnDeath = True
+    actor.xp = 10
 
     actor.driver.pathfinder = TilePathfinderHelper(
         TilemapPathfinder(list(currentScene.tileMapLayersByName.values()),

@@ -19,10 +19,11 @@ def CreateLichEyePrefab(currentScene: LevelScene):
     actor.speed = 85
     actor.driver = WalkingEnemyDriver()
     actor.heldItem = CreateLichFireballPrefab(currentScene)
-    actor.heldItem.GetComponent(ItemComponent).held = True
+    actor.heldItem.GetComponent(ItemComponent).owningActor = actor
     actor.meleeDamage = 25
     actor.meleeKnockbackForce = 200
     actor.destroyItemOnDeath = True
+    actor.xp = 15
 
     actor.driver.pathfinder = TilePathfinderHelper(
         TilemapPathfinder(list(currentScene.tileMapLayersByName.values()),

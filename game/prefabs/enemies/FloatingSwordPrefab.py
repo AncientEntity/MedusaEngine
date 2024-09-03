@@ -18,6 +18,7 @@ def CreateFloatingSwordPrefab(currentScene: LevelScene):
     actor.driver = FloatingSwordDriver()
     actor.meleeDamage = 25
     actor.meleeKnockbackForce = 0
+    actor.xp = 10
 
     sprite = SpriteRenderer(assets.itemTileset["silver_sword"], 50, False)
     phys = PhysicsComponent()

@@ -27,6 +27,7 @@ def SpawnProjectileFactory(gunComponent : GunComponent, spriteRenderer, addition
                                          spriteRenderer.sprite._rotation-gunComponent.spriteRotationOffset,
                                          gunComponent.friendly)
         projectile.damage = gunComponent.damage
+        projectile.owningActor = gunComponent.owningActor
 
         components = [pSpriteRend, phys, projectile]
         for componentFactory in additionalComponentFactories:

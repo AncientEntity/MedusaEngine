@@ -4,7 +4,7 @@ from engine.datatypes.sprites import Sprite
 from engine.datatypes.timedevents import TimedEvent
 from engine.ecs import Component, Entity
 from game.prefabs.ui.UIHealthPrefab import UIHealthPrefabHandler
-from game.prefabs.ui.UIXPPrefab import UIXPrefabHandler
+from game.prefabs.ui.UIXPPrefab import UIXpPrefabHandler
 
 
 class ActorComponent(Component):
@@ -39,7 +39,7 @@ class ActorComponent(Component):
         # XP
         self.xp = 0
         self.xpPerLevel = 100
-        self.xpUI : UIXPrefabHandler = UIXPrefabHandler(self)
+        self.xpUI : UIXpPrefabHandler = UIXpPrefabHandler(self)
 
 
         self._lastDamageTime = 0

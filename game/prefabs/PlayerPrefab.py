@@ -43,7 +43,7 @@ def CreatePlayer(currentScene : LevelScene):
         if(player.heldItem == other.parentEntity):
             return
 
-        itemComp = other.parentEntity.GetComponent(ItemComponent)
+        itemComp : ItemComponent = other.parentEntity.GetComponent(ItemComponent)
         if(itemComp and itemComp.held == False):
             if(player.heldItem):
                 currentScene.DeleteEntity(player.heldItem)
@@ -53,7 +53,7 @@ def CreatePlayer(currentScene : LevelScene):
                 player.heldItem = None
 
             player.heldItem = other.parentEntity
-            itemComp.held = True
+            itemComp.owningActor = self.parentEntity.GetComponent(ActorComponent)
 
             gunComp : GunComponent = other.parentEntity.GetComponent(GunComponent)
             if(gunComp):

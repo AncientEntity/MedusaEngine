@@ -21,7 +21,7 @@ class UIStatsBarPrefab(UIBasePrefab):
         self.statsBottom = None
         self.statsMiddle = []
 
-        self.valueLerp = self.GetValue()
+        self.valueLerp = 0#self.GetValue()
         self.lastLerpChange = 0
         self.lerpDelay = 0.02
 
@@ -68,9 +68,11 @@ class UIStatsBarPrefab(UIBasePrefab):
                 if i < len(self.statsMiddle):
                     if not self.midEmptySprite:
                         self.statsMiddle[i].position = [99999, 99999]
-                        continue
                     else:
                         self.statsMiddle[i].GetComponent(SpriteRenderer).sprite = self.midEmptySprite
+                        currentX -= self.margin[0]
+                        currentY -= self.margin[1]
+                    continue
 
             currentX -= self.margin[0]
             currentY -= self.margin[1]
@@ -82,6 +84,8 @@ class UIStatsBarPrefab(UIBasePrefab):
                                                                   components=[spriteRenderer]))
             else:
                 self.statsMiddle[i].position = [currentX, currentY]
+                if self.statsMiddle[i].GetComponent(SpriteRenderer).sprite not in self.midSprites:
+                    self.statsMiddle[i].GetComponent(SpriteRenderer).sprite = self.midSprites[random.randint(0,len(self.midSprites)-1)]
 
         if not self.statsTop:
             topSpriteRenderer = SpriteRenderer(self.topSprite)
@@ -90,7 +94,7 @@ class UIStatsBarPrefab(UIBasePrefab):
             self.statsTop = currentScene.CreateEntity("UIStatTop", [currentX, currentY - self.margin[1]],
                                                       components=[topSpriteRenderer])
         else:
-            self.statsTop.position = [currentX, currentY - self.margin[1]]
+            self.statsTop.position = [currentX - self.margin[0], currentY - self.margin[1]]
 
 
     def LerpValue(self):
@@ -111,6 +115,7 @@ class UIStatsBarPrefab(UIBasePrefab):
 
     def GetValue(self) -> int:
         return 0
+
     def GetValueMax(self) -> int:
         return 10
 

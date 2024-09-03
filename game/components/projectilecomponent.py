@@ -1,7 +1,8 @@
 import math, time
 
-from engine.components.physicscomponent import PhysicsComponent
 from engine.ecs import Component
+from game.components.actorcomponent import ActorComponent
+
 
 class ProjectileComponent(Component):
     def __init__(self, speed, rotation, friendly):
@@ -13,7 +14,9 @@ class ProjectileComponent(Component):
         self.friendly = friendly
 
         self.velocity = [self.speed * math.cos(math.radians(self.speedRotation)),
-                               -self.speed * math.sin(math.radians(self.speedRotation))]
+                         -self.speed * math.sin(math.radians(self.speedRotation))]
 
         self.startTime = time.time()
         self.maxLifetime = 5
+
+        self.owningActor : ActorComponent = None

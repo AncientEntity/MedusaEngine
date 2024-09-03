@@ -2,13 +2,13 @@ from game import assets
 from game.prefabs.ui.UIStatsBarPrefab import UIStatsBarPrefab
 
 
-class UIXPrefabHandler(UIStatsBarPrefab):
+class UIXpPrefabHandler(UIStatsBarPrefab):
     def __init__(self, actor):
         self.actor = actor
 
         super().__init__()
 
-        self.lerpDelay = 0.01
+        self.lerpDelay = None
         self.startingX = -125
         self.startingY = 90
 
@@ -20,6 +20,7 @@ class UIXPrefabHandler(UIStatsBarPrefab):
 
 
     def GetValue(self) -> int:
+        print (self.actor.xp, self.valueLerp)
         return self.actor.xp // 2
     def GetValueMax(self) -> int:
         return self.actor.xpPerLevel // 2
