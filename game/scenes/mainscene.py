@@ -25,7 +25,7 @@ class MainScene(LevelScene):
         self.GetSystemByClass(RenderingSystem).backgroundColor = (40,25,40)
     def LevelStart(self):
         player = CreatePlayer(self)
-        self.GetSystemByClass(ActorSystem).cameraTarget = player
+        self.GetSystemByClass(ActorSystem)._cameraTarget = player
 
         #CreateLichFireballPrefab(self)
         CreateWoodenBowPrefab(self)

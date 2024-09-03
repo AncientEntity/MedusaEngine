@@ -35,7 +35,7 @@ class ActorSystem(EntitySystem):
 
         # Rendering/Camera
         self.renderingSystem : RenderingSystem = None
-        self.cameraTarget : Entity = None
+        self._cameraTarget : Entity = None
         self.cameraPosition = None # Contains the same list that the rendering system has.
         self.cameraSpeed = 500
 
@@ -60,14 +60,16 @@ class ActorSystem(EntitySystem):
             self.ActorMovementTick(actor)
             self.ActorItemTick(actor)
 
-        if self.cameraTarget:
+        if self._cameraTarget:
             self.CameraTick()
+
+        self.ActorRenderUI()
 
         import pygame, random
         if Input.KeyDown(pygame.K_t):
             randEnt = self.actors[random.randint(0,len(self.actors)-1)]
-            self.cameraTarget.GetComponent(ActorComponent).driver = TestAIDriver()
-            self.cameraTarget = randEnt.parentEntity
+            self._cameraTarget.GetComponent(ActorComponent).driver = TestAIDriver()
+            self.SetCameraTarget(randEnt.parentEntity)
             randEnt.driver = PlayerDriver()
 
     def OnEnable(self, currentScene : Scene):
@@ -87,16 +89,49 @@ class ActorSystem(EntitySystem):
     def OnDeleteComponent(self, component : Component): #Called when an existing component is destroyed (Use for deinitializing it from the systems involved)
         if(isinstance(component,ActorComponent)):
             self.actors.remove(component)
+            component.healthUI.Delete(self.currentScene)
+            if component.heldItem:
+                gun: GunComponent = component.heldItem.GetComponent(GunComponent)
+                if gun:
+                    gun.uiAmmoPrefabHandler.Delete(self.currentScene)
+
+
     def RegisterAction(self, name, func):
         self.actions[name] = func
 
-    # Camera
+    # Camera & UI
     def CameraTick(self):
-        newCameraPosition = MoveTowards(self.cameraPosition,self.cameraTarget.position,
-                                        self.game.deltaTime*self.cameraSpeed/10 * Distance(self.cameraTarget.position,
-                                                                                       self.cameraPosition)*0.15)
+        newCameraPosition = MoveTowards(self.cameraPosition, self._cameraTarget.position,
+                                        self.game.deltaTime * self.cameraSpeed / 10 * Distance(self._cameraTarget.position,
+                                                                                               self.cameraPosition) * 0.15)
         self.cameraPosition[0] = newCameraPosition[0]
         self.cameraPosition[1] = newCameraPosition[1]
+
+    def SetCameraTarget(self, target : Entity):
+        # Cleanup previous camera target's UI
+        if self._cameraTarget:
+            oldActor : ActorComponent = self._cameraTarget.GetComponent(ActorComponent)
+            if oldActor:
+                oldActor.healthUI.Delete(self.currentScene)
+                if oldActor.heldItem:
+                    gun : GunComponent = oldActor.heldItem.GetComponent(GunComponent)
+                    if gun:
+                        gun.uiAmmoPrefabHandler.Delete(self.currentScene)
+
+
+        self._cameraTarget = target
+
+    def ActorRenderUI(self):
+        # Render Ammo UI
+        actor : ActorComponent = self._cameraTarget.GetComponent(ActorComponent)
+
+        if actor.heldItem:
+            heldGun: GunComponent = actor.heldItem.GetComponent(GunComponent)
+            if heldGun:
+                heldGun.uiAmmoPrefabHandler.Render(self.currentScene)
+
+        # Render Health
+        actor.healthUI.Render(self.currentScene)
 
     # General Actor Actions
     def ActionMoveUp(self, actor: ActorComponent, currentScene: Scene):

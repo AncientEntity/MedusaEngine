@@ -3,6 +3,8 @@ from engine.components.rendering.spriterenderer import SpriteRenderer
 from engine.datatypes.sprites import Sprite
 from engine.datatypes.timedevents import TimedEvent
 from engine.ecs import Component, Entity
+from game.prefabs.ui.UIHealthPrefab import UIHealthPrefabHandler
+
 
 class ActorComponent(Component):
     def __init__(self):
@@ -31,6 +33,8 @@ class ActorComponent(Component):
         self.damageTint = (200,0,0)
         self.meleeDamage = 25
         self.meleeKnockbackForce = 80
+        self.healthUI : UIHealthPrefabHandler = UIHealthPrefabHandler(self)
+
 
         self._lastDamageTime = 0
         self.postHitInvincibility = 0.25

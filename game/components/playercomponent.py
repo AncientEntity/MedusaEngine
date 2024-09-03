@@ -18,8 +18,6 @@ class PlayerComponent(Component):
         self.actor : ActorComponent = None
         self.cachedWeaponSpriteRef : Sprite = None
 
-        self.healthUI : UIHealthPrefabHandler = None
-
         self.lastDashTime = 0 # Last time the player dashed
         self.dashDelay = 0.75
         self.dashImpulseVelocity = 900

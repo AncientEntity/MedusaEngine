@@ -22,7 +22,6 @@ def CreatePlayer(currentScene : LevelScene):
     actorComponent.meleeDamage = 0
 
     playerComponent = PlayerComponent()
-    playerComponent.healthUI = UIHealthPrefabHandler(actorComponent)
 
     actorComponent.hitEffectSprites.append(playerComponent.idleAnim)
     actorComponent.hitEffectSprites.append(playerComponent.runAnim)
