@@ -20,7 +20,6 @@ class UIXpPrefabHandler(UIStatsBarPrefab):
 
 
     def GetValue(self) -> int:
-        print (self.actor.xp, self.valueLerp)
         return self.actor.xp // 2
     def GetValueMax(self) -> int:
         return self.actor.xpPerLevel // 2

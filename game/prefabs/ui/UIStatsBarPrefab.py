@@ -70,6 +70,7 @@ class UIStatsBarPrefab(UIBasePrefab):
                         self.statsMiddle[i].position = [99999, 99999]
                     else:
                         self.statsMiddle[i].GetComponent(SpriteRenderer).sprite = self.midEmptySprite
+                        self.statsMiddle[i].position = [currentX,currentY]
                         currentX -= self.margin[0]
                         currentY -= self.margin[1]
                     continue
