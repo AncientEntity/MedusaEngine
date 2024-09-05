@@ -82,7 +82,7 @@ def CreateSlingshotPrefab(currentScene : LevelScene, friendly=True):
     return currentScene.CreateEntity("Slingshot",[0,40],components=[gunComponent,spriteRenderer,physics])
 
 def CreateLichFireballPrefab(currentScene : LevelScene, friendly=False):
-    def ParticleEmitterFactory():
+    def TailParticleEmitterFactory():
         particles = ParticleEmitterComponent()
         particles.gravity = (0, 0)
         particles.sprite.SetColor((255, 50, 50))
@@ -91,6 +91,18 @@ def CreateLichFireballPrefab(currentScene : LevelScene, friendly=False):
         particles.spawnBounds = Rect(-2, 0, 2, 2)
         particles.prewarm = True
         particles.particlesPerSecond = 75
+        particles.drawOrder = 50
+        return particles
+    def HeadParticleEmitterFactory():
+        particles = ParticleEmitterComponent()
+        particles.gravity = (0, 0)
+        particles.sprite.SetColor((50, 5, 5))
+        particles.sprite.SetScale((0.5, 0.5))
+        particles.lifeTimeRange = (0.01, 0.1)
+        particles.spawnBounds = Rect(-2, 0, 2, 2)
+        particles.prewarm = True
+        particles.particlesPerSecond = 25
+        particles.drawOrder = 55
         return particles
 
     gunComponent = GunComponent()
@@ -115,6 +127,7 @@ def CreateLichFireballPrefab(currentScene : LevelScene, friendly=False):
     physics.triggersWithLayers = []
     physics.physicsLayer = PHYSICS_OBJECTS
 
-    gunComponent.bulletPrefabFunc = SpawnProjectileFactory(gunComponent, spriteRenderer, [ParticleEmitterFactory])
+    gunComponent.bulletPrefabFunc = SpawnProjectileFactory(gunComponent, spriteRenderer, [TailParticleEmitterFactory,
+                                                                                          HeadParticleEmitterFactory])
 
     return currentScene.CreateEntity("Slingshot",[0,40],components=[gunComponent,spriteRenderer,physics])
