@@ -27,12 +27,13 @@ class Sprite:
 
         self._flipX = False
         self._flipY = False
-        self.ignoreCollision = False
         self._tint = None
         self._color = None
         self._rotation = None
         self._alpha = None # When None it is 255. fully opaque.
         self._scale = None
+
+        self.ignoreCollision = False
 
         self.RefreshSprite()
 
@@ -131,6 +132,21 @@ class Sprite:
         return self.sprite.get_width()
     def get_height(self):
         return self.sprite.get_height()
+    def get_tint(self):
+        return self._tint
+    def get_color(self):
+        return self._color
+    def get_alpha(self):
+        return self._alpha
+    def get_rotation(self):
+        return self._rotation
+    def get_flipX(self):
+        return self._flipX
+    def get_flipY(self):
+        return self._flipY
+    def get_scale(self):
+        return self._scale
+
     def Copy(self):
         newCopy = copy.copy(self)
         newCopy._unmodifiedSprite = self._unmodifiedSprite
