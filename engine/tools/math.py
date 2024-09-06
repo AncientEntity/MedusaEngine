@@ -23,6 +23,12 @@ def MoveTowards(current, target, delta):
     normalizedVecAndDelta = MoveTowardsDelta(current,target,delta)
     return [current[0]+normalizedVecAndDelta[0],current[1]+normalizedVecAndDelta[1]]
 
+def LerpRotation(currentRotation, targetRotation, delta):
+    maxDistance = (currentRotation % 360)-(targetRotation % 360)
+    delta = Clamp(delta,-abs(maxDistance),abs(maxDistance))
+    return (currentRotation + delta) % 360
+
+
 def NormalizeVec(vec):
     length = math.sqrt(vec[0]*vec[0]+vec[1]*vec[1])
     if(length == 0):
