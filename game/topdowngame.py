@@ -8,4 +8,4 @@ class TopdownGame(Game):
         self.name = "Topdown Game Demo"
         self.startingScene = MainScene
         self.startingSplashEnabled = False
-        self.windowSize : tuple(int) = (1600,900)
+        self.windowSize : tuple(int) = (800,600)
