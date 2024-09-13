@@ -269,6 +269,7 @@ class ActorSystem(EntitySystem):
 
     def FinishReload(self, gun : GunComponent):
         gun.isReloading = False
-        ammoToAdd = Clamp(gun.ammoPerMagazine - gun.ammo, 0, gun.ammoReserves)
+        ammoToAdd = Clamp(gun.ammoPerMagazine - gun.ammo, 0, gun.ammoReserves) if gun.ammoReserves else gun.ammoPerMagazine - gun.ammo
         gun.ammo += ammoToAdd
-        gun.ammoReserves -= ammoToAdd
+        if gun.ammoReserves:
+            gun.ammoReserves -= ammoToAdd

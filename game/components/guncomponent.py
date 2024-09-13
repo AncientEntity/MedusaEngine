@@ -10,7 +10,7 @@ class GunComponent(ItemComponent):
         self.reloadTime = 1
 
         self.ammoPerMagazine = 10
-        self.ammoReserves = 80
+        self.ammoReserves = None
         self.ammo = self.ammoPerMagazine
         self.damage = 100
         self.projectileSprite = None
