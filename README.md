@@ -54,7 +54,7 @@ A* Pathfinding Demo [(play here)](https://anciententity.itch.io/medusa-astar-dem
 
 ![python_JWMPJNHslx](https://github.com/user-attachments/assets/3a5f0afc-5813-4d55-9ef9-80f314c2cf8d)
 
-Topdown Demo (source lives in topdown branch)
+Topdown Demo [(play here)](https://anciententity.itch.io/topdown-cool-shooter-10000000000000) (source lives in topdown branch)
 
 ![undefined - Imgur](https://github.com/user-attachments/assets/ed102781-46b1-4dcc-b0a6-10706a2b1545)
 
