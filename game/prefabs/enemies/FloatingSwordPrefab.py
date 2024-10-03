@@ -1,4 +1,5 @@
 from engine.components.physicscomponent import PhysicsComponent
+from engine.components.rendering.lightcomponent import LightComponent
 from engine.components.rendering.spriterenderer import SpriteRenderer
 from engine.datatypes.pathfinding import TilePathfinderHelper, TilemapPathfinder
 from engine.datatypes.sprites import AnimatedSprite
@@ -32,5 +33,6 @@ def CreateFloatingSwordPrefab(currentScene: LevelScene):
     actor.driver.animations["idle"] = sprite.sprite
     actor.hitEffectSprites.append(actor.driver.animations["idle"])
 
+    lightComponent = LightComponent()
 
-    return currentScene.CreateEntity("Floating Sword Enemy", [0, 0], components=[actor, sprite, phys])
+    return currentScene.CreateEntity("Floating Sword Enemy", [0, 0], components=[actor, sprite, phys, lightComponent])

@@ -1,4 +1,5 @@
 from engine.components.physicscomponent import PhysicsComponent
+from engine.components.rendering.lightcomponent import LightComponent
 from engine.components.rendering.particlecomponent import ParticleEmitterComponent
 from engine.components.rendering.spriterenderer import SpriteRenderer
 from engine.datatypes.pathfinding import TilePathfinderHelper, TilemapPathfinder
@@ -50,5 +51,7 @@ def CreateLichEyePrefab(currentScene: LevelScene):
     particles.prewarm = True
     particles.particlesPerSecond = 75
 
+    lightComponent = LightComponent()
 
-    return currentScene.CreateEntity("Lich Eye Enemy", [0, 0], components=[actor, sprite, phys, particles])
+    return currentScene.CreateEntity("Lich Eye Enemy", [0, 0], components=[actor, sprite, phys, particles,
+                                                                           lightComponent])

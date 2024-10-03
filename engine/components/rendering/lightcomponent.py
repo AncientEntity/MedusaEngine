@@ -7,6 +7,8 @@ class LightComponent(Component):
 
         self.brightness = 30
         self.radius = 30
+        import random
+        self.color = (random.randint(0,100),random.randint(0,100),random.randint(0,100))
 
         self.cachedBrightness = None
         self.cachedRadius = None
