@@ -37,7 +37,7 @@ class LightingSystem(EntitySystem):
             halfRadius = light.radius // 2
             if not self._rendering.IsOnScreenRect(pygame.Rect(light.parentEntity.position[0]-halfRadius,
                                                               light.parentEntity.position[1]-halfRadius,
-                                                              light.radius, light.radius)):
+                                                              light.radius*2, light.radius*2)):
                 continue # Light not on screen.
 
             if light.brightness != light.cachedBrightness or light.radius != light.cachedRadius or \
