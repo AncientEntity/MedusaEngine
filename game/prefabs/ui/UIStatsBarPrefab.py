@@ -12,7 +12,7 @@ class UIStatsBarPrefab(UIBasePrefab):
         self.midSprites = []
         self.midEmptySprite = None
         self.bottomSprite = None
-        self.drawOrder = 200
+        self.drawOrder = 1500
 
         self.startingX = -120
         self.startingY = 85

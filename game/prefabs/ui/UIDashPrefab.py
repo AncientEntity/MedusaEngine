@@ -22,7 +22,7 @@ class UIDashPrefab(UIBasePrefab):
 
     def Render(self, currentScene : Scene):
         if not self.uiEntity:
-            self.uiSpriteRenderer = SpriteRenderer(self.emptySprite,200,True)
+            self.uiSpriteRenderer = SpriteRenderer(self.emptySprite,1500,True)
             self.uiEntity = currentScene.CreateEntity("DashUI",[self.xWhenNoGun,self.startingY], components=[
                 self.uiSpriteRenderer
             ])

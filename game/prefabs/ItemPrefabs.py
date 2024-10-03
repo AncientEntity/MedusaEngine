@@ -1,6 +1,7 @@
 from pygame import Rect
 
 from engine.components.physicscomponent import PhysicsComponent
+from engine.components.rendering.lightcomponent import LightComponent
 from engine.components.rendering.particlecomponent import ParticleEmitterComponent
 from engine.components.rendering.spriterenderer import SpriteRenderer
 from engine.datatypes.sprites import Sprite
@@ -127,7 +128,15 @@ def CreateLichFireballPrefab(currentScene : LevelScene, friendly=False):
     physics.triggersWithLayers = []
     physics.physicsLayer = PHYSICS_OBJECTS
 
+    def LightFactory():
+        light = LightComponent()
+        light.radius = 15
+        light.brightness = 1
+        light.color = (255,0,0)
+        return light
+
     gunComponent.bulletPrefabFunc = SpawnProjectileFactory(gunComponent, spriteRenderer, [TailParticleEmitterFactory,
-                                                                                          HeadParticleEmitterFactory])
+                                                                                          HeadParticleEmitterFactory,
+                                                                                          LightFactory])
 
     return currentScene.CreateEntity("Slingshot",[0,40],components=[gunComponent,spriteRenderer,physics])

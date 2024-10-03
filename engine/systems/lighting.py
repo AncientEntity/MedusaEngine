@@ -1,4 +1,4 @@
-from pygame import BLEND_RGBA_SUB, BLEND_RGB_ADD
+from pygame import BLEND_RGBA_SUB, BLEND_RGB_ADD, BLEND_RGBA_ADD
 
 from engine.components.rendering.lightcomponent import LightComponent
 from engine.components.rendering.spriterenderer import SpriteRenderer
@@ -16,6 +16,7 @@ class LightingSystem(EntitySystem):
         super().__init__([LightComponent])
 
         self.worldBrightness = 200 # The default alpha of the world's light surface. (0 - 255)
+        self.drawOrder = 1000
 
         self._rendering : RenderingSystem = None
 
@@ -39,18 +40,19 @@ class LightingSystem(EntitySystem):
                                                               light.radius, light.radius)):
                 continue # Light not on screen.
 
-            if light.brightness != light.cachedBrightness or light.radius != light.cachedRadius:
+            if light.brightness != light.cachedBrightness or light.radius != light.cachedRadius or \
+                    light.color != light.cachedColor:
                 self.CreateLightSprite(light)
 
             surfacePosition = self._rendering.WorldToScreenPosition(light.parentEntity.position)
 
             # We first subtract the alpha out, then add just the RGB
-            rawSurface.blit(light.cachedLight,(surfacePosition[0]-light.radius,
-                                                surfacePosition[1]-light.radius),
+            rawSurface.blit(light.cachedLightSurface, (surfacePosition[0] - light.radius,
+                                                       surfacePosition[1] - light.radius),
                             special_flags=BLEND_RGBA_SUB)
             # Notice this is the BLEND_RGB_ADD not BLEND_RGBA_ADD flag...
-            rawSurface.blit(light.cachedLight,(surfacePosition[0]-light.radius,
-                                                surfacePosition[1]-light.radius),
+            rawSurface.blit(light.cachedLightSurface, (surfacePosition[0] - light.radius,
+                                                       surfacePosition[1] - light.radius),
                             special_flags=BLEND_RGB_ADD)
 
 
@@ -66,24 +68,25 @@ class LightingSystem(EntitySystem):
         lightSurface.convert_alpha()
         self._worldLightSprite = Sprite(lightSurface)
         self._worldLightEntity = currentScene.CreateEntity("EngineLightMask", (0, 0), components=[
-            SpriteRenderer(self._worldLightSprite, 50000, True)])
+            SpriteRenderer(self._worldLightSprite, self.drawOrder, True)])
 
     def CreateLightSprite(self, light : LightComponent):
         lightSurface = pygame.Surface((light.radius*2,light.radius*2), pygame.SRCALPHA, 32)
         lightSurface.convert_alpha()
 
         for i in range(light.radius):
-            brightness = 255 - i * 10
-            inverse = 1.0 - (i / light.radius)
+            inverse = Clamp((1.0 - (i / light.radius)) * light.brightness,0,1)
+            brightness = 255 * inverse
             color = (light.color[0] * inverse,
                      light.color[1] * inverse,
                      light.color[2] * inverse,
                      Clamp(brightness,0 , 255))
             pygame.draw.circle(lightSurface, color, (light.radius,light.radius), i, width=2)
 
-        light.cachedLight = lightSurface
+        light.cachedLightSurface = lightSurface
         light.cachedBrightness = light.brightness
         light.cachedRadius = light.radius
+        light.cachedColor = light.color
 
     def OnNewComponent(self,component : Component): #Called when a new component is created into the scene. (Used to initialize that component)
         pass

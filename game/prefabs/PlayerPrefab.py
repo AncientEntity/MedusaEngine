@@ -68,7 +68,7 @@ def CreatePlayer(currentScene : LevelScene):
         afterSpriteRenderer = SpriteRenderer(None,40)
         playerComponent.afterImages.append(currentScene.CreateEntity("PlayerAfterImage",[0,0],components=[afterSpriteRenderer]))
 
-    lightComponent = LightComponent()
+    lightComponent = LightComponent(0.8,100, (80,80,0))
 
     return currentScene.CreateEntity("Player",[0,0],components=[actorComponent,
                                                                 spriteRenderer,
