@@ -214,6 +214,11 @@ class RenderingSystem(EntitySystem):
     def IsOnScreenRect(self,rect : pygame.Rect):
         screenBounds = pygame.Rect(self.cameraPosition[0] - self._scaledHalfSize[0],self.cameraPosition[1] - self._scaledHalfSize[1],self._scaledScreenSize[0],self._scaledScreenSize[1])
         return screenBounds.colliderect(rect)
+    def IsOnScreenPoint(self, point):
+        screenBounds = pygame.Rect(self.cameraPosition[0] - self._scaledHalfSize[0],
+                                   self.cameraPosition[1] - self._scaledHalfSize[1], self._scaledScreenSize[0],
+                                   self._scaledScreenSize[1])
+        return screenBounds.collidepoint(point[0],point[1])
 
     def IsOnScreenSpaceRect(self, rect : pygame.Rect):
         screenBounds = pygame.Rect(-self._scaledHalfSize[0],-self._scaledHalfSize[1],self._scaledScreenSize[0],self._scaledScreenSize[1])

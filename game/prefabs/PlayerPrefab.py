@@ -1,4 +1,5 @@
 from engine.components.physicscomponent import PhysicsComponent
+from engine.components.rendering.lightcomponent import LightComponent
 from engine.components.rendering.spriterenderer import SpriteRenderer
 from engine.datatypes.sprites import AnimatedSprite
 from engine.scenes.levelscene import LevelScene
@@ -67,4 +68,10 @@ def CreatePlayer(currentScene : LevelScene):
         afterSpriteRenderer = SpriteRenderer(None,40)
         playerComponent.afterImages.append(currentScene.CreateEntity("PlayerAfterImage",[0,0],components=[afterSpriteRenderer]))
 
-    return currentScene.CreateEntity("Player",[0,0],components=[actorComponent,spriteRenderer,physicsComponent, playerComponent])
+    lightComponent = LightComponent()
+
+    return currentScene.CreateEntity("Player",[0,0],components=[actorComponent,
+                                                                spriteRenderer,
+                                                                physicsComponent,
+                                                                playerComponent,
+                                                                lightComponent])

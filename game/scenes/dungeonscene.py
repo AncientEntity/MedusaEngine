@@ -1,6 +1,7 @@
 from engine.components.rendering.tilemaprenderer import TilemapRenderer, Tilemap
 from engine.ecs import Scene
 from engine.systems import renderer
+from engine.systems.lighting import LightingSystem
 from game import assets
 
 
