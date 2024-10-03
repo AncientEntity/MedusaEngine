@@ -1,4 +1,5 @@
 from engine.game import Game
+from game.scenes.dungeonscene import DungeonScene
 from game.scenes.mainscene import MainScene
 
 

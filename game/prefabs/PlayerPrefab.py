@@ -21,6 +21,7 @@ def CreatePlayer(currentScene : LevelScene):
     actorComponent.health = 200
     actorComponent.maxHealth = 200
     actorComponent.meleeDamage = 0
+    actorComponent.speed = 600
 
     playerComponent = PlayerComponent()
     playerComponent.dashUI = UIDashPrefab(playerComponent, actorComponent)
