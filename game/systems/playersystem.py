@@ -7,6 +7,7 @@ from engine.datatypes.sprites import Sprite
 from engine.datatypes.timedevents import TimedEvent
 from engine.ecs import EntitySystem, Scene, Component
 from engine.engine import Input
+from engine.systems.renderer import RenderingSystem
 from engine.tools.math import MoveTowards, Distance, NormalizeVec, LookAt, Magnitude
 from game.components.actorcomponent import ActorComponent
 from game.components.guncomponent import GunComponent
@@ -27,6 +28,12 @@ class PlayerSystem(EntitySystem):
         self.currentScene = currentScene
         currentScene.GetSystemByClass(ActorSystem).RegisterAction("dash",self.ActionPlayerDash)
     def Update(self,currentScene : Scene):
+        if Input.KeyDown(pygame.K_k):
+            if not pygame.display.is_fullscreen():
+                RenderingSystem.instance.SetResolution((1920,1080), True)
+            else:
+                RenderingSystem.instance.SetResolution((800,600), False)
+
         player : PlayerComponent
         for player in currentScene.components[PlayerComponent]:
             self.Animate(player, currentScene)
