@@ -34,9 +34,8 @@ class LightingSystem(EntitySystem):
 
         light : LightComponent
         for light in currentScene.components[LightComponent]:
-            halfRadius = light.radius // 2
-            if not self._rendering.IsOnScreenRect(pygame.Rect(light.parentEntity.position[0]-halfRadius,
-                                                              light.parentEntity.position[1]-halfRadius,
+            if not self._rendering.IsOnScreenRect(pygame.Rect(light.parentEntity.position[0]-light.radius,
+                                                              light.parentEntity.position[1]-light.radius,
                                                               light.radius*2, light.radius*2)):
                 continue # Light not on screen.
 
@@ -66,6 +65,8 @@ class LightingSystem(EntitySystem):
     def InitializeWorldLightEntity(self, currentScene : Scene):
         lightSurface = pygame.Surface(self._rendering._scaledScreenSize, pygame.SRCALPHA, 32)
         lightSurface.convert_alpha()
+        lightSurface.fill((0, 0, 0, self.worldBrightness))
+
         self._worldLightSprite = Sprite(lightSurface)
         self._worldLightEntity = currentScene.CreateEntity("EngineLightMask", (0, 0), components=[
             SpriteRenderer(self._worldLightSprite, self.drawOrder, True)])
