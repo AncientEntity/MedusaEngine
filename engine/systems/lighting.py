@@ -6,7 +6,7 @@ from engine.datatypes.sprites import Sprite
 from engine.ecs import EntitySystem, Scene, Component, Entity
 import pygame
 
-from engine.logging import Log, LOG_ERRORS
+from engine.logging import Log, LOG_ERRORS, LOG_INFO
 from engine.systems.renderer import RenderingSystem
 from engine.tools.math import Clamp
 
@@ -56,13 +56,18 @@ class LightingSystem(EntitySystem):
 
 
     def OnEnable(self, currentScene : Scene):
-        self._rendering = currentScene.GetSystemByClass(RenderingSystem)
+        self._rendering : RenderingSystem = currentScene.GetSystemByClass(RenderingSystem)
         if not self._rendering:
             Log("No rendering system found", LOG_ERRORS)
 
+        self._rendering.onScreenUpdated.append(lambda : self.InitializeWorldLightEntity(currentScene))
         self.InitializeWorldLightEntity(currentScene)
 
     def InitializeWorldLightEntity(self, currentScene : Scene):
+        if self._worldLightEntity:
+            currentScene.DeleteEntity(self._worldLightEntity)
+            self._worldLightSprite = None
+
         lightSurface = pygame.Surface(self._rendering._scaledScreenSize, pygame.SRCALPHA, 32)
         lightSurface.convert_alpha()
         lightSurface.fill((0, 0, 0, self.worldBrightness))
@@ -70,6 +75,9 @@ class LightingSystem(EntitySystem):
         self._worldLightSprite = Sprite(lightSurface)
         self._worldLightEntity = currentScene.CreateEntity("EngineLightMask", (0, 0), components=[
             SpriteRenderer(self._worldLightSprite, self.drawOrder, True)])
+
+        Log(f"InitializeWorldLightEntity with surface size {self._rendering._scaledScreenSize}",LOG_INFO)
+
 
     def CreateLightSprite(self, light : LightComponent):
         lightSurface = pygame.Surface((light.radius*2,light.radius*2), pygame.SRCALPHA, 32)
