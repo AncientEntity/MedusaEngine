@@ -30,7 +30,7 @@ class PlayerSystem(EntitySystem):
     def Update(self,currentScene : Scene):
         if Input.KeyDown(pygame.K_k):
             if not pygame.display.is_fullscreen():
-                RenderingSystem.instance.SetResolution((1920,1080), True)
+                RenderingSystem.instance.SetResolution(None, True)
             else:
                 RenderingSystem.instance.SetResolution((800,600), False)
 

@@ -51,7 +51,8 @@ class RenderingSystem(EntitySystem):
             Log("Removed "+component.parentEntity.name+" from rendering order.",LOG_ALL)
 
     def SetResolution(self, resolution, isFullscreen : bool):
-        pygame.display.set_mode(resolution, flags=pygame.FULLSCREEN if isFullscreen else 0)
+        # If size is (0,0) then it uses the current screen resolution.
+        pygame.display.set_mode((0,0) if isFullscreen else resolution, flags=pygame.FULLSCREEN if isFullscreen else 0)
         self.InitializeScreenData()
         Log(f"SetResolution({resolution},{isFullscreen})", LOG_INFO)
 
