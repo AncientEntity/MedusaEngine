@@ -7,9 +7,11 @@ class LightComponent(Component):
 
         self.brightness = brightness
         self.radius = radius
-        self.color = color
+        import random
+        self.color = color#(random.randint(0,200),random.randint(0,200),random.randint(0,200)) #color
 
         self.cachedBrightness = None
         self.cachedRadius = None
         self.cachedColor = None
         self.cachedLightSurface : pygame.Surface = None
+        self.cachedColorSurface : pygame.Surface = None
