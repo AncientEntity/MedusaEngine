@@ -31,6 +31,7 @@ class MainScene(LevelScene):
     def LevelStart(self):
         player = CreatePlayer(self)
         self.GetSystemByClass(ActorSystem)._cameraTarget = player
+        self.GetSystemByClass(LightingSystem).CreateLightsFromLevelScene(self)
 
         #CreateLichFireballPrefab(self)
         CreateWoodenBowPrefab(self)

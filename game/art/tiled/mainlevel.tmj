@@ -124,8 +124,24 @@
                 {
                  "height":0,
                  "id":1,
-                 "name":"Lava",
+                 "name":"light",
                  "point":true,
+                 "properties":[
+                        {
+                         "name":"brightness",
+                         "type":"float",
+                         "value":0.5
+                        }, 
+                        {
+                         "name":"color",
+                         "type":"color",
+                         "value":"#ff640000"
+                        }, 
+                        {
+                         "name":"radius",
+                         "type":"int",
+                         "value":42
+                        }],
                  "rotation":0,
                  "type":"",
                  "visible":true,
@@ -135,75 +151,171 @@
                 }, 
                 {
                  "height":0,
-                 "id":4,
-                 "name":"Lava",
+                 "id":12,
+                 "name":"light",
                  "point":true,
+                 "properties":[
+                        {
+                         "name":"brightness",
+                         "type":"float",
+                         "value":0.5
+                        }, 
+                        {
+                         "name":"color",
+                         "type":"color",
+                         "value":"#ff640000"
+                        }, 
+                        {
+                         "name":"radius",
+                         "type":"int",
+                         "value":42
+                        }],
                  "rotation":0,
                  "type":"",
                  "visible":true,
                  "width":0,
-                 "x":264.0625,
-                 "y":30.125
+                 "x":264.5,
+                 "y":29
                 }, 
                 {
                  "height":0,
-                 "id":5,
-                 "name":"Lava",
+                 "id":13,
+                 "name":"light",
                  "point":true,
+                 "properties":[
+                        {
+                         "name":"brightness",
+                         "type":"float",
+                         "value":0.5
+                        }, 
+                        {
+                         "name":"color",
+                         "type":"color",
+                         "value":"#ff640000"
+                        }, 
+                        {
+                         "name":"radius",
+                         "type":"int",
+                         "value":42
+                        }],
                  "rotation":0,
                  "type":"",
                  "visible":true,
                  "width":0,
-                 "x":344.25,
-                 "y":110.875
+                 "x":56.5,
+                 "y":269
                 }, 
                 {
                  "height":0,
-                 "id":6,
-                 "name":"Lava",
+                 "id":14,
+                 "name":"light",
                  "point":true,
+                 "properties":[
+                        {
+                         "name":"brightness",
+                         "type":"float",
+                         "value":0.5
+                        }, 
+                        {
+                         "name":"color",
+                         "type":"color",
+                         "value":"#ff640000"
+                        }, 
+                        {
+                         "name":"radius",
+                         "type":"int",
+                         "value":42
+                        }],
                  "rotation":0,
                  "type":"",
                  "visible":true,
                  "width":0,
-                 "x":231.909090909091,
-                 "y":238.727272727273
+                 "x":232,
+                 "y":237.5
                 }, 
                 {
                  "height":0,
-                 "id":7,
-                 "name":"Lava",
+                 "id":15,
+                 "name":"light",
                  "point":true,
+                 "properties":[
+                        {
+                         "name":"brightness",
+                         "type":"float",
+                         "value":0.5
+                        }, 
+                        {
+                         "name":"color",
+                         "type":"color",
+                         "value":"#ff640000"
+                        }, 
+                        {
+                         "name":"radius",
+                         "type":"int",
+                         "value":42
+                        }],
                  "rotation":0,
                  "type":"",
                  "visible":true,
                  "width":0,
-                 "x":344,
-                 "y":238.75
+                 "x":345,
+                 "y":238.5
                 }, 
                 {
                  "height":0,
-                 "id":8,
-                 "name":"Lava",
+                 "id":16,
+                 "name":"light",
                  "point":true,
+                 "properties":[
+                        {
+                         "name":"brightness",
+                         "type":"float",
+                         "value":0.5
+                        }, 
+                        {
+                         "name":"color",
+                         "type":"color",
+                         "value":"#ff640000"
+                        }, 
+                        {
+                         "name":"radius",
+                         "type":"int",
+                         "value":42
+                        }],
+                 "rotation":0,
+                 "type":"",
+                 "visible":true,
+                 "width":0,
+                 "x":344.5,
+                 "y":110.5
+                }, 
+                {
+                 "height":0,
+                 "id":17,
+                 "name":"light",
+                 "point":true,
+                 "properties":[
+                        {
+                         "name":"brightness",
+                         "type":"float",
+                         "value":0.5
+                        }, 
+                        {
+                         "name":"color",
+                         "type":"color",
+                         "value":"#ff640000"
+                        }, 
+                        {
+                         "name":"radius",
+                         "type":"int",
+                         "value":42
+                        }],
                  "rotation":0,
                  "type":"",
                  "visible":true,
                  "width":0,
                  "x":264,
-                 "y":318.75
-                }, 
-                {
-                 "height":0,
-                 "id":9,
-                 "name":"Lava",
-                 "point":true,
-                 "rotation":0,
-                 "type":"",
-                 "visible":true,
-                 "width":0,
-                 "x":56,
-                 "y":271.25
+                 "y":316.5
                 }],
          "opacity":1,
          "type":"objectgroup",
@@ -212,7 +324,7 @@
          "y":0
         }],
  "nextlayerid":6,
- "nextobjectid":10,
+ "nextobjectid":18,
  "orientation":"orthogonal",
  "properties":[
         {
@@ -221,7 +333,7 @@
          "value":-1
         }],
  "renderorder":"right-down",
- "tiledversion":"1.10.2",
+ "tiledversion":"1.11.0",
  "tileheight":16,
  "tilesets":[
         {

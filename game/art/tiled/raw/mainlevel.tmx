@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<map version="1.10" tiledversion="1.10.2" orientation="orthogonal" renderorder="right-down" width="25" height="25" tilewidth="16" tileheight="16" infinite="0" nextlayerid="6" nextobjectid="10">
+<map version="1.10" tiledversion="1.11.0" orientation="orthogonal" renderorder="right-down" width="25" height="25" tilewidth="16" tileheight="16" infinite="0" nextlayerid="6" nextobjectid="18">
  <editorsettings>
   <export target="../mainlevel.tmj" format="json"/>
  </editorsettings>
@@ -98,25 +98,60 @@
 </data>
  </layer>
  <objectgroup id="5" name="Objects">
-  <object id="1" name="Lava" x="72" y="109.5">
+  <object id="1" name="light" x="72" y="109.5">
+   <properties>
+    <property name="brightness" type="float" value="0.5"/>
+    <property name="color" type="color" value="#ff640000"/>
+    <property name="radius" type="int" value="42"/>
+   </properties>
    <point/>
   </object>
-  <object id="4" name="Lava" x="264.063" y="30.125">
+  <object id="12" name="light" x="264.5" y="29">
+   <properties>
+    <property name="brightness" type="float" value="0.5"/>
+    <property name="color" type="color" value="#ff640000"/>
+    <property name="radius" type="int" value="42"/>
+   </properties>
    <point/>
   </object>
-  <object id="5" name="Lava" x="344.25" y="110.875">
+  <object id="13" name="light" x="56.5" y="269">
+   <properties>
+    <property name="brightness" type="float" value="0.5"/>
+    <property name="color" type="color" value="#ff640000"/>
+    <property name="radius" type="int" value="42"/>
+   </properties>
    <point/>
   </object>
-  <object id="6" name="Lava" x="231.909" y="238.727">
+  <object id="14" name="light" x="232" y="237.5">
+   <properties>
+    <property name="brightness" type="float" value="0.5"/>
+    <property name="color" type="color" value="#ff640000"/>
+    <property name="radius" type="int" value="42"/>
+   </properties>
    <point/>
   </object>
-  <object id="7" name="Lava" x="344" y="238.75">
+  <object id="15" name="light" x="345" y="238.5">
+   <properties>
+    <property name="brightness" type="float" value="0.5"/>
+    <property name="color" type="color" value="#ff640000"/>
+    <property name="radius" type="int" value="42"/>
+   </properties>
    <point/>
   </object>
-  <object id="8" name="Lava" x="264" y="318.75">
+  <object id="16" name="light" x="344.5" y="110.5">
+   <properties>
+    <property name="brightness" type="float" value="0.5"/>
+    <property name="color" type="color" value="#ff640000"/>
+    <property name="radius" type="int" value="42"/>
+   </properties>
    <point/>
   </object>
-  <object id="9" name="Lava" x="56" y="271.25">
+  <object id="17" name="light" x="264" y="316.5">
+   <properties>
+    <property name="brightness" type="float" value="0.5"/>
+    <property name="color" type="color" value="#ff640000"/>
+    <property name="radius" type="int" value="42"/>
+   </properties>
    <point/>
   </object>
  </objectgroup>
