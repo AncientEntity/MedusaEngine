@@ -1,4 +1,4 @@
-from pygame import BLEND_RGBA_SUB, BLEND_RGB_ADD, BLEND_RGBA_ADD
+from pygame import BLEND_RGBA_SUB, BLEND_RGB_ADD
 
 from engine.components.rendering.lightcomponent import LightComponent
 from engine.components.rendering.spriterenderer import SpriteRenderer
@@ -7,6 +7,7 @@ from engine.ecs import EntitySystem, Scene, Component, Entity
 import pygame
 
 from engine.logging import Log, LOG_ERRORS, LOG_INFO
+from engine.scenes.levelscene import LevelScene
 from engine.systems.renderer import RenderingSystem
 from engine.tools.math import Clamp
 
@@ -96,6 +97,30 @@ class LightingSystem(EntitySystem):
         light.cachedBrightness = light.brightness
         light.cachedRadius = light.radius
         light.cachedColor = light.color
+
+    def CreateLightsFromLevelScene(self, levelScene : LevelScene):
+        for lightData in levelScene.GetTiledObjectsByName("light"):
+            if "properties" not in lightData:
+                return
+
+            properties = lightData["properties"]
+            brightness = 1
+            radius = 30
+            color = [0, 0, 0]
+            for property in properties:
+                if property["name"] == "brightness":
+                    brightness = property["value"]
+                elif property["name"] == "radius":
+                    radius = property["value"]
+                elif property["name"] == "color":
+                    hexColor = property["value"]
+                    color[0] = int(hexColor[3:5], 16)
+                    color[1] = int(hexColor[5:7], 16)
+                    color[2] = int(hexColor[7:9], 16)
+
+            lightComponent = LightComponent(brightness, radius, color)
+            levelScene.CreateEntity("GeneratedLevelSceneLight", lightData["position"][:],
+                                    components=[lightComponent])
 
     def OnNewComponent(self,component : Component): #Called when a new component is created into the scene. (Used to initialize that component)
         pass
