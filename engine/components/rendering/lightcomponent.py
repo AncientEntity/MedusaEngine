@@ -13,3 +13,4 @@ class LightComponent(Component):
         self.cachedRadius = None
         self.cachedColor = None
         self.cachedLightSurface : pygame.Surface = None
+        self.cachedColorSurface : pygame.Surface = None
