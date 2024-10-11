@@ -1,13 +1,13 @@
 import pygame
 
-from engine.components.aligncomponent import AlignComponent
+from engine.components.recttransformcomponent import RectTransformComponent
 from engine.components.rendering.particlecomponent import ParticleEmitterComponent
 from engine.components.rendering.spriterenderer import SpriteRenderer
 from engine.components.rendering.textrenderer import TextRenderer
 from engine.components.rendering.tilemaprenderer import TilemapRenderer
 from engine.components.ui.buttoncomponent import ButtonComponent
 from engine.constants import CURSOR_PRESSED, ALIGN_TOPLEFT, ALIGN_BOTTOMLEFT, ALIGN_CENTERLEFT, ALIGN_CENTERRIGHT, \
-    ALIGN_CENTERBOTTOM
+    ALIGN_CENTERBOTTOM, ALIGN_CENTER
 from engine.ecs import EntitySystem
 from engine.engine import Input
 from engine.prefabs.audio.AudioSinglePrefab import CreateAudioSingle
@@ -174,11 +174,12 @@ class GameSystem(EntitySystem):
         self.pressStartText.enabled = False
         self.creditsText.enabled = False
 
-        self.conveyorButton : ButtonComponent = CreateButtonPrefab(currentScene, worldSpriteSheet[(1,3)], "", self.mainFont).GetComponent(ButtonComponent)
-        currentScene.AddComponent(SpriteRenderer(pygame.transform.scale(worldSpriteSheet[6],(8,8)),5,True),
-                                  self.conveyorButton.parentEntity)
-        currentScene.AddComponent(AlignComponent(ALIGN_BOTTOMLEFT,(25,-15)), self.conveyorButton.parentEntity)
-        self.conveyorButton.parentEntity.position = [-100,118]
+        for i in range(9):
+            self.conveyorButton : ButtonComponent = CreateButtonPrefab(currentScene, worldSpriteSheet[(1,3)], "", self.mainFont).GetComponent(ButtonComponent)
+            currentScene.AddComponent(SpriteRenderer(pygame.transform.scale(worldSpriteSheet[6],(8,8)),5,True),
+                                      self.conveyorButton.parentEntity)
+            #(25,-15)
+            currentScene.AddComponent(RectTransformComponent(i, (0, 0), (16, 16)), self.conveyorButton.parentEntity)
         CreateGenerator(currentScene)
 
 
@@ -323,13 +324,13 @@ class GameSystem(EntitySystem):
         self.undergroundEntranceButton : ButtonComponent = CreateButtonPrefab(currentScene, worldSpriteSheet[(1,3)], "", self.mainFont).GetComponent(ButtonComponent)
         currentScene.AddComponent(SpriteRenderer(pygame.transform.scale(worldSpriteSheet[2], (8, 8)), 5,True),
                                   self.undergroundEntranceButton.parentEntity)
-        currentScene.AddComponent(AlignComponent(ALIGN_BOTTOMLEFT,(45,-15)), self.undergroundEntranceButton.parentEntity)
+        currentScene.AddComponent(RectTransformComponent(ALIGN_BOTTOMLEFT, (45, -15)), self.undergroundEntranceButton.parentEntity)
         self.undergroundEntranceButton.parentEntity.position = [-80,118]
 
         self.undergroundExitButton : ButtonComponent = CreateButtonPrefab(currentScene, worldSpriteSheet[(1,3)], "", self.mainFont).GetComponent(ButtonComponent)
         currentScene.AddComponent(SpriteRenderer(pygame.transform.scale(worldSpriteSheet[3], (8, 8)), 5,True),
                                   self.undergroundExitButton.parentEntity)
-        currentScene.AddComponent(AlignComponent(ALIGN_BOTTOMLEFT,(65,-15)), self.undergroundExitButton.parentEntity)
+        currentScene.AddComponent(RectTransformComponent(ALIGN_BOTTOMLEFT, (65, -15)), self.undergroundExitButton.parentEntity)
         self.undergroundExitButton.parentEntity.position = [-60,118]
 
         currentScene.GetSystemByClass(NotificationSystem).CreateNotification(currentScene, "Underground Belts Unlocked!")

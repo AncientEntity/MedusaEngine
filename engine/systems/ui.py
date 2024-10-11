@@ -1,11 +1,12 @@
 import pygame.mouse
 
-from engine.components.aligncomponent import AlignComponent
+from engine.components.recttransformcomponent import RectTransformComponent
 from engine.components.ui.buttoncomponent import ButtonComponent
 from engine.components.ui.uicomponent import UIComponent
 from engine.constants import CURSOR_NONE, CURSOR_PRESSED, CURSOR_HOVERING, ALIGN_CENTER, ALIGN_CENTERLEFT, \
     ALIGN_CENTERRIGHT, ALIGN_TOPLEFT, ALIGN_TOPRIGHT, ALIGN_BOTTOMLEFT, ALIGN_BOTTOMRIGHT, ALIGN_NONE, \
-    ALIGN_CENTERBOTTOM
+    ALIGN_CENTERBOTTOM, ALIGN_CENTERTOP
+from engine.datatypes.anchor import Anchor
 from engine.ecs import EntitySystem, Scene, Component
 from engine.engine import Input
 from engine.logging import LOG_ERRORS, Log, LOG_INFO
@@ -14,13 +15,13 @@ from engine.systems.renderer import RenderingSystem
 
 class UISystem(EntitySystem):
     def __init__(self):
-        super().__init__([UIComponent, AlignComponent])
+        super().__init__([UIComponent, RectTransformComponent])
 
         self.allUIElements = []
         self.alignComponents = []
         self.buttons = []
 
-        self.anchors = [None,None,None,None,None,None,None,None]
+        self.anchors = [None,None,None,None,None,None,None,None,None]
 
         self._rendering : RenderingSystem = None
 
@@ -70,30 +71,33 @@ class UISystem(EntitySystem):
         Log("UISystem OnResolutionUpdated", LOG_INFO)
 
         # Recalculate anchor positions
-        self.anchors[ALIGN_CENTER] = (0,0)
-        self.anchors[ALIGN_CENTERLEFT] = (-self._rendering._scaledHalfSize[0],0)
-        self.anchors[ALIGN_CENTERRIGHT] = (self._rendering._scaledHalfSize[0],0)
-        self.anchors[ALIGN_TOPLEFT] = (-self._rendering._scaledHalfSize[0],-self._rendering._scaledHalfSize[1])
-        self.anchors[ALIGN_TOPRIGHT] = (self._rendering._scaledHalfSize[0],-self._rendering._scaledHalfSize[1])
-        self.anchors[ALIGN_BOTTOMLEFT] = (-self._rendering._scaledHalfSize[0],self._rendering._scaledHalfSize[1])
-        self.anchors[ALIGN_BOTTOMRIGHT] = (self._rendering._scaledHalfSize[0],self._rendering._scaledHalfSize[1])
-        self.anchors[ALIGN_CENTERBOTTOM] = (0,self._rendering._scaledHalfSize[1])
+        self.anchors[ALIGN_CENTER] = Anchor((0,0),(0,0))
+        self.anchors[ALIGN_CENTERLEFT] = Anchor((-self._rendering._scaledHalfSize[0],0), (1,0))
+        self.anchors[ALIGN_CENTERRIGHT] = Anchor((self._rendering._scaledHalfSize[0],0), (-1,0))
+        self.anchors[ALIGN_TOPLEFT] = Anchor((-self._rendering._scaledHalfSize[0],-self._rendering._scaledHalfSize[1]), (1,1))
+        self.anchors[ALIGN_TOPRIGHT] = Anchor((self._rendering._scaledHalfSize[0],-self._rendering._scaledHalfSize[1]), (-1,1))
+        self.anchors[ALIGN_BOTTOMLEFT] = Anchor((-self._rendering._scaledHalfSize[0],self._rendering._scaledHalfSize[1]), (1,-1))
+        self.anchors[ALIGN_BOTTOMRIGHT] = Anchor((self._rendering._scaledHalfSize[0],self._rendering._scaledHalfSize[1]), (-1,-1))
+        self.anchors[ALIGN_CENTERBOTTOM] = Anchor((0,self._rendering._scaledHalfSize[1]), (0,-1))
+        self.anchors[ALIGN_CENTERTOP] = Anchor((0,-self._rendering._scaledHalfSize[1]), (0,1))
 
-        uiElement : AlignComponent
+        uiElement : RectTransformComponent
         for uiElement in self.alignComponents:
             self.AlignUIComponent(uiElement)
 
-    def AlignUIComponent(self, uiElement : UIComponent):
+    def AlignUIComponent(self, uiElement : RectTransformComponent):
         Log(uiElement.parentEntity.name + " here", LOG_INFO)
         if uiElement.screenSpace == False or uiElement.anchor == ALIGN_NONE:
             return
-        anchor = self.anchors[uiElement.anchor]
-        uiElement.parentEntity.position = [anchor[0] + uiElement.anchorOffset[0], anchor[1] + uiElement.anchorOffset[1]]
+        anchorPosition = self.anchors[uiElement.anchor].position
+        anchorBoundMult = self.anchors[uiElement.anchor].boundMultiplier
+        uiElement.parentEntity.position = [anchorPosition[0] + uiElement.anchorOffset[0] + uiElement.bounds[0]//2*anchorBoundMult[0],
+                                           anchorPosition[1] + uiElement.anchorOffset[1] + uiElement.bounds[1]//2*anchorBoundMult[1]]
 
     def OnNewComponent(self, component: Component):
         if (isinstance(component, ButtonComponent)):
             self.buttons.append(component)
-        if (isinstance(component, AlignComponent)):
+        if (isinstance(component, RectTransformComponent)):
             self.alignComponents.append(component)
             self.AlignUIComponent(component)
         if (isinstance(component, UIComponent)):
