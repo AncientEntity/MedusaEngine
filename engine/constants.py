@@ -24,5 +24,4 @@ ALIGN_TOPRIGHT = 4
 ALIGN_BOTTOMLEFT = 5
 ALIGN_BOTTOMRIGHT = 6
 ALIGN_CENTERBOTTOM = 7
-
-# todo Eventually other alignments should be implemented but this what is needed for now
+ALIGN_CENTERTOP = 8
