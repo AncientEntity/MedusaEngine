@@ -26,12 +26,14 @@ class Sprite:
         self.sprite = None  # Set in self.RefreshSprite ran at bottom of __init__.
 
         self._flipX = False
-        self.ignoreCollision = False
+        self._flipY = False
         self._tint = None
         self._color = None
         self._rotation = None
         self._alpha = None # When None it is 255. fully opaque.
         self._scale = None
+
+        self.ignoreCollision = False
 
         self.RefreshSprite()
 
@@ -64,9 +66,9 @@ class Sprite:
         if(self._alpha != None):
             self.sprite.set_alpha(self._alpha)
 
-        #Handle FlipX
-        if(self._flipX):
-            self.sprite = pygame.transform.flip(self.sprite, True, False)
+        #Handle FlipX/FlipY
+        if(self._flipX or self._flipY):
+            self.sprite = pygame.transform.flip(self.sprite, self._flipX == True, self._flipY == True)
 
         #Handle rotation
         if(self._rotation):
@@ -79,6 +81,14 @@ class Sprite:
             return
 
         self._flipX = flipped
+        self.RefreshSprite()
+        return self
+
+    def SetFlipY(self, flipped):
+        if(self._flipY == flipped):
+            return
+
+        self._flipY = flipped
         self.RefreshSprite()
         return self
 
@@ -122,6 +132,21 @@ class Sprite:
         return self.sprite.get_width()
     def get_height(self):
         return self.sprite.get_height()
+    def get_tint(self):
+        return self._tint
+    def get_color(self):
+        return self._color
+    def get_alpha(self):
+        return self._alpha
+    def get_rotation(self):
+        return self._rotation
+    def get_flipX(self):
+        return self._flipX
+    def get_flipY(self):
+        return self._flipY
+    def get_scale(self):
+        return self._scale
+
     def Copy(self):
         newCopy = copy.copy(self)
         newCopy._unmodifiedSprite = self._unmodifiedSprite
@@ -174,9 +199,11 @@ class AnimatedSprite(Sprite):
                 self._sprites[i] = pygame.transform.flip(self._sprites[i], True, False)
             else:
                 self._sprites[i].SetFlipX(flipped)
+        return self
     def SetTint(self,tint):
         for sprite in self._sprites:
             sprite.SetTint(tint)
+        self._tint = tint
     def SetRotation(self,rotation):
         for sprite in self._sprites:
             sprite.SetRotation(rotation)

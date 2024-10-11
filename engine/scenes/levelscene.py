@@ -21,9 +21,9 @@ class LevelScene(Scene):
         super().__init__()
         self.systems = [renderer.RenderingSystem()]
         self.mapJson = tiled.TiledGetRawMapData(tiledFilePath)
-        self.tileMapLayers : list[TilemapRenderer] = []
-        self.tileMapLayersObjectsByName : dict = {}
-        self.tileMapLayersByName : dict = {}
+        self.tileMapLayers : list[Entity] = []
+        self.tileMapLayersObjectsByName : dict[Entity] = {}
+        self.tileMapLayersByName : dict[TilemapRenderer] = {}
         self.worldTileset : SpriteSheet = worldTileset
 
         # Layer0 will have draw order of firstLayerDrawOrder, then Layer1 will have firstLayerDrawOrder+1 and so on.
@@ -184,3 +184,17 @@ class LevelScene(Scene):
 
         layerObj: Entity = self.tileMapLayersObjectsByName[layerName]
         layerObj.GetComponent(TilemapRenderer).tileMap.Clear()   # todo cache TileMapRenderers instead as GetComponent is slow.
+
+    def GetTileAtWorldPosition(self,worldPos,layerName=None):
+        layer : TilemapRenderer = None
+        if layerName:
+            layer = self.tileMapLayersObjectsByName[layerName].GetComponent(TilemapRenderer)
+        else:
+            layer = self.tileMapLayers[0].GetComponent(TilemapRenderer)
+
+        tileIndex = layer.WorldPositionToTileIndex(worldPos)
+
+        if tileIndex[0] >= 0 and tileIndex[1] >= 0 and tileIndex[0] < len(layer.tileMap.map) and tileIndex[1] < len(layer.tileMap.map[0]):
+            return layer.tileMap.GetTileID(tileIndex[0],tileIndex[1])
+        else:
+            return None

@@ -1,9 +1,14 @@
+from engine.datatypes.timedevents import TimedEvent
+import time
+
 
 class Component:
     def __init__(self):
         self.parentEntity : Entity = None
         self.enabled = True # This only works if the given EntitySystem supports it.
 
+        # Tracks whether the component has been put through OnNewComponent/OnDeleteComponent on entity systems.
+        self._registered = False
 
 class Scene:
     def __init__(self):
@@ -68,8 +73,10 @@ class Scene:
         self.HandleNewComponents()
 
         #Run each system's update.
+        system : EntitySystem
         for system in self.systems:
             system.Update(self)
+            system.TickTimedEvents()
 
     def Init(self):
         for system in self.systems:
@@ -80,18 +87,23 @@ class Scene:
             system.OnEnable(self) #Pass self into on enable (which is the scene)
 
     def HandleNewComponents(self): #Runs OnNewComponent for each new component (just added to the scene) for every system that it relates to.
+        startComp : Component
         for startComp in self._newComponentQueue:
             for system in self.systems:
                 if self.SystemUsesComponent(startComp, system):
                     # if(type(component) in system.targetComponents): #swapped out for the above line as that function considers inheritance.
                     system.OnNewComponent(startComp)
+            startComp._registered = True
         self._newComponentQueue = []
 
     def HandleDeleteComponent(self,component : Component):
+        if not component._registered:
+            return
         for system in self.systems:
             if self.SystemUsesComponent(component,system):
             #if(type(component) in system.targetComponents): #swapped out for the above line as that function considers inheritance.
                 system.OnDeleteComponent(component)
+        component._registered = False
 
     def SystemUsesComponent(self, component : Component, system):
         for componentType in system.targetComponents:
@@ -124,6 +136,8 @@ class EntitySystem:
         self.targetComponents = targetComponents
         self.game = None
 
+        self._activeTimedEvents : list[TimedEvent] = []
+
     def Update(self, currentScene: Scene):
         pass
 
@@ -135,3 +149,38 @@ class EntitySystem:
 
     def OnDeleteComponent(self, component : Component): #Called when an existing component is deleted (Use for deinitializing it from the systems involved)
         pass
+
+    def StartTimedEvent(self, timedEvent : TimedEvent):
+        self.InsertTimedEvent(timedEvent)
+    def CancelTimedEvent(self, timedEvent : TimedEvent):
+        for index in range(len(self._activeTimedEvents)):
+            if(self._activeTimedEvents[index] == timedEvent):
+                self._activeTimedEvents.pop(index)
+                return True
+        return False
+
+    def TickTimedEvents(self):
+        timedEvent: TimedEvent
+        index = 0
+        currentTime = time.time()
+        while index < len(self._activeTimedEvents) and self._activeTimedEvents[index].TimeUntilNextTrigger(currentTime) <= 0:
+            timedEvent = self._activeTimedEvents[index]
+            result = timedEvent.Tick()
+            self._activeTimedEvents.remove(timedEvent)
+            if result:
+                self.InsertTimedEvent(timedEvent)
+                index += 1
+
+    # Inserts timed events in order of when they are supposed to be called.
+    # I'm worried of the possibility of events being placed out of order if insertion takes too long and
+    # timeUntil is now too old... But will test for now.
+    def InsertTimedEvent(self, timedEvent : TimedEvent):
+        currentTime = time.time()
+        timeUntil = timedEvent.TimeUntilNextTrigger(currentTime)
+        curIndex = 0
+
+        for curIndex in range(len(self._activeTimedEvents)):
+            if(self._activeTimedEvents[curIndex].TimeUntilNextTrigger(currentTime) < timeUntil):
+                break
+
+        self._activeTimedEvents.insert(curIndex, timedEvent)

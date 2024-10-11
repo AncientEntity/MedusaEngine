@@ -31,6 +31,8 @@ class SpriteSheet:
         mapFile = open(self.mapFilePath,"r")
         for line in mapFile.read().split("\n"):
             splitLine = line.split(" ")
+            if len(splitLine) <= 1:
+                continue # Either empty line or just a new line
             if(len(splitLine)< 5):
                 Log("Invalid line in "+self.mapFilePath+", line: "+line,LOG_WARNINGS)
                 continue

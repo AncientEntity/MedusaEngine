@@ -7,7 +7,7 @@ from engine.components.rendering.textrenderer import TextRenderer
 from engine.components.rendering.tilemaprenderer import TilemapRenderer
 from engine.datatypes.sprites import GetSprite, Sprite
 from engine.ecs import EntitySystem, Scene
-from engine.logging import Log, LOG_ALL
+from engine.logging import Log, LOG_ALL, LOG_INFO
 
 
 def CenterToTopLeftPosition(centerPosition, surface : pygame.Surface):
@@ -20,11 +20,15 @@ class RenderingSystem(EntitySystem):
         self.cameraPosition = [0,0]
         self.renderScale = 3
         self.backgroundColor = (255,255,255)
+        self.debug = False
+
+        # Screen Data
         self._renderTarget = None
         self._screenSize = None
         self._scaledScreenSize = None
         self._scaledHalfSize = None
-        self.debug = False
+
+        self.onScreenUpdated = [] # Whenever a screen setting is changed (resolution/fullscreen)
 
         self._sortedDrawOrder : list = [] #Sorted list of related components (ie SpriteRenderer). Sorted by sort order.
 
@@ -34,10 +38,7 @@ class RenderingSystem(EntitySystem):
 
     def OnEnable(self, currentScene : Scene):
         RenderingSystem.instance = self
-        self._screenSize = [self.game.display.get_width(),self.game.display.get_height()]
-        self._scaledScreenSize = [self.game.display.get_width() / self.renderScale,self.game.display.get_height() / self.renderScale]
-        self._scaledHalfSize = [self._scaledScreenSize[0]/2,self._scaledScreenSize[1]/2]
-        self._renderTarget = pygame.Surface(self._scaledScreenSize)
+        self.InitializeScreenData()
 
     def OnNewComponent(self,component : RendererComponent):
         self.InsertIntoSortedRenderOrder(component)
@@ -48,6 +49,20 @@ class RenderingSystem(EntitySystem):
         if(indexOfComponent != -1):
             self._sortedDrawOrder.pop(indexOfComponent)
             Log("Removed "+component.parentEntity.name+" from rendering order.",LOG_ALL)
+
+    def SetResolution(self, resolution, isFullscreen : bool):
+        # If size is (0,0) then it uses the current screen resolution.
+        pygame.display.set_mode((0,0) if isFullscreen else resolution, flags=pygame.FULLSCREEN if isFullscreen else 0)
+        self.InitializeScreenData()
+        Log(f"SetResolution({resolution},{isFullscreen})", LOG_INFO)
+
+    def InitializeScreenData(self):
+        self._screenSize = [self.game.display.get_width(),self.game.display.get_height()]
+        self._scaledScreenSize = [self.game.display.get_width() / self.renderScale,self.game.display.get_height() / self.renderScale]
+        self._scaledHalfSize = [self._scaledScreenSize[0]/2,self._scaledScreenSize[1]/2]
+        self._renderTarget = pygame.Surface(self._scaledScreenSize)
+        for func in self.onScreenUpdated:
+            func()
 
     def InsertIntoSortedRenderOrder(self,component : RendererComponent):
         # If _sortedRenderOrder is empty, just simply add and exit.
@@ -214,6 +229,11 @@ class RenderingSystem(EntitySystem):
     def IsOnScreenRect(self,rect : pygame.Rect):
         screenBounds = pygame.Rect(self.cameraPosition[0] - self._scaledHalfSize[0],self.cameraPosition[1] - self._scaledHalfSize[1],self._scaledScreenSize[0],self._scaledScreenSize[1])
         return screenBounds.colliderect(rect)
+    def IsOnScreenPoint(self, point):
+        screenBounds = pygame.Rect(self.cameraPosition[0] - self._scaledHalfSize[0],
+                                   self.cameraPosition[1] - self._scaledHalfSize[1], self._scaledScreenSize[0],
+                                   self._scaledScreenSize[1])
+        return screenBounds.collidepoint(point[0],point[1])
 
     def IsOnScreenSpaceRect(self, rect : pygame.Rect):
         screenBounds = pygame.Rect(-self._scaledHalfSize[0],-self._scaledHalfSize[1],self._scaledScreenSize[0],self._scaledScreenSize[1])
