@@ -27,6 +27,8 @@ class EngineSplashScreenScene(Scene):
         self.renderEngine.renderScale = 1
         self.systems.append(self.renderEngine)
         self.systems.append(EngineSplashScreenLoadNextScene())
+
+        self.name = "Medusa Splash Scene"
     def Init(self):
         super().Init()
         font = pygame.font.SysFont("Arial", 36, True, False)
