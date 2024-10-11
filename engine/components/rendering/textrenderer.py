@@ -1,6 +1,6 @@
 from engine.components.rendering.renderercomponent import RendererComponent
-from engine.constants import ALIGN_CENTER, ALIGN_TOPLEFT, ALIGN_CENTERRIGHT, ALIGN_TOPRIGHT, ALIGN_CENTERLEFT, \
-    ALIGN_BOTTOMRIGHT, ALIGN_BOTTOMLEFT
+from engine.constants import ALIGN_CENTER, ALIGN_CENTERRIGHT, ALIGN_BOTTOMLEFT, ALIGN_BOTTOMRIGHT, ALIGN_CENTERLEFT, \
+    ALIGN_TOPRIGHT
 from engine.datatypes.sprites import Sprite
 import pygame
 
@@ -86,6 +86,7 @@ class TextRenderer(RendererComponent):
                 yOffset = self._render.get_height() // 2
             if(self._textAlign == ALIGN_BOTTOMLEFT or self._textAlign == ALIGN_BOTTOMRIGHT):
                 yOffset = self._render.get_height()
+
 
         # We don't need to do anything for ALIGN_TOPLEFT as RenderingSystem without offset takes the top left.
 
