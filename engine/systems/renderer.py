@@ -106,6 +106,9 @@ class RenderingSystem(EntitySystem):
             elif(isinstance(component, TextRenderer)):
                 self.RenderTextRenderer(component)
 
+        # todo remove
+        currentScene.GetSystemByName("UISystem").DebugDrawRects()
+
         #Finally blit the render target onto the final display.
         self.game.display.blit(pygame.transform.scale(self._renderTarget,(self._screenSize[0],self._screenSize[1])),(0,0))
         pygame.display.update()

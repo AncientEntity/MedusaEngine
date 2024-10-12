@@ -7,7 +7,7 @@ from engine.components.rendering.textrenderer import TextRenderer
 from engine.components.rendering.tilemaprenderer import TilemapRenderer
 from engine.components.ui.buttoncomponent import ButtonComponent
 from engine.constants import CURSOR_PRESSED, ALIGN_TOPLEFT, ALIGN_BOTTOMLEFT, ALIGN_CENTERLEFT, ALIGN_CENTERRIGHT, \
-    ALIGN_CENTERBOTTOM, ALIGN_CENTER
+    ALIGN_CENTERBOTTOM, ALIGN_CENTER, ALIGN_CENTERTOP
 from engine.ecs import EntitySystem
 from engine.engine import Input
 from engine.prefabs.audio.AudioSinglePrefab import CreateAudioSingle
@@ -119,19 +119,36 @@ class GameSystem(EntitySystem):
         self.resultReasonText.SetColor((255,255,255))
         self.resultReasonText.SetAntialiased(False)
 
+        mainContainerRect = RectTransformComponent(ALIGN_CENTERTOP,(0,40),(200,64))
+        self.mainContainer = currentScene.CreateEntity("UI-MainContainer",(0,0),components=[
+            mainContainerRect])
+
         self.gameTitleText = TextRenderer("Tiny Factory", self.titleText)
         self.gameTitleText.enabled = True
-        self.gameTitleTextEnt = currentScene.CreateEntity("Game Title Text",[0,-80],components=[self.gameTitleText])
+        self.gameTitleTextEnt = currentScene.CreateEntity("Game Title Text",[0,-80],components=[self.gameTitleText,
+                                                RectTransformComponent(ALIGN_CENTERTOP,(0,15),(170,20),
+                                                                       mainContainerRect)])
         self.gameTitleText.SetColor((255,255,255))
         self.gameTitleText.SetAntialiased(False)
         self.gameTitleText.SetShadow(True,(0,0,0),2)
 
+
         self.pressStartText = TextRenderer("Press Space to Start", self.mainFont)
         self.pressStartText.enabled = True
-        self.pressStartTextEnt = currentScene.CreateEntity("RestartText",[0,-50],components=[self.pressStartText])
+        self.pressStartTextEnt = currentScene.CreateEntity("RestartText",[0,-50],components=[self.pressStartText,
+                                                           RectTransformComponent(ALIGN_CENTERTOP,(0,38),(170,20),
+                                                                       mainContainerRect)])
         self.pressStartText.SetColor((255,255,255))
         self.pressStartText.SetAntialiased(False)
         self.pressStartText.SetShadow(True,(0,0,0),2)
+
+        for i in range(9):
+            self.conveyorButton : ButtonComponent = CreateButtonPrefab(currentScene, worldSpriteSheet[(1,3)], "", self.mainFont).GetComponent(ButtonComponent)
+            currentScene.AddComponent(SpriteRenderer(pygame.transform.scale(worldSpriteSheet[6],(8,8)),5,True),
+                                      self.conveyorButton.parentEntity)
+            #(25,-15)
+            self.conveyorButton.parentEntity.GetComponent(RectTransformComponent).anchor = i
+            #currentScene.AddComponent(RectTransformComponent(i, (0, 0), (16, 16)), self.conveyorButton.parentEntity)
 
     def Update(self, currentScene: LevelScene):
         if(not self.alive):
@@ -146,6 +163,12 @@ class GameSystem(EntitySystem):
         self.WorldInteraction(currentScene)
         self.Controls()
         self.HandleRound(currentScene)
+
+        if Input.KeyDown(pygame.K_l):
+            if not pygame.display.is_fullscreen():
+                RenderingSystem.instance.SetResolution(None, True)
+            else:
+                RenderingSystem.instance.SetResolution((256*2,272*2), False)
 
     def HandleRound(self,currentScene : LevelScene):
         self.SetLevelTimeRemaining(self._levelTimeRemaining - self.game.deltaTime)
@@ -174,12 +197,6 @@ class GameSystem(EntitySystem):
         self.pressStartText.enabled = False
         self.creditsText.enabled = False
 
-        for i in range(9):
-            self.conveyorButton : ButtonComponent = CreateButtonPrefab(currentScene, worldSpriteSheet[(1,3)], "", self.mainFont).GetComponent(ButtonComponent)
-            currentScene.AddComponent(SpriteRenderer(pygame.transform.scale(worldSpriteSheet[6],(8,8)),5,True),
-                                      self.conveyorButton.parentEntity)
-            #(25,-15)
-            currentScene.AddComponent(RectTransformComponent(i, (0, 0), (16, 16)), self.conveyorButton.parentEntity)
         CreateGenerator(currentScene)
 
 
