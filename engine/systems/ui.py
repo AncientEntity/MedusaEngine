@@ -78,9 +78,9 @@ class UISystem(EntitySystem):
         self.UpdateRectTransform(self.rootRect)
     def UpdateRectTransform(self, transform : RectTransformComponent):
         if transform != self.rootRect:
-            targetAnchor : Anchor = transform.parentRect._anchors[transform.anchor]
-            newPosition = [targetAnchor.position[0]+transform.anchorOffset[0],
-                                               targetAnchor.position[1]+transform.anchorOffset[1]]
+            targetAnchor : Anchor = transform._parentRect._anchors[transform._anchor]
+            newPosition = [targetAnchor.position[0] + transform._anchorOffset[0],
+                           targetAnchor.position[1] + transform._anchorOffset[1]]
             newPosition[0] += transform.bounds[0]//2*targetAnchor.boundMultiplier[0]
             newPosition[1] += transform.bounds[1]//2*targetAnchor.boundMultiplier[1]
 
@@ -103,16 +103,18 @@ class UISystem(EntitySystem):
                 pygame.draw.circle(self._rendering._renderTarget, (255 - (i+1) / 9 * 255,0,(i+1) / 9 * 255),(anchor.position[0]+self._rendering._scaledHalfSize[0]
                                                                              ,anchor.position[1]+self._rendering._scaledHalfSize[1]),2)
                 i += 1
-        pygame.display.update()
+
+    def SetParent(self, rect : RectTransformComponent, newParent : RectTransformComponent):
+        rect.InternalSetParent(newParent)
+        self.UpdateRectTransform(rect)
 
     def OnNewComponent(self, component: Component):
         if (isinstance(component, ButtonComponent)):
             self.buttons.append(component)
         if (isinstance(component, RectTransformComponent)):
             self.rectTransforms.append(component)
-            if component.parentRect == None:
-                component.parentRect = self.rootRect
-                self.rootRect._children.append(component)
+            if component._parentRect == None:
+                component.InternalSetParent(self.rootRect)
 
             self.UpdateRectTransform(component)
         if (isinstance(component, UIComponent)):

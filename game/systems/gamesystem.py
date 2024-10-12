@@ -83,6 +83,7 @@ class GameSystem(EntitySystem):
         self.creditsText.SetColor((255,255,255))
         self.creditsText.SetAntialiased(False)
         self.creditsText.SetShadow(True,(0,0,0),2)
+        currentScene.AddComponent(RectTransformComponent(ALIGN_CENTERBOTTOM,bounds=(200,30)), self.creditsText.parentEntity)
 
         self.lostText = TextRenderer("You Lost!", self.titleText)
         self.lostText.enabled = False
@@ -142,13 +143,6 @@ class GameSystem(EntitySystem):
         self.pressStartText.SetAntialiased(False)
         self.pressStartText.SetShadow(True,(0,0,0),2)
 
-        for i in range(9):
-            self.conveyorButton : ButtonComponent = CreateButtonPrefab(currentScene, worldSpriteSheet[(1,3)], "", self.mainFont).GetComponent(ButtonComponent)
-            currentScene.AddComponent(SpriteRenderer(pygame.transform.scale(worldSpriteSheet[6],(8,8)),5,True),
-                                      self.conveyorButton.parentEntity)
-            #(25,-15)
-            self.conveyorButton.parentEntity.GetComponent(RectTransformComponent).anchor = i
-            #currentScene.AddComponent(RectTransformComponent(i, (0, 0), (16, 16)), self.conveyorButton.parentEntity)
 
     def Update(self, currentScene: LevelScene):
         if(not self.alive):
@@ -199,6 +193,11 @@ class GameSystem(EntitySystem):
 
         CreateGenerator(currentScene)
 
+        self.conveyorButton : ButtonComponent = CreateButtonPrefab(currentScene, worldSpriteSheet[(1,3)], "", self.mainFont).GetComponent(ButtonComponent)
+        currentScene.AddComponent(SpriteRenderer(pygame.transform.scale(worldSpriteSheet[6],(8,8)),5,True),
+                                    self.conveyorButton.parentEntity)
+        self.conveyorButton._anchor = ALIGN_BOTTOMLEFT
+        self.conveyorButton._anchorOffset = (15, -12)
 
     def StopGame(self, currentScene):
         self.mainMenu = True
@@ -341,14 +340,14 @@ class GameSystem(EntitySystem):
         self.undergroundEntranceButton : ButtonComponent = CreateButtonPrefab(currentScene, worldSpriteSheet[(1,3)], "", self.mainFont).GetComponent(ButtonComponent)
         currentScene.AddComponent(SpriteRenderer(pygame.transform.scale(worldSpriteSheet[2], (8, 8)), 5,True),
                                   self.undergroundEntranceButton.parentEntity)
-        currentScene.AddComponent(RectTransformComponent(ALIGN_BOTTOMLEFT, (45, -15)), self.undergroundEntranceButton.parentEntity)
-        self.undergroundEntranceButton.parentEntity.position = [-80,118]
+        self.undergroundEntranceButton._anchor = ALIGN_BOTTOMLEFT
+        self.undergroundEntranceButton._anchorOffset = (35, -12)
 
         self.undergroundExitButton : ButtonComponent = CreateButtonPrefab(currentScene, worldSpriteSheet[(1,3)], "", self.mainFont).GetComponent(ButtonComponent)
         currentScene.AddComponent(SpriteRenderer(pygame.transform.scale(worldSpriteSheet[3], (8, 8)), 5,True),
                                   self.undergroundExitButton.parentEntity)
-        currentScene.AddComponent(RectTransformComponent(ALIGN_BOTTOMLEFT, (65, -15)), self.undergroundExitButton.parentEntity)
-        self.undergroundExitButton.parentEntity.position = [-60,118]
+        self.undergroundExitButton._anchor = ALIGN_BOTTOMLEFT
+        self.undergroundExitButton._anchorOffset = (55, -12)
 
         currentScene.GetSystemByClass(NotificationSystem).CreateNotification(currentScene, "Underground Belts Unlocked!")
 
