@@ -1,6 +1,6 @@
 from engine.components.rendering.renderercomponent import RendererComponent
 from engine.constants import ALIGN_CENTER, ALIGN_CENTERRIGHT, ALIGN_BOTTOMLEFT, ALIGN_BOTTOMRIGHT, ALIGN_CENTERLEFT, \
-    ALIGN_TOPRIGHT
+    ALIGN_TOPRIGHT, ALIGN_CENTERTOP
 from engine.datatypes.sprites import Sprite
 import pygame
 
@@ -84,6 +84,8 @@ class TextRenderer(RendererComponent):
                 xOffset = self._render.get_width()
             if(self._textAlign == ALIGN_CENTERRIGHT or self._textAlign == ALIGN_CENTERLEFT):
                 yOffset = self._render.get_height() // 2
+            if(self._textAlign == ALIGN_CENTERTOP):
+                xOffset = self._render.get_width() // 2
             if(self._textAlign == ALIGN_BOTTOMLEFT or self._textAlign == ALIGN_BOTTOMRIGHT):
                 yOffset = self._render.get_height()
 
