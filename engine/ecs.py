@@ -67,6 +67,11 @@ class Scene:
             if(type(system) == systemType):
                 return system
         return None
+    def GetSystemByName(self, systemName : str):
+        for system in self.systems:
+            if(systemName in str(type(system))):
+                return system
+        return None
 
     def Update(self):
         #Run OnNewComponent for each component in its related systems.
