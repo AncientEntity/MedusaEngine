@@ -3,9 +3,7 @@ import pygame.mouse
 from engine.components.recttransformcomponent import RectTransformComponent
 from engine.components.ui.buttoncomponent import ButtonComponent
 from engine.components.ui.uicomponent import UIComponent
-from engine.constants import CURSOR_NONE, CURSOR_PRESSED, CURSOR_HOVERING, ALIGN_CENTER, ALIGN_CENTERLEFT, \
-    ALIGN_CENTERRIGHT, ALIGN_TOPLEFT, ALIGN_TOPRIGHT, ALIGN_BOTTOMLEFT, ALIGN_BOTTOMRIGHT, ALIGN_NONE, \
-    ALIGN_CENTERBOTTOM, ALIGN_CENTERTOP
+from engine.constants import CURSOR_NONE, CURSOR_PRESSED, CURSOR_HOVERING, ALIGN_CENTER
 from engine.datatypes.anchor import Anchor
 from engine.ecs import EntitySystem, Scene, Component
 from engine.engine import Input
@@ -30,6 +28,13 @@ class UISystem(EntitySystem):
 
         self.UpdateElementHoverStates(mousePosition)
         self.UpdateButtons(mousePosition)
+        self.CheckForRectUpdates()
+
+    def CheckForRectUpdates(self):
+        for rect in self.rectTransforms:
+            if rect.changed:
+                self.UpdateRectTransform(rect)
+                rect.changed = False
 
     def UpdateElementHoverStates(self, mousePosition):
         element: UIComponent
@@ -109,9 +114,11 @@ class UISystem(EntitySystem):
                                     , anchor.position[1] + self._rendering._scaledHalfSize[1]), 2)
                 i += 1
 
-    def SetParent(self, rect: RectTransformComponent, newParent: RectTransformComponent):
-        rect.InternalSetParent(newParent)
-        self.UpdateRectTransform(rect)
+    def GetRectTransformByName(self, name):
+        for element in self.rectTransforms:
+            if element.parentEntity.name == name:
+                return element
+        return None
 
     def OnNewComponent(self, component: Component):
         if (isinstance(component, ButtonComponent)):
@@ -119,7 +126,7 @@ class UISystem(EntitySystem):
         if (isinstance(component, RectTransformComponent)):
             self.rectTransforms.append(component)
             if component._parentRect == None:
-                component.InternalSetParent(self.rootRect)
+                component.SetParent(self.rootRect)
 
             self.UpdateRectTransform(component)
         if (isinstance(component, UIComponent)):

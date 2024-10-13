@@ -12,12 +12,13 @@ class RectTransformComponent(Component):
         self.screenSpace = screenSpace
         self._anchor = anchor
         self._anchorOffset = anchorOffset
-        self._parentRect = parent
+        self._parentRect = None
+        self.changed = False
 
         self._children = []
         self._anchors = [None, None, None, None, None, None, None, None, None]
 
-        self.InternalSetParent(parent)
+        self.SetParent(parent)
 
     def CalculateAnchors(self, newCenter, parentHalfSize):
         self._anchors[ALIGN_CENTER] = Anchor((newCenter[0], newCenter[1]), (0, 0))
@@ -30,7 +31,21 @@ class RectTransformComponent(Component):
         self._anchors[ALIGN_CENTERBOTTOM] = Anchor((newCenter[0], parentHalfSize[1] + newCenter[1]), (0, -1))
         self._anchors[ALIGN_CENTERTOP] = Anchor((newCenter[0], -parentHalfSize[1] + newCenter[1]), (0, 1))
 
-    def InternalSetParent(self, parent):
+    def SetParent(self, parent):
+        if self._parentRect == parent:
+            return
+
+        if self._parentRect:
+            self._parentRect._children.remove(self)
+
         self._parentRect = parent
         if parent:
             self._parentRect._children.append(self)
+        self.changed = True
+
+    def SetAnchorOffset(self, offset):
+        if offset == self._anchorOffset:
+            return
+
+        self._anchorOffset = offset
+        self.changed = True
