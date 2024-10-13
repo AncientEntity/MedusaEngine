@@ -1,5 +1,7 @@
 from engine.components.physicscomponent import PhysicsComponent
+from engine.components.recttransformcomponent import RectTransformComponent
 from engine.components.rendering.spriterenderer import SpriteRenderer
+from engine.constants import ALIGN_BOTTOMLEFT
 from engine.datatypes.sprites import Sprite
 from engine.datatypes.timedevents import TimedEvent
 from engine.ecs import EntitySystem, Scene, Component, Entity
@@ -39,6 +41,8 @@ class ActorSystem(EntitySystem):
         self.cameraPosition = None # Contains the same list that the rendering system has.
         self.cameraSpeed = 500
 
+        self.statsUIContainer = None
+
     def Update(self,currentScene : Scene):
         actor : ActorComponent
         for actor in self.actors:
@@ -77,6 +81,10 @@ class ActorSystem(EntitySystem):
         self.renderingSystem = currentScene.GetSystemByClass(RenderingSystem)
         self.cameraPosition = self.renderingSystem.cameraPosition
         self.currentScene = currentScene
+
+        self.statsUIContainer = currentScene.CreateEntity("UI-StatsContainer", (0,0), components=[
+            RectTransformComponent(ALIGN_BOTTOMLEFT, (0,0), (80,80))
+        ])
 
 
     def OnNewComponent(self,component : Component): #Called when a new component is created into the scene. (Used to initialize that component)

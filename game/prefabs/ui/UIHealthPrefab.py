@@ -11,7 +11,8 @@ class UIHealthPrefabHandler(UIStatsBarPrefab):
         self.minHealthShakePercent = 0.15
 
         self.lerpDelay = 0.01
-        self.startingX = -120
+        self.startingX = -28
+        self.startingY = 25
 
         self.topSprite = assets.uiTileset["health_top"]
         self.bottomSprite = assets.uiTileset["health_bottom"]

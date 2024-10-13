@@ -5,6 +5,7 @@ from engine.scenes.levelscene import LevelScene
 from engine.systems.lighting import LightingSystem
 from engine.systems.physics import PhysicsSystem
 from engine.systems.renderer import RenderingSystem
+from engine.systems.ui import UISystem
 from game.prefabs.ItemPrefabs import CreateWoodenBowPrefab, CreateLichFireballPrefab
 from game.prefabs.enemies.FloatingSwordPrefab import CreateFloatingSwordPrefab
 from game.prefabs.enemies.GobinPrefab import CreateGoblinPrefab
@@ -26,6 +27,7 @@ class MainScene(LevelScene):
         self.systems.append(ActorSystem())
         self.systems.append(PhysicsSystem())
         self.systems.append(WeaponSystem())
+        self.systems.append(UISystem())
         #self.systems.append(GroundSystem())
         self.GetSystemByClass(RenderingSystem).backgroundColor = (40,25,40)
     def LevelStart(self):

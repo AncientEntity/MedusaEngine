@@ -8,7 +8,8 @@ class UIAmmoPrefabHandler(UIStatsBarPrefab):
 
         super().__init__()
 
-        self.startingX = -108
+        self.startingX = -15
+        self.startingY = 25
 
         self.topSprite = assets.uiTileset["ammo_top"]
         self.midSprites = [ assets.uiTileset["ammo"]]

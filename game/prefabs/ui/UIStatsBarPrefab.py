@@ -3,6 +3,7 @@ from engine.ecs import Scene
 import time
 import random
 
+from engine.systems.ui import UISystem
 from game.prefabs.ui.UIBasePrefab import UIBasePrefab
 
 class UIStatsBarPrefab(UIBasePrefab):
@@ -27,6 +28,8 @@ class UIStatsBarPrefab(UIBasePrefab):
 
         self.margin = (0,5)
 
+        self.uiContainer = None
+
     def Delete(self, currentScene : Scene):
         if self.statsTop:
             currentScene.DeleteEntity(self.statsTop)
@@ -42,8 +45,14 @@ class UIStatsBarPrefab(UIBasePrefab):
         self.statsMiddle = []
 
     def Render(self, currentScene : Scene):
-        currentX = self.startingX
-        currentY = self.startingY
+
+        if not self.uiContainer:
+            self.uiContainer = currentScene.GetSystemByClass(UISystem).GetRectTransformByName("UI-StatsContainer")
+        if not self.uiContainer:
+            return
+
+        currentX = self.startingX + self.uiContainer.parentEntity.position[0]
+        currentY = self.startingY + self.uiContainer.parentEntity.position[1]
 
         if self.GetShouldShake():
             currentX += random.randint(-1,1)
