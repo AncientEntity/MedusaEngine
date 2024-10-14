@@ -62,7 +62,7 @@ class GameSystem(EntitySystem):
         self.nextOrderText.enabled = False
 
         self.moneyTextEnt = currentScene.CreateEntity("MoneyText",[-90,-128],components=[self.moneyText,
-                                                      RectTransformComponent(ALIGN_CENTERLEFT, (0,0),(60.0 / 256.0,1),topContainer
+                                                      RectTransformComponent(ALIGN_TOPLEFT, (0,0),(60.0 / 256.0,1),topContainer
                                                                              )])
         self.moneyTextEnt.GetComponent(TextRenderer).SetColor((255,255,255))
         self.moneyTextEnt.GetComponent(TextRenderer).SetAntialiased(False)

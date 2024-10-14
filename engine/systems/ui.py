@@ -1,6 +1,7 @@
 import pygame.mouse
 
 from engine.components.recttransformcomponent import RectTransformComponent
+from engine.components.rendering.textrenderer import TextRenderer
 from engine.components.ui.buttoncomponent import ButtonComponent
 from engine.components.ui.uicomponent import UIComponent
 from engine.constants import CURSOR_NONE, CURSOR_PRESSED, CURSOR_HOVERING, ALIGN_CENTER
@@ -87,8 +88,11 @@ class UISystem(EntitySystem):
     def UpdateRectTransform(self, transform: RectTransformComponent):
         if transform != self.rootRect:
             targetAnchor: Anchor = transform._parentRect._anchors[transform._anchor]
-            transform._calculatedBounds = (transform.bounds[0] * transform._parentRect._calculatedBounds[0],
-                                           transform.bounds[1] * transform._parentRect._calculatedBounds[1])
+            if transform.bounds[0] > 1 or transform.bounds[1] > 1:
+                transform._calculatedBounds = transform.bounds[:]
+            else:
+                transform._calculatedBounds = (transform.bounds[0] * transform._parentRect._calculatedBounds[0],
+                                               transform.bounds[1] * transform._parentRect._calculatedBounds[1])
             newPosition = [targetAnchor.position[0] + transform._anchorOffset[0],
                            targetAnchor.position[1] + transform._anchorOffset[1]]
             newPosition[0] += transform._calculatedBounds[0] // 2 * targetAnchor.boundMultiplier[0]
@@ -99,8 +103,14 @@ class UISystem(EntitySystem):
                                        (transform._calculatedBounds[0] // 2,
                                         transform._calculatedBounds[1] // 2))
 
+            self.HandleScaling(transform)
+
         for child in transform._children:
             self.UpdateRectTransform(child)
+
+    def HandleScaling(self, transform : RectTransformComponent):
+        textRenderer : TextRenderer = transform.parentEntity.GetComponent(TextRenderer)
+        textRenderer
 
     def DebugDrawRects(self):
         rect: RectTransformComponent

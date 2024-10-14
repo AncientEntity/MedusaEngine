@@ -3,12 +3,10 @@ from engine.constants import ALIGN_CENTER, ALIGN_CENTERRIGHT, ALIGN_BOTTOMLEFT, 
     ALIGN_TOPRIGHT, ALIGN_CENTERTOP
 from engine.datatypes.sprites import Sprite
 import pygame
-
 class TextRenderer(RendererComponent):
     def __init__(self, text : str, font : pygame.Font):
         super().__init__()
         self._text = None
-        self._font = font
         self._render = None
         self._color = (0,0,0)
         self._antialiased = True
