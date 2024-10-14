@@ -77,9 +77,9 @@ class UISystem(EntitySystem):
     def OnResolutionUpdated(self):
         Log(f"UISystem OnResolutionUpdated, New Size: {self._rendering._scaledScreenSize}", LOG_INFO)
         if not self.rootRect:
-            self.rootRect = RectTransformComponent(ALIGN_CENTER, (0, 0), self._rendering._scaledScreenSize)
-        else:
-            self.rootRect.bounds = self._rendering._scaledScreenSize
+            self.rootRect = RectTransformComponent(ALIGN_CENTER, (0, 0))
+        self.rootRect.bounds = (1,1)
+        self.rootRect._calculatedBounds = self._rendering._scaledScreenSize
 
         self.rootRect.CalculateAnchors((0, 0), self._rendering._scaledHalfSize)
         self.UpdateRectTransform(self.rootRect)
@@ -87,14 +87,17 @@ class UISystem(EntitySystem):
     def UpdateRectTransform(self, transform: RectTransformComponent):
         if transform != self.rootRect:
             targetAnchor: Anchor = transform._parentRect._anchors[transform._anchor]
+            transform._calculatedBounds = (transform.bounds[0] * transform._parentRect._calculatedBounds[0],
+                                           transform.bounds[1] * transform._parentRect._calculatedBounds[1])
             newPosition = [targetAnchor.position[0] + transform._anchorOffset[0],
                            targetAnchor.position[1] + transform._anchorOffset[1]]
-            newPosition[0] += transform.bounds[0] // 2 * targetAnchor.boundMultiplier[0]
-            newPosition[1] += transform.bounds[1] // 2 * targetAnchor.boundMultiplier[1]
+            newPosition[0] += transform._calculatedBounds[0] // 2 * targetAnchor.boundMultiplier[0]
+            newPosition[1] += transform._calculatedBounds[1] // 2 * targetAnchor.boundMultiplier[1]
 
             transform.parentEntity.position = newPosition
             transform.CalculateAnchors(newPosition,
-                                       (transform.bounds[0] // 2, transform.bounds[1] // 2))
+                                       (transform._calculatedBounds[0] // 2,
+                                        transform._calculatedBounds[1] // 2))
 
         for child in transform._children:
             self.UpdateRectTransform(child)
@@ -103,10 +106,10 @@ class UISystem(EntitySystem):
         rect: RectTransformComponent
         for rect in self.rectTransforms:
             pygame.draw.rect(self._rendering._renderTarget, (50, 255, 50), (
-            rect._anchors[ALIGN_CENTER].position[0] + self._rendering._scaledHalfSize[0] - rect.bounds[0] // 2,
-            rect._anchors[ALIGN_CENTER].position[1] + self._rendering._scaledHalfSize[1] - rect.bounds[1] // 2,
-            rect.bounds[0],
-            rect.bounds[1]), 1)
+            rect._anchors[ALIGN_CENTER].position[0] + self._rendering._scaledHalfSize[0] - rect._calculatedBounds[0] // 2,
+            rect._anchors[ALIGN_CENTER].position[1] + self._rendering._scaledHalfSize[1] - rect._calculatedBounds[1] // 2,
+            rect._calculatedBounds[0],
+            rect._calculatedBounds[1]), 1)
             i = 0
             for anchor in rect._anchors:
                 pygame.draw.circle(self._rendering._renderTarget, (255 - (i + 1) / 9 * 255, 0, (i + 1) / 9 * 255),

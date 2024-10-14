@@ -49,7 +49,7 @@ class GameSystem(EntitySystem):
         self.mainFont = pygame.font.Font("game/art/PixeloidMono-d94EV.ttf",10)
         self.titleText = pygame.font.Font("game/art/PixeloidMono-d94EV.ttf",20)
 
-        topContainer = RectTransformComponent(ALIGN_CENTERTOP,(0,0),(240,16))
+        topContainer = RectTransformComponent(ALIGN_CENTERTOP,(0,0),(240.0 / 256.0,16.0 / 272.0))
         self.topContainerEnt = currentScene.CreateEntity("UI-TopContainer",(0,0),components=[
             topContainer
         ])
@@ -62,18 +62,18 @@ class GameSystem(EntitySystem):
         self.nextOrderText.enabled = False
 
         self.moneyTextEnt = currentScene.CreateEntity("MoneyText",[-90,-128],components=[self.moneyText,
-                                                      RectTransformComponent(ALIGN_TOPLEFT, (0,0),[60,16],topContainer
+                                                      RectTransformComponent(ALIGN_CENTERLEFT, (0,0),(60.0 / 256.0,1),topContainer
                                                                              )])
         self.moneyTextEnt.GetComponent(TextRenderer).SetColor((255,255,255))
         self.moneyTextEnt.GetComponent(TextRenderer).SetAntialiased(False)
 
         self.levelTextEnt = currentScene.CreateEntity("LevelText",[-30,-128],components=[self.levelText,
-                                                     RectTransformComponent(ALIGN_CENTERTOP, (-30,0),[60,16],topContainer)])
+                                                     RectTransformComponent(ALIGN_CENTER, (-30,0),(60.0 / 256.0,1),topContainer)])
         self.levelTextEnt.GetComponent(TextRenderer).SetColor((255,255,255))
         self.levelTextEnt.GetComponent(TextRenderer).SetAntialiased(False)
 
         self.nextOrderTextEnt = currentScene.CreateEntity("NextOrderText",[65,-128],components=[self.nextOrderText,
-                                                          RectTransformComponent(ALIGN_TOPRIGHT, (0,0),[110,16],topContainer)])
+                                                          RectTransformComponent(ALIGN_CENTERRIGHT, (0,0),(110.0 / 256.0,1),topContainer)])
         self.nextOrderTextEnt.GetComponent(TextRenderer).SetColor((255,255,255))
         self.nextOrderTextEnt.GetComponent(TextRenderer).SetAntialiased(False)
 
@@ -94,9 +94,9 @@ class GameSystem(EntitySystem):
         self.creditsText.SetColor((255,255,255))
         self.creditsText.SetAntialiased(False)
         self.creditsText.SetShadow(True,(0,0,0),2)
-        currentScene.AddComponent(RectTransformComponent(ALIGN_CENTERBOTTOM,bounds=(200,30)), self.creditsText.parentEntity)
+        currentScene.AddComponent(RectTransformComponent(ALIGN_CENTERBOTTOM,bounds=(200.0 / 256.0,30.0 / 272.0)), self.creditsText.parentEntity)
 
-        loseContainerRect = RectTransformComponent(ALIGN_CENTER,(0,-15),(200,150))
+        loseContainerRect = RectTransformComponent(ALIGN_CENTER,(0,-15),(200.0 / 256.0,150.0 / 272.0))
         self.loseContainer = currentScene.CreateEntity("UI-LoseContainer", (0,0),components=[
             loseContainerRect
         ])
@@ -104,7 +104,7 @@ class GameSystem(EntitySystem):
         self.lostText = TextRenderer("You Lost!", self.titleText)
         self.lostText.enabled = False
         self.lostTextEnt = currentScene.CreateEntity("LostText",[0,-75],components=[self.lostText,
-                                                     RectTransformComponent(ALIGN_CENTERTOP,(0,15),(150,30),loseContainerRect)])
+                                                     RectTransformComponent(ALIGN_CENTERTOP,(0,15),(150.0 / 200.0,30.0 / 150.0),loseContainerRect)])
         self.lostText.SetColor((255,255,255))
         self.lostText.SetAntialiased(False)
         self.lostText.SetShadow(True,(0,0,0),2)
@@ -112,7 +112,7 @@ class GameSystem(EntitySystem):
         self.pressRestartText = TextRenderer("Press Space to Restart", self.mainFont)
         self.pressRestartText.enabled = False
         self.pressRestartTextEnt = currentScene.CreateEntity("RestartText",[0,-30],components=[self.pressRestartText,
-                                                           RectTransformComponent(ALIGN_CENTERTOP,(0,55),(150,15),loseContainerRect)])
+                                                           RectTransformComponent(ALIGN_CENTERTOP,(0,55),(150.0 / 200.0,15.0 / 150.0),loseContainerRect)])
         self.pressRestartText.SetColor((255,255,255))
         self.pressRestartText.SetAntialiased(False)
         self.pressRestartText.SetShadow(True,(0,0,0),2)
@@ -121,7 +121,7 @@ class GameSystem(EntitySystem):
         self.resultLevelText.enabled = False
         self.resultLevelText.SetAlign(ALIGN_TOPLEFT)
         self.resultLevelTextEnt = currentScene.CreateEntity("resultLevelText",[-80,-10],components=[self.resultLevelText,
-                                    RectTransformComponent(ALIGN_BOTTOMLEFT,(0,-58),(45,15),loseContainerRect)])
+                                    RectTransformComponent(ALIGN_BOTTOMLEFT,(0,-58),(45.0 / 200.0,15.0 / 150.0),loseContainerRect)])
         self.resultLevelText.SetColor((255,255,255))
         self.resultLevelText.SetAntialiased(False)
 
@@ -129,7 +129,7 @@ class GameSystem(EntitySystem):
         self.resultMoneyText.enabled = False
         self.resultMoneyText.SetAlign(ALIGN_TOPLEFT)
         self.resultMoneyTextEnt = currentScene.CreateEntity("resultMoneyText",[-80,5],components=[self.resultMoneyText,
-                                    RectTransformComponent(ALIGN_BOTTOMLEFT,(0,-45),(45,15),loseContainerRect)])
+                                    RectTransformComponent(ALIGN_BOTTOMLEFT,(0,-45),(45.0 / 200.0,15.0 / 150.0),loseContainerRect)])
         self.resultMoneyText.SetColor((255,255,255))
         self.resultMoneyText.SetAntialiased(False)
 
@@ -137,18 +137,18 @@ class GameSystem(EntitySystem):
         self.resultReasonText.enabled = False
         self.resultReasonText.SetAlign(ALIGN_TOPLEFT)
         self.resultReasonTextEnt = currentScene.CreateEntity("resultMoneyText",[-80,20],components=[self.resultReasonText,
-                                            RectTransformComponent(ALIGN_BOTTOMLEFT,(0,-32),(45,15),loseContainerRect)])
+                                            RectTransformComponent(ALIGN_BOTTOMLEFT,(0,-32),(45.0 / 200.0,15.0 / 150.0),loseContainerRect)])
         self.resultReasonText.SetColor((255,255,255))
         self.resultReasonText.SetAntialiased(False)
 
-        mainContainerRect = RectTransformComponent(ALIGN_CENTERTOP,(0,40),(200,64))
+        mainContainerRect = RectTransformComponent(ALIGN_CENTERTOP,(0,40),(200.0 / 256.0,64.0 / 272.0))
         self.mainContainer = currentScene.CreateEntity("UI-MainContainer",(0,0),components=[
             mainContainerRect])
 
         self.gameTitleText = TextRenderer("Tiny Factory", self.titleText)
         self.gameTitleText.enabled = True
         self.gameTitleTextEnt = currentScene.CreateEntity("Game Title Text",[0,-80],components=[self.gameTitleText,
-                                                RectTransformComponent(ALIGN_CENTERTOP,(0,15),(170,20),
+                                                RectTransformComponent(ALIGN_CENTERTOP,(0,15),(170.0 / 256.0,20.0 / 272.0),
                                                                        mainContainerRect)])
         self.gameTitleText.SetColor((255,255,255))
         self.gameTitleText.SetAntialiased(False)
@@ -158,7 +158,7 @@ class GameSystem(EntitySystem):
         self.pressStartText = TextRenderer("Press Space to Start", self.mainFont)
         self.pressStartText.enabled = True
         self.pressStartTextEnt = currentScene.CreateEntity("RestartText",[0,-50],components=[self.pressStartText,
-                                                           RectTransformComponent(ALIGN_CENTERTOP,(0,38),(170,20),
+                                                           RectTransformComponent(ALIGN_CENTERTOP,(0,38),(170.0 / 256.0,20.0 / 272.0),
                                                                        mainContainerRect)])
         self.pressStartText.SetColor((255,255,255))
         self.pressStartText.SetAntialiased(False)
