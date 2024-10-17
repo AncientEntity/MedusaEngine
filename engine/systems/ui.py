@@ -10,6 +10,7 @@ from engine.ecs import EntitySystem, Scene, Component
 from engine.engine import Input
 from engine.logging import LOG_ERRORS, Log, LOG_INFO
 from engine.systems.renderer import RenderingSystem
+from engine.tools.math import Clamp
 
 
 class UISystem(EntitySystem):
@@ -88,11 +89,14 @@ class UISystem(EntitySystem):
     def UpdateRectTransform(self, transform: RectTransformComponent):
         if transform != self.rootRect:
             targetAnchor: Anchor = transform._parentRect._anchors[transform._anchor]
-            if transform.bounds[0] > 1 or transform.bounds[1] > 1:
-                transform._calculatedBounds = transform.bounds[:]
+            if transform.bounds[0] > 1:
+                transform._calculatedBounds[0] = transform.bounds[0]
             else:
-                transform._calculatedBounds = (transform.bounds[0] * transform._parentRect._calculatedBounds[0],
-                                               transform.bounds[1] * transform._parentRect._calculatedBounds[1])
+                transform._calculatedBounds[0] = transform.bounds[0] * transform._parentRect._calculatedBounds[0]
+            if transform.bounds[1] > 1:
+                transform._calculatedBounds[1] = transform.bounds[1]
+            else:
+                transform._calculatedBounds[1] = transform.bounds[1] * transform._parentRect._calculatedBounds[1]
             newPosition = [targetAnchor.position[0] + transform._anchorOffset[0],
                            targetAnchor.position[1] + transform._anchorOffset[1]]
             newPosition[0] += transform._calculatedBounds[0] // 2 * targetAnchor.boundMultiplier[0]
@@ -109,8 +113,13 @@ class UISystem(EntitySystem):
             self.UpdateRectTransform(child)
 
     def HandleScaling(self, transform : RectTransformComponent):
+        transform.forceScaling = True
+
         textRenderer : TextRenderer = transform.parentEntity.GetComponent(TextRenderer)
-        textRenderer
+        if textRenderer:
+            textRenderer.Render(transform)
+
+        transform.forceScaling = False
 
     def DebugDrawRects(self):
         rect: RectTransformComponent

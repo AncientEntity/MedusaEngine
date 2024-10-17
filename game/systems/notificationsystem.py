@@ -1,5 +1,6 @@
 from engine.components.rendering.textrenderer import TextRenderer
 from engine.constants import ALIGN_TOPLEFT
+from engine.datatypes.font import Font
 from engine.ecs import EntitySystem, Scene, Component, Entity
 from engine.prefabs.audio.AudioSinglePrefab import CreateAudioSingle
 from engine.scenes.levelscene import LevelScene
@@ -30,10 +31,10 @@ class NotificationSystem(EntitySystem):
             notification.GetComponent(TextRenderer).SetAlpha(350*(timeLeft/self.halfLife)) #Alpha above 255 so it doesn't immediately start disappearing.
             index += 1
     def OnEnable(self, currentScene : Scene):
-        self.notificationFont = pygame.font.Font("game/art/PixeloidMono-d94EV.ttf",10)
+        self.notificationFont = Font("game/art/PixeloidMono-d94EV.ttf")
 
     def CreateNotification(self, currentScene : LevelScene, text):
-        textRenderer = TextRenderer(text,self.notificationFont)
+        textRenderer = TextRenderer(text,10,self.notificationFont)
         textRenderer.screenSpace = True
         textRenderer.drawOrder = 1000
         textRenderer.SetColor((255,255,255))

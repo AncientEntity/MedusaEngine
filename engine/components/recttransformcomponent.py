@@ -1,4 +1,4 @@
-from engine.constants import CURSOR_NONE, ALIGN_NONE, ALIGN_CENTER, ALIGN_CENTERLEFT, ALIGN_CENTERRIGHT, ALIGN_TOPLEFT, \
+from engine.constants import ALIGN_CENTER, ALIGN_CENTERLEFT, ALIGN_CENTERRIGHT, ALIGN_TOPLEFT, \
     ALIGN_TOPRIGHT, ALIGN_BOTTOMLEFT, ALIGN_BOTTOMRIGHT, ALIGN_CENTERBOTTOM, ALIGN_CENTERTOP
 from engine.datatypes.anchor import Anchor
 from engine.ecs import Component
@@ -14,6 +14,8 @@ class RectTransformComponent(Component):
         self._anchorOffset = anchorOffset
         self._parentRect = None
         self.changed = False
+
+        self.forceScaling = False
 
         self._calculatedBounds = [0,0]
         self._children = []
@@ -50,3 +52,6 @@ class RectTransformComponent(Component):
 
         self._anchorOffset = offset
         self.changed = True
+
+    def GetAnchor(self, alignment):
+        return self._anchors[alignment]
