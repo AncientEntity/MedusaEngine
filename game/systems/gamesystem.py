@@ -98,25 +98,23 @@ class GameSystem(EntitySystem):
         self.creditsText.rectFitSize = 0.35
         currentScene.AddComponent(RectTransformComponent(ALIGN_CENTERBOTTOM,bounds=(200.0 / 256.0,30.0 / 272.0)), self.creditsText.parentEntity)
 
-        loseContainerRect = RectTransformComponent(ALIGN_CENTER,(0,-15),(200.0,150.0 / 272.0))
+        loseContainerRect = RectTransformComponent(ALIGN_CENTER,(0,-15),(0.8,150.0 / 272.0))
         self.loseContainer = currentScene.CreateEntity("UI-LoseContainer", (0,0),components=[
             loseContainerRect
         ])
 
         self.lostText = TextRenderer("You Lost!",20 , self.titleText)
         self.lostText.enabled = False
-        self.lostText.rectFitSize = 0.75
         self.lostTextEnt = currentScene.CreateEntity("LostText",[0,-75], components=[self.lostText,
                                                      RectTransformComponent(ALIGN_CENTERTOP,(0,15),(150.0 / 200.0,30.0 / 150.0),loseContainerRect)])
         self.lostText.SetColor((255,255,255))
         self.lostText.SetAntialiased(False)
         self.lostText.SetShadow(True,(0,0,0),2)
 
-        self.pressRestartText = TextRenderer("Press Space to Restart",20 , self.mainFont)
+        self.pressRestartText = TextRenderer("Press Space to Restart",10 , self.mainFont)
         self.pressRestartText.enabled = False
-        self.pressRestartText.rectFitSize = 0.75
         self.pressRestartTextEnt = currentScene.CreateEntity("RestartText",[0,-30],components=[self.pressRestartText,
-                                                           RectTransformComponent(ALIGN_CENTERTOP,(0,55),(150.0 / 200.0,25.0 / 150.0),loseContainerRect)])
+                                                           RectTransformComponent(ALIGN_CENTERTOP,(0,75),(100.0 / 200.0,10.0 / 150.0),loseContainerRect)])
         self.pressRestartText.SetColor((255,255,255))
         self.pressRestartText.SetAntialiased(False)
         self.pressRestartText.SetShadow(True,(0,0,0),2)
