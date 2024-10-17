@@ -20,7 +20,7 @@ class TextRenderer(RendererComponent):
         self._antialiased = True
         self._textSize = textSize
         self._maxTextSize = int(textSize*2)
-        self._rectMargin = 0.7 # Min font margin if fitting inside rect
+        self._rectMargin = 0.7 # Min font margin if fitting inside rect. Set to None if not fit nor scale.
 
         self._shadowEnabled = False
         self._shadowColor = (0,0,0)

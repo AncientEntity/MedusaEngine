@@ -164,7 +164,7 @@ class GameSystem(EntitySystem):
         self.pressStartText = TextRenderer("Press Space to Start",10, self.mainFont)
         self.pressStartText.enabled = True
         self.pressStartTextEnt = currentScene.CreateEntity("RestartText",[0,-50],components=[self.pressStartText,
-                                                           RectTransformComponent(ALIGN_CENTERBOTTOM,(0,-35),(170.0 / 256.0,18.0 / 64.0),
+                                                           RectTransformComponent(ALIGN_CENTERBOTTOM,(0,-45),(180.0 / 256.0,18.0 / 64.0),
                                                                        mainContainerRect)])
         self.pressStartText.SetColor((255,255,255))
         self.pressStartText.SetAntialiased(False)
@@ -223,7 +223,7 @@ class GameSystem(EntitySystem):
         currentScene.AddComponent(SpriteRenderer(pygame.transform.scale(worldSpriteSheet[6],(8,8)),5,True),
                                     self.conveyorButton.parentEntity)
         self.conveyorButton._anchor = ALIGN_BOTTOMLEFT
-        self.conveyorButton._anchorOffset = (15, -12)
+        self.conveyorButton._anchorOffset = (0.065, -12)
 
     def StopGame(self, currentScene):
         self.mainMenu = True
@@ -368,13 +368,13 @@ class GameSystem(EntitySystem):
         currentScene.AddComponent(SpriteRenderer(pygame.transform.scale(worldSpriteSheet[2], (8, 8)), 5,True),
                                   self.undergroundEntranceButton.parentEntity)
         self.undergroundEntranceButton._anchor = ALIGN_BOTTOMLEFT
-        self.undergroundEntranceButton._anchorOffset = (35, -12)
+        self.undergroundEntranceButton._anchorOffset = (0.14, -12)
 
         self.undergroundExitButton : ButtonComponent = CreateButtonPrefab(currentScene, worldSpriteSheet[(1,3)], "", self.mainFont).GetComponent(ButtonComponent)
         currentScene.AddComponent(SpriteRenderer(pygame.transform.scale(worldSpriteSheet[3], (8, 8)), 5,True),
                                   self.undergroundExitButton.parentEntity)
         self.undergroundExitButton._anchor = ALIGN_BOTTOMLEFT
-        self.undergroundExitButton._anchorOffset = (55, -12)
+        self.undergroundExitButton._anchorOffset = (0.212, -12)
 
         currentScene.GetSystemByClass(NotificationSystem).CreateNotification(currentScene, "Underground Belts Unlocked!")
 

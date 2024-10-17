@@ -97,8 +97,17 @@ class UISystem(EntitySystem):
                 transform._calculatedBounds[1] = transform.bounds[1]
             else:
                 transform._calculatedBounds[1] = transform.bounds[1] * transform._parentRect._calculatedBounds[1]
-            newPosition = [targetAnchor.position[0] + transform._anchorOffset[0],
-                           targetAnchor.position[1] + transform._anchorOffset[1]]
+            newPosition = list(targetAnchor.position)#[targetAnchor.position[0] + transform._anchorOffset[0],
+                          # targetAnchor.position[1] + transform._anchorOffset[1]]
+            if 0 < transform._anchorOffset[0] < 1:
+                newPosition[0] += transform._parentRect._calculatedBounds[0] * transform._anchorOffset[0]
+            else:
+                newPosition[0] += transform._anchorOffset[0]
+            if 0 < transform._anchorOffset[1] < 1:
+                newPosition[1] += transform._parentRect._calculatedBounds[1] * transform._anchorOffset[1]
+            else:
+                newPosition[1] += transform._anchorOffset[1]
+
             newPosition[0] += transform._calculatedBounds[0] // 2 * targetAnchor.boundMultiplier[0]
             newPosition[1] += transform._calculatedBounds[1] // 2 * targetAnchor.boundMultiplier[1]
 
