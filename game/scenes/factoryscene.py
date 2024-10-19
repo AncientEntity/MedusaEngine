@@ -37,3 +37,6 @@ class TinyFactoryScene(LevelScene):
                                                                                      self.worldTileset.sprites[38],self.worldTileset.sprites[46]], 16), 6)
         self.tileMapLayersByName["Objects"].tileMap.SetSpriteAtIndex(AnimatedSprite([self.worldTileset.sprites[7], self.worldTileset.sprites[31],
                                                                                      self.worldTileset.sprites[39],self.worldTileset.sprites[47]], 16), 7)
+
+        import sys
+        print("PLAT:",sys.platform)
