@@ -7,5 +7,5 @@ class TinyFactoryGame(Game):
         super().__init__()
         self.name = "Tiny Factory in Medusa Engine"
         self.startingScene = factoryscene.TinyFactoryScene #Past as class not object.
-        self.startingSplashEnabled = False
+        self.startingSplashEnabled = True
         self.windowSize = (256*2,272*2)
