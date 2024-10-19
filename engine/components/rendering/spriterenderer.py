@@ -13,3 +13,7 @@ class SpriteRenderer(RendererComponent):
             self.sprite = Sprite(sprite)
         else:
             self.sprite = sprite
+
+        # If this component has a sibling RectTransformComponent and self.rectMargin is set to a tuple such as (0.5,0.5)
+        # It will gain that margin within the rect.
+        self.rectMargin = None

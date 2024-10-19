@@ -224,7 +224,9 @@ class GameSystem(EntitySystem):
         CreateGenerator(currentScene)
 
         self.conveyorButton : ButtonComponent = CreateButtonPrefab(currentScene, worldSpriteSheet[(1,3)], "", self.mainFont).GetComponent(ButtonComponent)
-        currentScene.AddComponent(SpriteRenderer(pygame.transform.scale(worldSpriteSheet[6],(8,8)),5,True),
+        conveyorIconSprite = SpriteRenderer(pygame.transform.scale(worldSpriteSheet[6],(8,8)),5,True)
+        conveyorIconSprite.rectMargin = (0.5,0.5)
+        currentScene.AddComponent(conveyorIconSprite,
                                     self.conveyorButton.parentEntity)
         self.conveyorButton._anchor = ALIGN_BOTTOMLEFT
         self.conveyorButton._anchorOffset = (0.065, -12)
@@ -370,7 +372,9 @@ class GameSystem(EntitySystem):
     def UnlockUndergroundBelts(self, currentScene): # I don't like this solution but for a remake/example game it's not an issue.
 
         self.undergroundEntranceButton : ButtonComponent = CreateButtonPrefab(currentScene, worldSpriteSheet[(1,3)], "", self.mainFont).GetComponent(ButtonComponent)
-        currentScene.AddComponent(SpriteRenderer(pygame.transform.scale(worldSpriteSheet[2], (8, 8)), 5,True),
+        conveyorIconSprite = SpriteRenderer(pygame.transform.scale(worldSpriteSheet[2], (8, 8)), 5,True)
+        conveyorIconSprite.rectMargin = (0.5,0.5)
+        currentScene.AddComponent(conveyorIconSprite,
                                   self.undergroundEntranceButton.parentEntity)
         self.undergroundEntranceButton._anchor = ALIGN_BOTTOMLEFT
         self.undergroundEntranceButton._anchorOffset = (0.14, -12)
@@ -378,7 +382,9 @@ class GameSystem(EntitySystem):
 
 
         self.undergroundExitButton : ButtonComponent = CreateButtonPrefab(currentScene, worldSpriteSheet[(1,3)], "", self.mainFont).GetComponent(ButtonComponent)
-        currentScene.AddComponent(SpriteRenderer(pygame.transform.scale(worldSpriteSheet[3], (8, 8)), 5,True),
+        conveyorIconSprite = SpriteRenderer(pygame.transform.scale(worldSpriteSheet[3], (8, 8)), 5,True)
+        conveyorIconSprite.rectMargin = (0.5,0.5)
+        currentScene.AddComponent(conveyorIconSprite,
                                   self.undergroundExitButton.parentEntity)
         self.undergroundExitButton._anchor = ALIGN_BOTTOMLEFT
         self.undergroundExitButton._anchorOffset = (0.212, -12)

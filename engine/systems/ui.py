@@ -146,9 +146,14 @@ class UISystem(EntitySystem):
         if textRenderer:
             textRenderer.Render(transform)
 
-        spriteRenderer : SpriteRenderer = transform.parentEntity.GetComponent(SpriteRenderer)
-        if spriteRenderer:
-            spriteRenderer.sprite.SetPixelScale(transform._calculatedBounds)
+        spriteRenderer : SpriteRenderer
+        for spriteRenderer in transform.parentEntity.GetComponents(SpriteRenderer):
+            if spriteRenderer:
+                if not spriteRenderer.rectMargin:
+                    spriteRenderer.sprite.SetPixelScale(transform._calculatedBounds)
+                else:
+                    spriteRenderer.sprite.SetPixelScale((transform._calculatedBounds[0] * spriteRenderer.rectMargin[0],
+                                                         transform._calculatedBounds[1] * spriteRenderer.rectMargin[1]))
 
         # should be last operation in function
         transform.forceScaling = False
