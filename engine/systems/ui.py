@@ -11,7 +11,6 @@ from engine.ecs import EntitySystem, Scene, Component
 from engine.engine import Input
 from engine.logging import LOG_ERRORS, Log, LOG_INFO
 from engine.systems.renderer import RenderingSystem
-from engine.tools.math import Clamp
 
 
 class UISystem(EntitySystem):
