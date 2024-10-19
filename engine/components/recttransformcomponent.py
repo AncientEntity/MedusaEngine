@@ -53,5 +53,11 @@ class RectTransformComponent(Component):
         self._anchorOffset = offset
         self.changed = True
 
+    def SetBounds(self, newBounds):
+        if newBounds == self.bounds:
+            return
+        self.bounds = newBounds
+        self.changed = True
+
     def GetAnchor(self, alignment):
         return self._anchors[alignment]

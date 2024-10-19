@@ -4,7 +4,6 @@ import pygame
 
 from engine.components.ui.uicomponent import UIComponent
 
-
 class ButtonComponent(UIComponent):
     def __init__(self, spriteRenderer: SpriteRenderer, textRenderer: TextRenderer):
         super().__init__()
@@ -19,5 +18,5 @@ class ButtonComponent(UIComponent):
             self.SetBoundsFromSprite()
 
     def SetBoundsFromSprite(self):
-        self.bounds = [self.spriteRenderer.sprite.get_width(),
-                       self.spriteRenderer.sprite.get_height()]
+        self.SetBounds([self.spriteRenderer.sprite.get_width(),
+                       self.spriteRenderer.sprite.get_height()])

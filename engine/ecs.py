@@ -133,6 +133,13 @@ class Entity:
             if(isinstance(component,t)):
                 return component
         return None
+    def GetComponents(self, t):
+        found = []
+        for component in self.components:
+            if(isinstance(component,t)):
+                found.append(component)
+        return found
+
     def IsAlive(self):
         return self._alive
 

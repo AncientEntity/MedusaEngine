@@ -113,8 +113,9 @@ class GameSystem(EntitySystem):
 
         self.pressRestartText = TextRenderer("Press Space to Restart",10 , self.mainFont)
         self.pressRestartText.enabled = False
+        self.pressRestartText.SetRectMargin(0.9)
         self.pressRestartTextEnt = currentScene.CreateEntity("RestartText",[0,-30],components=[self.pressRestartText,
-                                                           RectTransformComponent(ALIGN_CENTERTOP,(0,75),(100.0 / 200.0,10.0 / 150.0),loseContainerRect)])
+                                                           RectTransformComponent(ALIGN_CENTERTOP,(0,50),(150.0 / 200.0,30.0 / 150.0),loseContainerRect)])
         self.pressRestartText.SetColor((255,255,255))
         self.pressRestartText.SetAntialiased(False)
         self.pressRestartText.SetShadow(True,(0,0,0),2)
@@ -185,9 +186,12 @@ class GameSystem(EntitySystem):
         self.HandleRound(currentScene)
 
         if Input.KeyDown(pygame.K_l):
-            if not pygame.display.is_fullscreen():
+            if not pygame.display.is_fullscreen():#RenderingSystem.instance.renderScale != 3:
+                #RenderingSystem.instance.renderScale = 3
+                #RenderingSystem.instance.SetResolution((256*4,272*4), False)
                 RenderingSystem.instance.SetResolution(None, True)
             else:
+                #RenderingSystem.instance.renderScale = 2
                 RenderingSystem.instance.SetResolution((256*2,272*2), False)
 
     def HandleRound(self,currentScene : LevelScene):
@@ -224,6 +228,7 @@ class GameSystem(EntitySystem):
                                     self.conveyorButton.parentEntity)
         self.conveyorButton._anchor = ALIGN_BOTTOMLEFT
         self.conveyorButton._anchorOffset = (0.065, -12)
+        self.conveyorButton.SetBounds([0.07,None])
 
     def StopGame(self, currentScene):
         self.mainMenu = True
@@ -369,12 +374,15 @@ class GameSystem(EntitySystem):
                                   self.undergroundEntranceButton.parentEntity)
         self.undergroundEntranceButton._anchor = ALIGN_BOTTOMLEFT
         self.undergroundEntranceButton._anchorOffset = (0.14, -12)
+        self.undergroundEntranceButton.SetBounds([0.07,None])
+
 
         self.undergroundExitButton : ButtonComponent = CreateButtonPrefab(currentScene, worldSpriteSheet[(1,3)], "", self.mainFont).GetComponent(ButtonComponent)
         currentScene.AddComponent(SpriteRenderer(pygame.transform.scale(worldSpriteSheet[3], (8, 8)), 5,True),
                                   self.undergroundExitButton.parentEntity)
         self.undergroundExitButton._anchor = ALIGN_BOTTOMLEFT
         self.undergroundExitButton._anchorOffset = (0.212, -12)
+        self.undergroundExitButton.SetBounds([0.07,None])
 
         currentScene.GetSystemByClass(NotificationSystem).CreateNotification(currentScene, "Underground Belts Unlocked!")
 
