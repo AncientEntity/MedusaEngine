@@ -189,6 +189,9 @@ class UISystem(EntitySystem):
     def OnDeleteComponent(self, component: Component):
         self.allUIElements.remove(component)
 
+        if(isinstance(component, RectTransformComponent)):
+            self.rectTransforms.remove(component)
+
         if (isinstance(component, ButtonComponent)):
             componentIndex = self.buttons.index(component)
             if (componentIndex != -1):
