@@ -185,15 +185,6 @@ class GameSystem(EntitySystem):
         self.Controls()
         self.HandleRound(currentScene)
 
-        if Input.KeyDown(pygame.K_l):
-            if not pygame.display.is_fullscreen():#RenderingSystem.instance.renderScale != 3:
-                #RenderingSystem.instance.renderScale = 3
-                #RenderingSystem.instance.SetResolution((256*4,272*4), False)
-                RenderingSystem.instance.SetResolution(None, True)
-            else:
-                #RenderingSystem.instance.renderScale = 2
-                RenderingSystem.instance.SetResolution((256*2,272*2), False)
-
     def HandleRound(self,currentScene : LevelScene):
         self.SetLevelTimeRemaining(self._levelTimeRemaining - self.game.deltaTime)
         if(self._levelTimeRemaining <= 0):
