@@ -1,6 +1,8 @@
 import pygame.mouse
 
 from engine.components.recttransformcomponent import RectTransformComponent
+from engine.components.rendering.spriterenderer import SpriteRenderer
+from engine.components.rendering.textrenderer import TextRenderer
 from engine.components.ui.buttoncomponent import ButtonComponent
 from engine.components.ui.uicomponent import UIComponent
 from engine.constants import CURSOR_NONE, CURSOR_PRESSED, CURSOR_HOVERING, ALIGN_CENTER
@@ -43,15 +45,15 @@ class UISystem(EntitySystem):
 
     def GetElementHoverState(self, mousePosition, element: UIComponent):
         if (element.screenSpace):
-            screenBounds = pygame.Rect(element.parentEntity.position[0] - element.bounds[0] / 2
-                                       , element.parentEntity.position[1] - element.bounds[1] / 2,
-                                       element.bounds[0], element.bounds[1])
+            screenBounds = pygame.Rect(element.parentEntity.position[0] - element._calculatedBounds[0] / 2
+                                       , element.parentEntity.position[1] - element._calculatedBounds[1] / 2,
+                                       element._calculatedBounds[0], element._calculatedBounds[1])
         else:
             screenBounds = pygame.Rect(
-                element.parentEntity.position[0] - element.bounds[0] / 2 - RenderingSystem().instance.cameraPosition[0]
+                element.parentEntity.position[0] - element._calculatedBounds[0] / 2 - RenderingSystem().instance.cameraPosition[0]
                 ,
-                element.parentEntity.position[1] - element.bounds[1] / 2 - RenderingSystem().instance.cameraPosition[1],
-                element.bounds[0], element.bounds[1])
+                element.parentEntity.position[1] - element._calculatedBounds[1] / 2 - RenderingSystem().instance.cameraPosition[1],
+                element._calculatedBounds[0], element._calculatedBounds[1])
         if (screenBounds.collidepoint(mousePosition)):
             return CURSOR_PRESSED if Input.MouseButtonPressed(0) else CURSOR_HOVERING
         return CURSOR_NONE
@@ -77,9 +79,9 @@ class UISystem(EntitySystem):
     def OnResolutionUpdated(self):
         Log(f"UISystem OnResolutionUpdated, New Size: {self._rendering._scaledScreenSize}", LOG_INFO)
         if not self.rootRect:
-            self.rootRect = RectTransformComponent(ALIGN_CENTER, (0, 0), self._rendering._scaledScreenSize)
-        else:
-            self.rootRect.bounds = self._rendering._scaledScreenSize
+            self.rootRect = RectTransformComponent(ALIGN_CENTER, (0, 0))
+        self.rootRect.bounds = (1,1)
+        self.rootRect._calculatedBounds = self._rendering._scaledScreenSize
 
         self.rootRect.CalculateAnchors((0, 0), self._rendering._scaledHalfSize)
         self.UpdateRectTransform(self.rootRect)
@@ -87,26 +89,82 @@ class UISystem(EntitySystem):
     def UpdateRectTransform(self, transform: RectTransformComponent):
         if transform != self.rootRect:
             targetAnchor: Anchor = transform._parentRect._anchors[transform._anchor]
-            newPosition = [targetAnchor.position[0] + transform._anchorOffset[0],
-                           targetAnchor.position[1] + transform._anchorOffset[1]]
-            newPosition[0] += transform.bounds[0] // 2 * targetAnchor.boundMultiplier[0]
-            newPosition[1] += transform.bounds[1] // 2 * targetAnchor.boundMultiplier[1]
+            transform._calculatedBounds = self.CalculateBounds(transform.bounds, transform._parentRect._calculatedBounds)
+
+            newPosition = list(targetAnchor.position)
+            if 0 < transform._anchorOffset[0] < 1:
+                newPosition[0] += transform._parentRect._calculatedBounds[0] * transform._anchorOffset[0]
+            else:
+                newPosition[0] += transform._anchorOffset[0]
+            if 0 < transform._anchorOffset[1] < 1:
+                newPosition[1] += transform._parentRect._calculatedBounds[1] * transform._anchorOffset[1]
+            else:
+                newPosition[1] += transform._anchorOffset[1]
+
+            newPosition[0] += transform._calculatedBounds[0] // 2 * targetAnchor.boundMultiplier[0]
+            newPosition[1] += transform._calculatedBounds[1] // 2 * targetAnchor.boundMultiplier[1]
 
             transform.parentEntity.position = newPosition
             transform.CalculateAnchors(newPosition,
-                                       (transform.bounds[0] // 2, transform.bounds[1] // 2))
+                                       (transform._calculatedBounds[0] // 2,
+                                        transform._calculatedBounds[1] // 2))
+
+            self.HandleScaling(transform)
 
         for child in transform._children:
             self.UpdateRectTransform(child)
+
+    def CalculateBounds(self, bounds, parentBounds):
+        calculatedBounds = [0,0]
+
+        # Square scaling
+        if not bounds[0]:
+            calculatedBounds[0] = bounds[1] * parentBounds[1] if bounds[1] <= 1 else bounds[1]
+            calculatedBounds[1] = calculatedBounds[0]
+            return calculatedBounds
+        elif not bounds[1]:
+            calculatedBounds[1] = bounds[0] * parentBounds[0] if bounds[0] <= 1 else bounds[0]
+            calculatedBounds[0] = calculatedBounds[1]
+            return calculatedBounds
+
+        if bounds[0] > 1:
+            calculatedBounds[0] = bounds[0]
+        else:
+            calculatedBounds[0] = bounds[0] * parentBounds[0]
+        if bounds[1] > 1:
+            calculatedBounds[1] = bounds[1]
+        else:
+            calculatedBounds[1] = bounds[1] * parentBounds[1]
+        return calculatedBounds
+
+    def HandleScaling(self, transform : RectTransformComponent):
+        # should be first operation in function
+        transform.forceScaling = True
+
+        textRenderer : TextRenderer = transform.parentEntity.GetComponent(TextRenderer)
+        if textRenderer:
+            textRenderer.Render(transform)
+
+        spriteRenderer : SpriteRenderer
+        for spriteRenderer in transform.parentEntity.GetComponents(SpriteRenderer):
+            if spriteRenderer:
+                if not spriteRenderer.rectMargin:
+                    spriteRenderer.sprite.SetPixelScale(transform._calculatedBounds)
+                else:
+                    spriteRenderer.sprite.SetPixelScale((transform._calculatedBounds[0] * spriteRenderer.rectMargin[0],
+                                                         transform._calculatedBounds[1] * spriteRenderer.rectMargin[1]))
+
+        # should be last operation in function
+        transform.forceScaling = False
 
     def DebugDrawRects(self):
         rect: RectTransformComponent
         for rect in self.rectTransforms:
             pygame.draw.rect(self._rendering._renderTarget, (50, 255, 50), (
-            rect._anchors[ALIGN_CENTER].position[0] + self._rendering._scaledHalfSize[0] - rect.bounds[0] // 2,
-            rect._anchors[ALIGN_CENTER].position[1] + self._rendering._scaledHalfSize[1] - rect.bounds[1] // 2,
-            rect.bounds[0],
-            rect.bounds[1]), 1)
+            rect._anchors[ALIGN_CENTER].position[0] + self._rendering._scaledHalfSize[0] - rect._calculatedBounds[0] // 2,
+            rect._anchors[ALIGN_CENTER].position[1] + self._rendering._scaledHalfSize[1] - rect._calculatedBounds[1] // 2,
+            rect._calculatedBounds[0],
+            rect._calculatedBounds[1]), 1)
             i = 0
             for anchor in rect._anchors:
                 pygame.draw.circle(self._rendering._renderTarget, (255 - (i + 1) / 9 * 255, 0, (i + 1) / 9 * 255),
@@ -134,6 +192,9 @@ class UISystem(EntitySystem):
 
     def OnDeleteComponent(self, component: Component):
         self.allUIElements.remove(component)
+
+        if(isinstance(component, RectTransformComponent)):
+            self.rectTransforms.remove(component)
 
         if (isinstance(component, ButtonComponent)):
             componentIndex = self.buttons.index(component)
