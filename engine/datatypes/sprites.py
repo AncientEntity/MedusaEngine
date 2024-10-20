@@ -128,6 +128,10 @@ class Sprite:
         self.RefreshSprite()
         return self
 
+    def SetPixelScale(self, pixelScale):
+        newScale = (pixelScale[0] / self._unmodifiedSprite.get_width(),pixelScale[1] / self._unmodifiedSprite.get_height())
+        return self.SetScale(newScale)
+
     def get_width(self):
         return self.sprite.get_width()
     def get_height(self):

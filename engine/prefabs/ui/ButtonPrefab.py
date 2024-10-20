@@ -9,7 +9,7 @@ def CreateButtonPrefab(scene : Scene, sprite : Sprite, text :str, font : Font):
 
     spriteRenderer = SpriteRenderer(sprite)
     spriteRenderer.screenSpace = True
-    textRenderer = TextRenderer(text, font)
+    textRenderer = TextRenderer(text, 16, font)
     buttonComponent = ButtonComponent(spriteRenderer,textRenderer)
 
     newEntity = scene.CreateEntity(name="ButtonPrefab",position=[0,0],components=[buttonComponent,spriteRenderer,textRenderer])

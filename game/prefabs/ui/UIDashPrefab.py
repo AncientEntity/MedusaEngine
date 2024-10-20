@@ -19,9 +19,8 @@ class UIDashPrefab(UIBasePrefab):
         self.uiEntity : Entity = None
         self.uiSpriteRenderer : SpriteRenderer = None
 
-        self.xWhenGun = 32
-        self.xWhenNoGun = 16
-        self.startingY = 78
+        self.xWhenGun = 16
+        self.xWhenNoGun = 5
 
         self.uiContainer = None
         self.transform = None
@@ -34,23 +33,23 @@ class UIDashPrefab(UIBasePrefab):
 
         if not self.uiEntity:
             self.uiSpriteRenderer = SpriteRenderer(self.emptySprite,1500,True)
-            self.transform = RectTransformComponent(ALIGN_BOTTOMLEFT, (self.xWhenNoGun,-15),parent=self.uiContainer)
+            self.transform = RectTransformComponent(ALIGN_BOTTOMLEFT, (self.xWhenNoGun,0),parent=self.uiContainer)
             self.uiEntity = currentScene.CreateEntity("DashUI",(0,0), components=[
                 self.uiSpriteRenderer,
                 self.transform,
             ])
 
         if time.time() - self.player.lastDashTime >= self.player.dashDelay:
-            self.uiSpriteRenderer.sprite = self.fullSprite
+            self.uiSpriteRenderer.SetSprite(self.fullSprite)
         else:
-            self.uiSpriteRenderer.sprite = self.emptySprite
+            self.uiSpriteRenderer.SetSprite(self.emptySprite)
 
         if self.actor.heldItem and self.actor.heldItem.GetComponent(GunComponent):
-            self.transform.SetAnchorOffset((self.xWhenGun,-15))
+            self.transform.SetAnchorOffset((self.xWhenGun,-3))
             #self.uiEntity.position[0] = self.xWhenGun
         else:
             #self.uiEntity.position[0] = self.xWhenNoGun
-            self.transform.SetAnchorOffset((self.xWhenNoGun,-15))
+            self.transform.SetAnchorOffset((self.xWhenNoGun,-3))
 
 
     def Delete(self, currentScene : Scene):

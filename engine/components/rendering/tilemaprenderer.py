@@ -28,7 +28,7 @@ class Tilemap:
             for i in range(self.size[1]):
                 xRow.append(-1)
             self.map.append(xRow)
-    def SetTileSetFromSpriteSheet(self, spriteSheet: SpriteSheet, alpha: object = 255) -> object:
+    def SetTileSetFromSpriteSheet(self,spriteSheet : SpriteSheet,alpha=255):
         if(spriteSheet.splitType == 'size'):
             for x in range(spriteSheet.xCount):
                 for y in range(spriteSheet.yCount):

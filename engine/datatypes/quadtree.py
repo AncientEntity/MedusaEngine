@@ -10,8 +10,8 @@ from engine.components.physicscomponent import PhysicsComponent
 # 4: + - (bottom right)
 
 class QuadNode:
-    maxChildrenCount = 8
-    minBoundSize = 2 # Should be power of 2.
+    maxChildrenCount = 10
+    minBoundSize = 16 # Should be power of 2.
     def __init__(self, parentNode, quadrantBounds : pygame.Rect):
         self.parent = parentNode
         self._isLeafNode = True
