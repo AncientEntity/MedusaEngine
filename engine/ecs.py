@@ -67,6 +67,11 @@ class Scene:
             if(type(system) == systemType):
                 return system
         return None
+    def GetSystemByName(self, systemName : str):
+        for system in self.systems:
+            if(systemName in str(type(system))):
+                return system
+        return None
 
     def Update(self):
         #Run OnNewComponent for each component in its related systems.
@@ -128,6 +133,13 @@ class Entity:
             if(isinstance(component,t)):
                 return component
         return None
+    def GetComponents(self, t):
+        found = []
+        for component in self.components:
+            if(isinstance(component,t)):
+                found.append(component)
+        return found
+
     def IsAlive(self):
         return self._alive
 
@@ -152,7 +164,13 @@ class EntitySystem:
 
     def StartTimedEvent(self, timedEvent : TimedEvent):
         self.InsertTimedEvent(timedEvent)
-        #self._activeTimedEvents.append(timedEvent)
+    def CancelTimedEvent(self, timedEvent : TimedEvent):
+        for index in range(len(self._activeTimedEvents)):
+            if(self._activeTimedEvents[index] == timedEvent):
+                self._activeTimedEvents.pop(index)
+                return True
+        return False
+
     def TickTimedEvents(self):
         timedEvent: TimedEvent
         index = 0

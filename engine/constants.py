@@ -15,10 +15,13 @@ CURSOR_NONE = 0 # When cursor isn't hovering or clicking a UI element
 CURSOR_HOVERING = 1 # When cursor is hovering over a UI element
 CURSOR_PRESSED = 2 # When cursor is pressed on a UI element
 
+ALIGN_NONE = None
 ALIGN_CENTER = 0
-ALIGN_LEFTCENTER = 1
-ALIGN_RIGHTCENTER = 2
+ALIGN_CENTERLEFT = 1
+ALIGN_CENTERRIGHT = 2
 ALIGN_TOPLEFT = 3
 ALIGN_TOPRIGHT = 4
-
-# todo Eventually other alignments should be implemented but this what is needed for now
+ALIGN_BOTTOMLEFT = 5
+ALIGN_BOTTOMRIGHT = 6
+ALIGN_CENTERBOTTOM = 7
+ALIGN_CENTERTOP = 8

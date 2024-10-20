@@ -54,7 +54,21 @@ A* Pathfinding Demo [(play here)](https://anciententity.itch.io/medusa-astar-dem
 
 ![python_JWMPJNHslx](https://github.com/user-attachments/assets/3a5f0afc-5813-4d55-9ef9-80f314c2cf8d)
 
-Topdown Demo (source lives in topdown branch)
+Topdown Demo [(play here)](https://anciententity.itch.io/topdown-shooter-demo) (source lives in topdown branch)
 
-![python_47GFF5ARZ2](https://github.com/user-attachments/assets/f245a29f-c9be-4783-bc2d-40939c6323da)
+![undefined - Imgur](https://github.com/user-attachments/assets/ed102781-46b1-4dcc-b0a6-10706a2b1545)
+
+Topdown Demo [(play here)](https://anciententity.itch.io/topdown-shooter-demo) (source lives in topdown branch)
+![python_nd4VQ0PyAy](https://github.com/user-attachments/assets/8c8a05a9-c495-4945-97f7-31cf07bc24ec)
+
+
+# ThirdParty Demo License Notice
+
+Several Medusa demos contain third party assets with their own separate licenses.
+
+- [16x16 Dungeon Tileset](https://0x72.itch.io/dungeontileset-ii) - MIT License
+- [Brackey's Platform Bundle](https://brackeysgames.itch.io/brackeys-platformer-bundle) - CC0
+
+Any assets not listed above are custom, and follow Medusa Engine's MIT License.
+
 

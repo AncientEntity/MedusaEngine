@@ -8,4 +8,4 @@ class BulletGame(Game):
         super().__init__()
         self.name = "Bullet Game"
         self.startingScene = TiledTestScene
-        self.startingSplashEnabled = False
+        self.startingSplashEnabled = True

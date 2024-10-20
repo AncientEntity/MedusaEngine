@@ -1,7 +1,10 @@
 import math
 
 def Magnitude(vec):
-    return math.sqrt(vec[0]*vec[0]+vec[1]*vec[1])
+    sum = 0
+    for scalar in vec:
+        sum += scalar*scalar
+    return math.sqrt(sum)
 
 def Distance(vec1,vec2):
     a = vec1[0] - vec2[0]
@@ -22,6 +25,12 @@ def MoveTowardsDelta(current, target, delta):
 def MoveTowards(current, target, delta):
     normalizedVecAndDelta = MoveTowardsDelta(current,target,delta)
     return [current[0]+normalizedVecAndDelta[0],current[1]+normalizedVecAndDelta[1]]
+
+def LerpRotation(currentRotation, targetRotation, delta):
+    maxDistance = (currentRotation % 360)-(targetRotation % 360)
+    delta = Clamp(delta,-abs(maxDistance),abs(maxDistance))
+    return (currentRotation + delta) % 360
+
 
 def NormalizeVec(vec):
     length = math.sqrt(vec[0]*vec[0]+vec[1]*vec[1])
