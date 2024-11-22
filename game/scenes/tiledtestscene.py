@@ -24,6 +24,8 @@ class TiledTestScene(LevelScene):
         self.systems.append(UISystem())
         self.player = None
 
+        self.sceneSize = (2048,2048)
+
     def LevelStart(self):
         self.player = prefabs.CreatePlayer(self)
         self.player.position = self.GetRandomTiledObjectByName("SPAWN")["position"][:]

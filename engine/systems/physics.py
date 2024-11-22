@@ -3,7 +3,9 @@ import pygame
 from engine.components.physicscomponent import PhysicsComponent
 from engine.datatypes.quadtree import QuadNode
 from engine.ecs import Component, EntitySystem, Scene
+from engine.logging import Log, LOG_INFO, LOG_WARNINGS
 from engine.systems.renderer import TilemapRenderer
+import math
 
 
 class PhysicsSystem(EntitySystem):
@@ -11,9 +13,15 @@ class PhysicsSystem(EntitySystem):
         super().__init__([PhysicsComponent])
         self.stepsPerFrame = 2
 
-        # Root quad tree for spatial partitioning. Bounds should be a power of 2. 536870912=2^29, 1073741824=2^30
-        # this allows it to divide evenly. Inside QuadNode's class variables the min quad node size is 16=2^4
-        self.quadtree = QuadNode(None,pygame.Rect(-2**29,-2**29,2**30,2**30))
+        self.quadtree : QuadNode = None
+        self.rootQuadSize : tuple(int) = None
+
+    def OnEnable(self, currentScene : Scene):
+        self.rootQuadSize = (currentScene.sceneSize[0] / -2, currentScene.sceneSize[1] / -2,currentScene.sceneSize[1],currentScene.sceneSize[1])
+        self.quadtree = QuadNode(None, pygame.Rect( *self.rootQuadSize))
+        logCheck = (math.log(currentScene.sceneSize[0],2),math.log(currentScene.sceneSize[1],2))
+        if logCheck[0] != int(logCheck[0]) or logCheck[1] != int(logCheck[1]):
+            Log("QuadTree bounds are not a power of 2. May cause a division error, consider changing currentScene.sceneSize to a power of 2.", LOG_WARNINGS)
 
     def Update(self,currentScene : Scene):
         for i in range(self.stepsPerFrame):
@@ -30,7 +38,7 @@ class PhysicsSystem(EntitySystem):
 
         # Rebuild quad tree (this is only temporary, the branch spatialpartitioning-optimized will instead
         # update objects based on if they have moved. But this is still faster.
-        self.quadtree = QuadNode(None,pygame.Rect(-2**29,-2**29,2**30,2**30))
+        self.quadtree = QuadNode(None,self.quadtree.bounds)
         for body in currentScene.components[PhysicsComponent]:
             body._overlappingSpatialPartitions.clear()
             self.quadtree.AddBody(body)
