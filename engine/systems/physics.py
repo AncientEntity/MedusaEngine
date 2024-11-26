@@ -22,6 +22,7 @@ class PhysicsSystem(EntitySystem):
         logCheck = (math.log(currentScene.sceneSize[0],2),math.log(currentScene.sceneSize[1],2))
         if logCheck[0] != int(logCheck[0]) or logCheck[1] != int(logCheck[1]):
             Log("QuadTree bounds are not a power of 2. May cause a division error, consider changing currentScene.sceneSize to a power of 2.", LOG_WARNINGS)
+        Log(f"QuadTree initialized with size: {self.quadtree.bounds}", LOG_INFO)
 
     def Update(self,currentScene : Scene):
         for i in range(self.stepsPerFrame):
