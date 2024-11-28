@@ -80,7 +80,7 @@ class Engine:
         Log("Game Initializing",LOG_INFO)
         pygame.init()
         pygame.mixer.init()
-        self.display = pygame.display.set_mode(self._game.windowSize)
+        self.display = pygame.display.set_mode(self._game.windowSize, pygame.FULLSCREEN if self._game.startFullScreen else 0)
         pygame.display.set_caption(self.gameName)
         if(self._game.icon != None):
             pygame.display.set_icon(self._game.icon)
