@@ -1,0 +1,57 @@
+from engine.constants import KEYDOWN, KEYUP, KEYPRESSED, KEYINACTIVE
+import pygame
+
+class Input:
+    _inputStates = {}
+
+    scroll = 0
+    quitPressed = False
+
+    @staticmethod
+    def InputTick():
+
+        #Go through and mark any KEYDOWN keys as KEYPRESSED and KEYUP keys as inactive.
+        for key in Input._inputStates.keys():
+            if(Input._inputStates[key] == KEYDOWN):
+                Input._inputStates[key] = KEYPRESSED
+            elif(Input._inputStates[key] == KEYUP):
+                Input._inputStates[key] = KEYINACTIVE
+
+        #Check all the new pygame events for quitting and keys.
+        for event in pygame.event.get():
+            #Quit Button
+            if(event.type == pygame.QUIT):
+                Input.quitPressed = True
+            #Keys
+            elif(event.type == pygame.KEYDOWN):
+                Input._inputStates[event.key] = KEYDOWN
+            elif(event.type == pygame.KEYUP):
+                Input._inputStates[event.key] = KEYUP
+            #Scrolling
+            elif(event.type == pygame.MOUSEWHEEL):
+                Input.scroll = event.y
+
+    @staticmethod
+    def IsKeyState(key : int, targetState : int) -> bool:
+        if(key in Input._inputStates):
+            return Input._inputStates[key] == targetState
+        else:
+            return False #Key Inactive/never recorded.
+
+    @staticmethod
+    def KeyPressed(key : int) -> bool:
+        return Input.IsKeyState(key,KEYPRESSED) or Input.IsKeyState(key,KEYDOWN)
+
+    @staticmethod
+    def KeyDown(key : int) -> bool:
+        return Input.IsKeyState(key,KEYDOWN)
+
+    @staticmethod
+    def KeyUp(key : int) -> bool:
+        return Input.IsKeyState(key,KEYUP)
+
+
+    #todo proper mouse inputs (mouse up/down)
+    @staticmethod
+    def MouseButtonPressed(index):
+        return pygame.mouse.get_pressed()[index]

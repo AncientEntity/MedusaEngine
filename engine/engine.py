@@ -10,6 +10,7 @@ from sys import exit
 import sys
 import platform
 
+from engine.input import Input
 from engine.logging import Log, LOG_ERRORS, LOG_INFO, LOG_WARNINGS
 from engine.scenes import splashscene
 
@@ -17,6 +18,8 @@ from engine.scenes import splashscene
 class Engine:
     _instance = None
     def __init__(self,game):
+        Engine._instance = self
+
         self._game : Game = game
         self.gameName = "Empty Game"
 
@@ -28,10 +31,6 @@ class Engine:
         self.deltaTime = 0
         self.frameStartTime = 0
         self.maxDeltaTime = 0.1 #Maximum delta time enforced to prevent unintended concequences of super high delta time.
-
-        self._inputStates = {}
-        self.scroll = 0
-        Engine._instance = self
 
         self._queuedScene = None # LoadScene sets this, and the update loop will swap scenes if this isn't none.
 
@@ -72,7 +71,9 @@ class Engine:
                 self._LoadQueuedScene()
 
             #Game Loop
-            self.InputTick()
+            Input.InputTick()
+            if self.inputHandler.quitPressed:
+                self.Quit()
             self._currentScene.Update()
 
             await asyncio.sleep(0)
@@ -80,6 +81,9 @@ class Engine:
         Log("Game Initializing",LOG_INFO)
         pygame.init()
         pygame.mixer.init()
+
+        self.inputHandler = Input()
+
         self.display = pygame.display.set_mode(self._game.windowSize, pygame.FULLSCREEN if self._game.startFullScreen else 0)
         pygame.display.set_caption(self.gameName)
         if(self._game.icon != None):
@@ -88,40 +92,6 @@ class Engine:
 
         Log("Game Initialized",LOG_INFO)
 
-    def InputTick(self):
-
-        #Go through and mark any KEYDOWN keys as KEYPRESSED and KEYUP keys as inactive.
-        for key in self._inputStates.keys():
-            if(self._inputStates[key] == KEYDOWN):
-                self._inputStates[key] = KEYPRESSED
-            elif(self._inputStates[key] == KEYUP):
-                self._inputStates[key] = KEYINACTIVE
-
-        #Check all the new pygame events for quitting and keys.
-        for event in pygame.event.get():
-            #Quit Button
-            if(event.type == pygame.QUIT):
-                self.Quit()
-            #Keys
-            elif(event.type == pygame.KEYDOWN):
-                self._inputStates[event.key] = KEYDOWN
-            elif(event.type == pygame.KEYUP):
-                self._inputStates[event.key] = KEYUP
-            #Scrolling
-            elif(event.type == pygame.MOUSEWHEEL):
-                self.scroll = event.y
-
-    def IsKeyState(self,key : int, targetState : int) -> bool:
-        if(key in self._inputStates):
-            return self._inputStates[key] == targetState
-        else:
-            return False #Key Inactive/never recorded.
-    def KeyPressed(self,key : int) -> bool:
-        return self.IsKeyState(key,KEYPRESSED) or self.IsKeyState(key,KEYDOWN)
-    def KeyDown(self,key : int) -> bool:
-        return self.IsKeyState(key,KEYDOWN)
-    def KeyUp(self,key : int) -> bool:
-        return self.IsKeyState(key,KEYUP)
     def LoadScene(self, scene : Type[ecs.Scene]):
         sceneInstance = scene()
         if(self._queuedScene != None):
@@ -139,22 +109,3 @@ class Engine:
     def Quit(self):
         Log("Game Quitting",LOG_INFO)
         exit(0)
-
-class Input:
-    #Input class functions accessible via Input.KeyPressed, KeyDown, KeyUp
-
-    @staticmethod
-    def KeyPressed(key):
-        return Engine._instance.KeyPressed(key)
-    @staticmethod
-    def KeyDown(key):
-        return Engine._instance.KeyDown(key)
-    @staticmethod
-    def KeyUp(key):
-        return Engine._instance.KeyUp(key)
-
-
-    #todo proper mouse inputs (mouse up/down)
-    @staticmethod
-    def MouseButtonPressed(index):
-        return pygame.mouse.get_pressed()[index]
