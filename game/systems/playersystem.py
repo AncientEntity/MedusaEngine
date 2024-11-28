@@ -32,7 +32,7 @@ class PlayerSystem(EntitySystem):
             if not pygame.display.is_fullscreen():
                 RenderingSystem.instance.SetResolution(None, True)
             else:
-                RenderingSystem.instance.SetResolution((800,600), False)
+                RenderingSystem.instance.SetResolution((1280,800), False)
 
         player : PlayerComponent
         for player in currentScene.components[PlayerComponent]:
@@ -87,7 +87,7 @@ class PlayerSystem(EntitySystem):
     def OnDeleteComponent(self, component : Component):
         # Delete and remove the health UI and gun ammo UI of player.
         actor : ActorComponent = component.parentEntity.GetComponent(ActorComponent)
-        component.dashUI.Delete(self.currentScene)
+        #component.dashUI.Delete(self.currentScene) # todo this crashes the game
 
 
     @staticmethod
