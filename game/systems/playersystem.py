@@ -27,6 +27,7 @@ class PlayerSystem(EntitySystem):
     def OnEnable(self, currentScene : Scene):
         self.currentScene = currentScene
         currentScene.GetSystemByClass(ActorSystem).RegisterAction("dash",self.ActionPlayerDash)
+
     def Update(self,currentScene : Scene):
         if Input.KeyDown(pygame.K_k):
             if not pygame.display.is_fullscreen():
