@@ -17,6 +17,9 @@ class Scene:
         self.entities = []
         self.components = {}
         self.game = None
+        self.sceneSize = (2**21,2**21) # Note: the maximum size pygame.Rect seems to support is (x=-2**29,y=2**29,
+                                       #                                                         w=2**30, 2**30)
+                                       # Should be a power of 2.
 
         self._newComponentQueue = [] #Contains the list of components just added into the scene. For running EntitySystem.OnNewComponent on them.
 
