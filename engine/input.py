@@ -8,6 +8,11 @@ class Input:
     quitPressed = False
 
     @staticmethod
+    def Init():
+        joysticks = [pygame.joystick.Joystick(x) for x in range(pygame.joystick.get_count())]
+        print(joysticks)
+
+    @staticmethod
     def InputTick():
 
         #Go through and mark any KEYDOWN keys as KEYPRESSED and KEYUP keys as inactive.

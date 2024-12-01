@@ -72,7 +72,7 @@ class Engine:
 
             #Game Loop
             Input.InputTick()
-            if self.inputHandler.quitPressed:
+            if Input.quitPressed:
                 self.Quit()
             self._currentScene.Update()
 
@@ -81,8 +81,9 @@ class Engine:
         Log("Game Initializing",LOG_INFO)
         pygame.init()
         pygame.mixer.init()
+        pygame.joystick.init()
 
-        self.inputHandler = Input()
+        Input.Init()
 
         self.display = pygame.display.set_mode(self._game.windowSize, pygame.FULLSCREEN if self._game.startFullScreen else 0)
         pygame.display.set_caption(self.gameName)
