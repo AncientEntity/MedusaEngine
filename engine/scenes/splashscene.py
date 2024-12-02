@@ -10,12 +10,20 @@ from engine.tools.math import Clamp
 class EngineSplashScreenLoadNextScene(EntitySystem):
     def __init__(self):
         super().__init__()
-        self.timeLeft = 1.5
+        self.timeLeft = 1.6
+
+        self.nameEntitySprite = None
+        self.iconEntitySprite = None
+
+    def OnEnable(self, currentScene : Scene):
+        self.nameEntitySprite = currentScene.engineNameEntity.GetComponent(SpriteRenderer).sprite
+        self.iconEntitySprite = currentScene.engineIconEntity.GetComponent(SpriteRenderer).sprite
+
     def Update(self, currentScene: Scene):
         self.timeLeft -= self.game.deltaTime
-        greyColor = Clamp(255 * (self.timeLeft / 2) + 35, 0, 255)
-        currentScene.engineNameEntity.GetComponent(SpriteRenderer).sprite.SetColor((greyColor,greyColor,greyColor))
-        currentScene.engineIconEntity.GetComponent(SpriteRenderer).sprite.SetColor((greyColor,greyColor,greyColor))
+        greyColor = Clamp(255 * (self.timeLeft / 1.2) + 35, 0, 255)
+        self.nameEntitySprite.SetColor((greyColor,greyColor,greyColor))
+        self.iconEntitySprite.SetColor((greyColor,greyColor,greyColor))
 
         if(self.timeLeft <= 0):
             self.game.LoadScene(self.game._game.startingScene)
@@ -29,8 +37,10 @@ class EngineSplashScreenScene(Scene):
         self.systems.append(EngineSplashScreenLoadNextScene())
 
         self.name = "Medusa Splash Scene"
+
+        self.engineNameEntity = None
+        self.engineIconEntity = None
     def Init(self):
-        super().Init()
         font = pygame.font.SysFont("Arial", 36, True, False)
         engineNameText = font.render("Powered by Medusa Engine", True, (255, 255, 255))
         self.engineNameEntity = self.CreateEntity("Engine Name Text",[0,-200],[SpriteRenderer(engineNameText)])
@@ -40,6 +50,8 @@ class EngineSplashScreenScene(Scene):
         self.engineIconEntity = self.CreateEntity("Engine Icon",[0,0],[SpriteRenderer(engineIcon)])
         self.engineIconEntity.GetComponent(SpriteRenderer).sprite.SetScale((3,3))
         self.engineIconEntity.name = "Engine Icon"
+
+        super().Init()
 
         RenderingSystem.instance.backgroundColor = (0,0,0)
 
