@@ -8,7 +8,6 @@ setup(name = "Unnamed MedusaEngine Game",
       version = "0.1",
       description = "",
       options = {"build_exe" : build_options},
-      #executables=[Executable("main.py")])#, base="Win32GUI")])
       executables=[Executable("main.py", base="Win32GUI")])
 
 def RemoveFiles(directory):
