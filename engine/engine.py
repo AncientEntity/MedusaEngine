@@ -2,6 +2,7 @@ import asyncio
 from typing import Type
 
 import pygame
+import pygame._sdl2.controller
 import engine.ecs as ecs
 from engine.constants import KEYDOWN, KEYUP, KEYPRESSED, KEYINACTIVE
 from engine.game import Game
