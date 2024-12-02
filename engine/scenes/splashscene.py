@@ -1,6 +1,9 @@
 #Engine splash screen scene
 import pygame.font
 
+from engine.components.rendering.textrenderer import TextRenderer
+from engine.datatypes.font import Font
+from engine.datatypes.sprites import Sprite
 from engine.ecs import Scene, EntitySystem
 from engine.systems.renderer import RenderingSystem, SpriteRenderer
 from engine.tools.math import Clamp
@@ -12,18 +15,12 @@ class EngineSplashScreenLoadNextScene(EntitySystem):
         super().__init__()
         self.timeLeft = 1.6
 
-        self.nameEntitySprite = None
-        self.iconEntitySprite = None
-
-    def OnEnable(self, currentScene : Scene):
-        self.nameEntitySprite = currentScene.engineNameEntity.GetComponent(SpriteRenderer).sprite
-        self.iconEntitySprite = currentScene.engineIconEntity.GetComponent(SpriteRenderer).sprite
-
     def Update(self, currentScene: Scene):
         self.timeLeft -= self.game.deltaTime
-        greyColor = Clamp(255 * (self.timeLeft / 1.2) + 35, 0, 255)
-        self.nameEntitySprite.SetColor((greyColor,greyColor,greyColor))
-        self.iconEntitySprite.SetColor((greyColor,greyColor,greyColor))
+        alpha = Clamp(255 * (self.timeLeft / 1.2) + 35, 0, 255)
+
+        currentScene.engineNameText.SetAlpha(alpha)
+        currentScene.engineIconSprite.SetAlpha(alpha)
 
         if(self.timeLeft <= 0):
             self.game.LoadScene(self.game._game.startingScene)
@@ -38,18 +35,21 @@ class EngineSplashScreenScene(Scene):
 
         self.name = "Medusa Splash Scene"
 
-        self.engineNameEntity = None
-        self.engineIconEntity = None
+        self.engineNameText : TextRenderer = None
+        self.engineIconSprite : Sprite = None
     def Init(self):
-        font = pygame.font.SysFont("Arial", 36, True, False)
-        engineNameText = font.render("Powered by Medusa Engine", True, (255, 255, 255))
-        self.engineNameEntity = self.CreateEntity("Engine Name Text",[0,-200],[SpriteRenderer(engineNameText)])
+        self.engineNameText = TextRenderer("Powered by Medusa Engine", 46, Font("Arial"))
+        self.engineNameText.SetColor((255,255,255))
+        self.engineNameText.SetFont(None, True)
+        self.engineNameEntity = self.CreateEntity("Engine Name Text",[0,-200],[self.engineNameText])
+        self.engineNameEntity.GetComponent(TextRenderer)
         self.engineNameEntity.name = "Engine Name Text"
 
         engineIcon = pygame.image.load("engine/art/logo.png")
         self.engineIconEntity = self.CreateEntity("Engine Icon",[0,0],[SpriteRenderer(engineIcon)])
         self.engineIconEntity.GetComponent(SpriteRenderer).sprite.SetScale((3,3))
         self.engineIconEntity.name = "Engine Icon"
+        self.engineIconSprite = self.engineIconEntity.GetComponent(SpriteRenderer).sprite
 
         super().Init()
 
