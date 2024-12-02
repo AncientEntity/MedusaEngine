@@ -1,4 +1,5 @@
 from sys import platform
+import sys
 currentPlatform = platform
 
 # Related Python Documentation:
@@ -14,3 +15,10 @@ def IsPlatformMacOS():
     return currentPlatform.startswith("darwin")
 def IsPlatformWeb():
     return currentPlatform in ("emscripten" or "wasi")
+
+def IsFrozen():
+    return getattr(sys, 'frozen', False) #sys.frozen is created by cx_freeze when it's a build
+def IsBuilt():
+    return IsFrozen() or IsPlatformWeb()
+def IsDebug():
+    return not IsBuilt()
