@@ -89,7 +89,7 @@ class Engine:
         Input.Init()
 
         self.display = pygame.display.set_mode(self._game.windowSize, pygame.FULLSCREEN if self._game.startFullScreen else 0)
-        pygame.display.set_caption(self.gameName)
+        pygame.display.set_caption(f"{self.gameName}{'' if not IsDebug() else f' (Debug Environment, Platform: {currentPlatform})'}")
         if(self._game.icon != None):
             pygame.display.set_icon(self._game.icon)
         self.LoadScene(self._currentScene)
