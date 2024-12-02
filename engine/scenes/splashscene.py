@@ -10,7 +10,7 @@ from engine.tools.math import Clamp
 class EngineSplashScreenLoadNextScene(EntitySystem):
     def __init__(self):
         super().__init__()
-        self.timeLeft = 1.8
+        self.timeLeft = 1.5
     def Update(self, currentScene: Scene):
         self.timeLeft -= self.game.deltaTime
         greyColor = Clamp(255 * (self.timeLeft / 2) + 35, 0, 255)

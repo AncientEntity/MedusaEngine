@@ -13,6 +13,7 @@ import platform
 from engine.input import Input
 from engine.logging import Log, LOG_ERRORS, LOG_INFO, LOG_WARNINGS
 from engine.scenes import splashscene
+from engine.tools.platform import IsBuilt, IsDebug, currentPlatform
 
 
 class Engine:
@@ -78,10 +79,11 @@ class Engine:
 
             await asyncio.sleep(0)
     def Init(self):
-        Log("Game Initializing",LOG_INFO)
+        Log(f"Game Initializing (IsBuilt:{IsBuilt()}, IsDebug:{IsDebug()}, Platform:{currentPlatform})",LOG_INFO)
         pygame.init()
         pygame.mixer.init()
         pygame.joystick.init()
+        pygame._sdl2.controller.init()
 
         Input.Init()
 
