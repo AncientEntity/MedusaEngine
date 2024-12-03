@@ -25,3 +25,10 @@ ALIGN_BOTTOMLEFT = 5
 ALIGN_BOTTOMRIGHT = 6
 ALIGN_CENTERBOTTOM = 7
 ALIGN_CENTERTOP = 8
+
+# ----------------------------------------
+# SPLASH CONSTANTS
+# ----------------------------------------
+SPLASH_DISABLED = 0 # No Splash
+SPLASH_ALWAYS = 1 # Always Show Splash
+SPLASH_BUILDONLY = 2 # Only show splash in build, not debug mode.

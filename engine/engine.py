@@ -4,7 +4,7 @@ from typing import Type
 import pygame
 import pygame._sdl2.controller
 import engine.ecs as ecs
-from engine.constants import KEYDOWN, KEYUP, KEYPRESSED, KEYINACTIVE
+from engine.constants import KEYDOWN, KEYUP, KEYPRESSED, KEYINACTIVE, SPLASH_BUILDONLY, SPLASH_ALWAYS
 from engine.game import Game
 import time
 from sys import exit
@@ -49,7 +49,8 @@ class Engine:
                 platform.window.canvas.style.imageRendering = "pixelated"
 
         #Load splash screen if enabled otherwise load starting scene, if we load splash screen scene the splash screen scene swaps to the self._game.startingScene for us.
-        if(self._game.startingSplashEnabled):
+        if(self._game.startingSplashMode == SPLASH_ALWAYS or (IsBuilt() and
+                                                              self._game.startingSplashMode == SPLASH_BUILDONLY)):
             self._currentScene = splashscene.engineSplashScreenScene
         else:
             self._currentScene = self._game.startingScene
