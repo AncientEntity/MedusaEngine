@@ -90,8 +90,9 @@ class Engine:
 
         self.display = pygame.display.set_mode(self._game.windowSize, pygame.FULLSCREEN if self._game.startFullScreen else 0)
         pygame.display.set_caption(f"{self.gameName}{'' if not IsDebug() else f' (Debug Environment, Platform: {currentPlatform})'}")
-        if(self._game.icon != None):
-            pygame.display.set_icon(self._game.icon)
+        if(self._game.icon == None):
+            self._game.icon = pygame.image.load("engine/art/logo-dark.png")
+        pygame.display.set_icon(self._game.icon)
         self.LoadScene(self._currentScene)
 
         Log("Game Initialized",LOG_INFO)
