@@ -11,6 +11,6 @@ class Game:
 
         self.windowSize : tuple(int) = (800,600)
         self.startFullScreen = False
-        self.resizableWindow = False
+        self.resizableWindow = False # Will not be enabled on web platform
 
         self.webCanvasPixelated = True # Determine if the web canvas of a web build is pixelated or not.

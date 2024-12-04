@@ -14,7 +14,7 @@ import platform
 from engine.input import Input
 from engine.logging import Log, LOG_ERRORS, LOG_INFO, LOG_WARNINGS
 from engine.scenes import splashscene
-from engine.tools.platform import IsBuilt, IsDebug, currentPlatform
+from engine.tools.platform import IsBuilt, IsDebug, currentPlatform, IsPlatformWeb
 
 
 class Engine:
@@ -92,7 +92,7 @@ class Engine:
         Input.Init()
 
         self.displayFlags = pygame.FULLSCREEN if self._game.startFullScreen else 0
-        self.displayFlags |= pygame.RESIZABLE if self._game.resizableWindow else 0
+        self.displayFlags |= pygame.RESIZABLE if self._game.resizableWindow and not IsPlatformWeb() else 0
         self.display = pygame.display.set_mode(self._game.windowSize, self.displayFlags)
         pygame.display.set_caption(f"{self.gameName}{'' if not IsDebug() else f' (Debug Environment, Platform: {currentPlatform})'}")
         if(self._game.icon == None):
