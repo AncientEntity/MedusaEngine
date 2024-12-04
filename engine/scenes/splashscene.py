@@ -27,7 +27,6 @@ class EngineSplashScreenLoadNextScene(EntitySystem):
         currentScene.engineIconSprite.SetAlpha(alpha)
 
         if(self.timeLeft <= 0):
-            self.timeLeft = self.startingTime
             self.game.LoadScene(self.game._game.startingScene)
 
 class EngineSplashScreenScene(Scene):

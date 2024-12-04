@@ -26,8 +26,10 @@ class Engine:
         self.gameName = "Empty Game"
 
         self._currentScene : ecs.Scene = None
-        self.display : pygame.Surface = None
         self.running = False
+
+        self.display : pygame.Surface = None
+        self.displayFlags = 0
 
         self._lastTickStart = 0
         self.deltaTime = 0
@@ -89,7 +91,9 @@ class Engine:
 
         Input.Init()
 
-        self.display = pygame.display.set_mode(self._game.windowSize, pygame.FULLSCREEN if self._game.startFullScreen else 0)
+        self.displayFlags = pygame.FULLSCREEN if self._game.startFullScreen else 0
+        self.displayFlags |= pygame.RESIZABLE if self._game.resizableWindow else 0
+        self.display = pygame.display.set_mode(self._game.windowSize, self.displayFlags)
         pygame.display.set_caption(f"{self.gameName}{'' if not IsDebug() else f' (Debug Environment, Platform: {currentPlatform})'}")
         if(self._game.icon == None):
             self._game.icon = pygame.image.load("engine/art/logo-dark.png")
