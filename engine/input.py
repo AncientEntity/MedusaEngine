@@ -1,11 +1,16 @@
 from engine.constants import KEYDOWN, KEYUP, KEYPRESSED, KEYINACTIVE
 import pygame
 
+from engine.logging import Log, LOG_INFO, LOG_ALL
+
+
 class Input:
     _inputStates = {}
 
     scroll = 0
     quitPressed = False
+
+    onWindowResized : dict = {} # Dict of functions that get called on pygame.VIDEORESIZE.
 
     @staticmethod
     def Init():
@@ -35,6 +40,11 @@ class Input:
             #Scrolling
             elif(event.type == pygame.MOUSEWHEEL):
                 Input.scroll = event.y
+            #Video Resizing
+            elif(event.type == pygame.WINDOWRESIZED):
+                Log("WINDOWRESIZED event triggered", LOG_INFO)
+                for func in Input.onWindowResized.values():
+                    func()
 
     @staticmethod
     def IsKeyState(key : int, targetState : int) -> bool:

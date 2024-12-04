@@ -1,3 +1,4 @@
+from engine.constants import SPLASH_ALWAYS
 from engine.game import Game
 from game.scenes.sidescrollingscene import SideScrollingScene
 from game.scenes.tiledtestscene import TiledTestScene
@@ -8,4 +9,4 @@ class BulletGame(Game):
         super().__init__()
         self.name = "Bullet Game"
         self.startingScene = TiledTestScene
-        self.startingSplashEnabled = True
+        self.startingSplashMode = SPLASH_ALWAYS

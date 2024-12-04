@@ -16,7 +16,7 @@ from engine.tools.math import Clamp
 class EngineSplashScreenLoadNextScene(EntitySystem):
     def __init__(self):
         super().__init__()
-        self.startingTime = 1.25
+        self.startingTime = 2.5
         self.timeLeft = self.startingTime
 
     def Update(self, currentScene: Scene):
@@ -27,7 +27,6 @@ class EngineSplashScreenLoadNextScene(EntitySystem):
         currentScene.engineIconSprite.SetAlpha(alpha)
 
         if(self.timeLeft <= 0):
-            self.timeLeft = self.startingTime
             self.game.LoadScene(self.game._game.startingScene)
 
 class EngineSplashScreenScene(Scene):
