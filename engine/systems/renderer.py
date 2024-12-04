@@ -7,6 +7,7 @@ from engine.components.rendering.textrenderer import TextRenderer
 from engine.components.rendering.tilemaprenderer import TilemapRenderer
 from engine.datatypes.sprites import GetSprite, Sprite
 from engine.ecs import EntitySystem, Scene
+from engine.input import Input
 from engine.logging import Log, LOG_ALL, LOG_INFO
 
 
@@ -36,8 +37,13 @@ class RenderingSystem(EntitySystem):
         self.screenMousePosition = (0, 0)
         self.worldMousePosition = (0,0)
 
+    def __del__(self):
+        if self in Input.onWindowResized:
+            Input.onWindowResized.pop(self)
+
     def OnEnable(self, currentScene : Scene):
         RenderingSystem.instance = self
+        Input.onWindowResized[self] = self.InitializeScreenData
         self.InitializeScreenData()
 
     def OnNewComponent(self,component : RendererComponent):
@@ -63,6 +69,7 @@ class RenderingSystem(EntitySystem):
         self._renderTarget = pygame.Surface(self._scaledScreenSize)
         for func in self.onScreenUpdated:
             func()
+        Log("InitializeScreenData Completed", LOG_INFO)
 
     def InsertIntoSortedRenderOrder(self,component : RendererComponent):
         # If _sortedRenderOrder is empty, just simply add and exit.

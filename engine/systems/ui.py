@@ -93,11 +93,11 @@ class UISystem(EntitySystem):
 
             newPosition = list(targetAnchor.position)
             if 0 < transform._anchorOffset[0] < 1:
-                newPosition[0] += transform._parentRect._calculatedBounds[0] * transform._anchorOffset[0]
+                newPosition[0] += transform._parentRect._calculatedBounds[0] * transform._anchorOffset[0] * targetAnchor.boundMultiplier[0]
             else:
                 newPosition[0] += transform._anchorOffset[0]
             if 0 < transform._anchorOffset[1] < 1:
-                newPosition[1] += transform._parentRect._calculatedBounds[1] * transform._anchorOffset[1]
+                newPosition[1] += transform._parentRect._calculatedBounds[1] * transform._anchorOffset[1] * targetAnchor.boundMultiplier[1]
             else:
                 newPosition[1] += transform._anchorOffset[1]
 

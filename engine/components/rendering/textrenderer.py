@@ -10,7 +10,7 @@ from engine.tools.math import Clamp
 
 
 class TextRenderer(RendererComponent):
-    def __init__(self, text : str, textSize : int, font : Font):
+    def __init__(self, text : str, textSize : int, font : Font or str):
         super().__init__()
         self._text = None
         self._engineFont : Font = None
@@ -68,11 +68,13 @@ class TextRenderer(RendererComponent):
             return
         self._text = text
         self.Render()
-    def SetFont(self,font : Font):
-        if(font == self._engineFont):
-            return
-        self._engineFont = font
-        self._pygameFont = font.GetPygameFont(self._textSize)
+    def SetFont(self,font : Font or str, bold=False, italic=False):
+        if isinstance(font,str):
+            font = Font(font)
+
+        if font:
+            self._engineFont = font
+        self._pygameFont = self._engineFont.GetPygameFont(self._textSize, bold, italic)
         self.Render()
     def SetTextSize(self, textSize):
         if(textSize == self._textSize):

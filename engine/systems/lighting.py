@@ -77,17 +77,16 @@ class LightingSystem(EntitySystem):
         self.InitializeWorldLightEntity(currentScene)
 
     def InitializeWorldLightEntity(self, currentScene : Scene):
-        if self._worldLightEntity:
-            currentScene.DeleteEntity(self._worldLightEntity)
-            self._worldLightSprite = None
-
         lightSurface = pygame.Surface(self._rendering._scaledScreenSize, pygame.SRCALPHA, 32)
         lightSurface.convert_alpha()
         lightSurface.fill((0, 0, 0, self.worldBrightness))
 
         self._worldLightSprite = Sprite(lightSurface)
-        self._worldLightEntity = currentScene.CreateEntity("EngineLightMask", (0, 0), components=[
-            SpriteRenderer(self._worldLightSprite, self.drawOrder, True)])
+        if not self._worldLightEntity:
+            self._worldLightEntity = currentScene.CreateEntity("EngineLightMask", (0, 0), components=[
+                SpriteRenderer(self._worldLightSprite, self.drawOrder, True)])
+        else:
+            self._worldLightEntity.GetComponent(SpriteRenderer).SetSprite(self._worldLightSprite)
 
         Log(f"InitializeWorldLightEntity with surface size {self._rendering._scaledScreenSize}",LOG_INFO)
 
