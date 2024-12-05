@@ -33,7 +33,7 @@ class EngineSplashScreenScene(Scene):
     def __init__(self):
         super().__init__()
         self.renderEngine = RenderingSystem()
-        self.renderEngine.renderScale = 1
+        self.renderEngine.overrideRenderScale = 1
         self.systems.append(self.renderEngine)
         self.systems.append(EngineSplashScreenLoadNextScene())
         self.systems.append(UISystem())

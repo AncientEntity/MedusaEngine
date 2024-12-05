@@ -19,11 +19,13 @@ class RenderingSystem(EntitySystem):
     def __init__(self):
         super().__init__([SpriteRenderer,TilemapRenderer,ParticleEmitterComponent,TextRenderer])
         self.cameraPosition = [0,0]
-        self.renderScale = 3
+        self.worldPixelsToScreenPixels = (3.0 / 800.0)
+        self.overrideRenderScale = None
         self.backgroundColor = (255,255,255)
         self.debug = False
 
         # Screen Data
+        self._renderScale = 3
         self._renderTarget = None
         self._screenSize = None
         self._scaledScreenSize = None
@@ -63,13 +65,24 @@ class RenderingSystem(EntitySystem):
         Log(f"SetResolution({resolution},{isFullscreen})", LOG_INFO)
 
     def InitializeScreenData(self):
+        self.CalculateRenderScale()
         self._screenSize = [self.game.display.get_width(),self.game.display.get_height()]
-        self._scaledScreenSize = [self.game.display.get_width() / self.renderScale,self.game.display.get_height() / self.renderScale]
+        self._scaledScreenSize = [self.game.display.get_width() / self._renderScale, self.game.display.get_height() / self._renderScale]
         self._scaledHalfSize = [self._scaledScreenSize[0]/2,self._scaledScreenSize[1]/2]
         self._renderTarget = pygame.Surface(self._scaledScreenSize)
         for func in self.onScreenUpdated:
             func()
-        Log("InitializeScreenData Completed", LOG_INFO)
+        Log(f"InitializeScreenData Completed RenderScale={self._renderScale}", LOG_INFO)
+
+    def CalculateRenderScale(self):
+        if self.overrideRenderScale:
+            self._renderScale = self.overrideRenderScale
+            return
+
+        if self.game.display.get_width() > self.game.display.get_height():
+            self._renderScale = self.game.display.get_width() * self.worldPixelsToScreenPixels
+        else:
+            self._renderScale = self.game.display.get_height() * self.worldPixelsToScreenPixels
 
     def InsertIntoSortedRenderOrder(self,component : RendererComponent):
         # If _sortedRenderOrder is empty, just simply add and exit.
@@ -93,7 +106,7 @@ class RenderingSystem(EntitySystem):
         self._renderTarget.fill(self.backgroundColor)
 
         self.rawMousePosition = pygame.mouse.get_pos()
-        self.screenMousePosition = ((self.rawMousePosition[0] - self._screenSize[0] / 2) / self.renderScale,(self.rawMousePosition[1] - self._screenSize[1] / 2) / self.renderScale)
+        self.screenMousePosition = ((self.rawMousePosition[0] - self._screenSize[0] / 2) / self._renderScale, (self.rawMousePosition[1] - self._screenSize[1] / 2) / self._renderScale)
         self.worldMousePosition = (self.screenMousePosition[0]+self.cameraPosition[0],
                                    self.screenMousePosition[1]+self.cameraPosition[1])
 
