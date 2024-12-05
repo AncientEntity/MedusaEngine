@@ -22,7 +22,7 @@ class TinyFactoryScene(LevelScene):
         self.systems.append(NotificationSystem())
         self.systems.append(UISystem())
         self.systems.append(AudioSystem())
-        self.GetSystemByClass(renderer.RenderingSystem).renderScale = 2
+        self.GetSystemByClass(renderer.RenderingSystem).overrideRenderScale = 2
     def LevelStart(self):
         self.music = self.CreateEntity("Music",[0,0],[AudioPlayer(RandomAudioClip(["game/sound/A Loop.ogg","game/sound/B Loop.ogg"]),True,0.4)])
         self.music.GetComponent(AudioPlayer).loops = True

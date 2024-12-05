@@ -98,6 +98,8 @@ class Engine:
         if(self._game.icon == None):
             self._game.icon = pygame.image.load("engine/art/logo-dark.png")
         pygame.display.set_icon(self._game.icon)
+        Log(f"Display Created: {pygame.display.Info()}", LOG_INFO)
+
         self.LoadScene(self._currentScene)
 
         Log("Game Initialized",LOG_INFO)
