@@ -30,6 +30,7 @@ class MainScene(LevelScene):
         self.systems.append(UISystem())
         #self.systems.append(GroundSystem())
         self.GetSystemByClass(RenderingSystem).backgroundColor = (40,25,40)
+        self.GetSystemByClass(RenderingSystem).worldPixelsToScreenPixels = 4.0 / 1280
 
         self.sceneSize = (2**18,2**18)
     def LevelStart(self):
