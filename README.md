@@ -68,6 +68,7 @@ Several Medusa demos contain third party assets with their own separate licenses
 
 - [16x16 Dungeon Tileset](https://0x72.itch.io/dungeontileset-ii) - MIT License
 - [Brackey's Platform Bundle](https://brackeysgames.itch.io/brackeys-platformer-bundle) - CC0
+- [Pixeloid Mono Font](https://www.dafont.com/pixeloid-mono.font) - [SIL Open Font License V1.1](https://openfontlicense.org/open-font-license-official-text/)
 
 Any assets not listed above are custom, and follow Medusa Engine's MIT License.
 
