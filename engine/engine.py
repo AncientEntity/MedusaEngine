@@ -36,6 +36,7 @@ class Engine:
         self.frameStartTime = 0
         self.maxDeltaTime = 0.1 #Maximum delta time enforced to prevent unintended concequences of super high delta time.
 
+        self._lastLoadedScene = None # Last scene class to be loaded.
         self._queuedScene = None # LoadScene sets this, and the update loop will swap scenes if this isn't none.
 
         self.LoadGame() #Loads self._game into the engine
@@ -105,11 +106,14 @@ class Engine:
         Log("Game Initialized",LOG_INFO)
 
     def LoadScene(self, scene : Type[ecs.Scene]):
+        self._lastLoadedScene = scene
         sceneInstance = scene()
         if(self._queuedScene != None):
             Log("Scene queuing on top of another scene. Before: "+self._queuedScene.name+", now: "+sceneInstance.name,LOG_WARNINGS)
         self._queuedScene = sceneInstance
         Log("Queued scene: "+self._queuedScene.name,LOG_INFO)
+    def ReloadScene(self):
+        self.LoadScene(self._lastLoadedScene)
     def _LoadQueuedScene(self):
         Log("Loading scene: "+self._queuedScene.name,LOG_INFO)
         self._currentScene = self._queuedScene
