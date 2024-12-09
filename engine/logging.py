@@ -48,7 +48,7 @@ def CreateErrorBox(message):
 
     display.message_box("ERROR", message + stacktrace)
 
-def Log(message,level):
+def Log(message,level=LOG_INFO):
     global _FILE_LOG_COUNT
     if(LOG_LEVEL >= level):
         output = f"{LogPrefix(level)} {datetime.now()} {message}"
