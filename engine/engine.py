@@ -116,6 +116,10 @@ class Engine:
         self.LoadScene(self._lastLoadedScene)
     def _LoadQueuedScene(self):
         Log("Loading scene: "+self._queuedScene.name,LOG_INFO)
+
+        if isinstance(self._currentScene, ecs.Scene):
+            self._currentScene.Disable()
+
         self._currentScene = self._queuedScene
         self._queuedScene = None
         self._currentScene.game = self

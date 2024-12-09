@@ -52,10 +52,6 @@ class Scene:
     def AddComponent(self, component : Component, parentEntity):
         component.parentEntity = parentEntity
         self._newComponentQueue.append(component)
-        componentType = type(component)
-        if (componentType not in self.components):
-            self.components[componentType] = []
-        self.components[componentType].append(component)
         if component not in parentEntity.components:
             parentEntity.components.append(component)
 
@@ -94,6 +90,10 @@ class Scene:
                     self.components[targetComponent] = []
             system.OnEnable(self) #Pass self into on enable (which is the scene)
 
+    def Disable(self):
+        for system in self.systems:
+            system.OnDisable(self)
+
     def HandleNewComponents(self): #Runs OnNewComponent for each new component (just added to the scene) for every system that it relates to.
         startComp : Component
         for startComp in self._newComponentQueue:
@@ -102,6 +102,13 @@ class Scene:
                     # if(type(component) in system.targetComponents): #swapped out for the above line as that function considers inheritance.
                     system.OnNewComponent(startComp)
             startComp._registered = True
+
+            # Add component to self.components dictionary lists.
+            componentType = type(startComp)
+            if (componentType not in self.components):
+                self.components[componentType] = []
+            self.components[componentType].append(startComp)
+
         self._newComponentQueue = []
 
     def HandleDeleteComponent(self,component : Component):
@@ -157,6 +164,8 @@ class EntitySystem:
         pass
 
     def OnEnable(self, currentScene : Scene):
+        pass
+    def OnDisable(self, currentScene : Scene):
         pass
 
     def OnNewComponent(self,component : Component): #Called when a new component is created into the scene. (Used to initialize that component)
