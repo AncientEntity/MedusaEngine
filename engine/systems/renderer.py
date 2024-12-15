@@ -20,7 +20,7 @@ class RenderingSystem(EntitySystem):
         super().__init__([SpriteRenderer,TilemapRenderer,ParticleEmitterComponent,TextRenderer])
         self.cameraPosition = [0,0]
         self.worldPixelsToScreenPixels = (3.0 / 800.0)
-        self.overrideRenderScale = None
+        self.overrideRenderScale = 1#None
         self.backgroundColor = (255,255,255)
         self.debug = False
 
@@ -125,6 +125,9 @@ class RenderingSystem(EntitySystem):
                 self.RenderParticleEmitter(component)
             elif(isinstance(component, TextRenderer)):
                 self.RenderTextRenderer(component)
+
+        currentScene.GetSystemByName("PhysicsSystem").DebugDrawQuads(self,currentScene.GetSystemByName("PhysicsSystem").quadtree)
+        currentScene.GetSystemByName("PhysicsSystem").DebugDrawCollisionBounds(self,currentScene)
 
         #Finally blit the render target onto the final display.
         self.game.display.blit(pygame.transform.scale(self._renderTarget,(self._screenSize[0],self._screenSize[1])),(0,0))

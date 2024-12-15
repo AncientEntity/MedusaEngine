@@ -17,7 +17,7 @@ class PhysicsComponent(Component):
         self.onTriggerStart = [] #List of functions that take in body : PhysicsComponent, other : PhysicsComponent. Runs when something 'first starts to trigger with self'
 
         self.friction = [5,0]
-        self.mass = 1.0
+        self.mass = 100.0
         self.static = False #If static it wont be checked in the physics loop as the main body only as other body.
         self.gravity : tuple(float) = gravity #either None or a tuple like: (0,9.84)
         self.velocity = [0,0]

@@ -24,7 +24,7 @@ class PlayerSystem(EntitySystem):
 
         if Input.KeyPressed(pygame.K_g):
             newSkeleton = prefabs.CreateSkeleton(currentScene)
-            newSkeleton.position = [player.parentEntity.position[0],player.parentEntity.position[1]-100]
+            newSkeleton.position = [player.parentEntity.position[0],player.parentEntity.position[1]-200]
         if Input.KeyDown(pygame.K_q):
             if player.tintEvent == None:
                 player.tintEvent = TimedEvent(self.DoTint,args=(player,),startDelay=0.25,repeatDelay=0.25,repeatCount=None)
