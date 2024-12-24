@@ -1,6 +1,7 @@
 import socket
 
 from engine.logging import Log, LOG_WARNINGS, LOG_ERRORS
+from engine.networking.connections.clientconnectionbase import ClientConnectionBase
 from engine.networking.connections.clientconnectionsocket import ClientConnectionSocket
 from engine.networking.transport.networktransportbase import NetworkTransportBase
 
@@ -44,5 +45,5 @@ class NetworkUDPTransport(NetworkTransportBase):
         else:
             self._socket.sendto(message, self.targetServer)
 
-    def Receive(self, buffer=2048):
+    def Receive(self, buffer=2048) -> (bytes, ClientConnectionBase):
         return self._socket.recvfrom(buffer)

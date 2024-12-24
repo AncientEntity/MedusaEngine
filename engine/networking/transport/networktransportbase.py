@@ -15,5 +15,5 @@ class NetworkTransportBase:
 
     def Send(self, message, clientConnection : ClientConnectionBase):
         pass
-    def Receive(self, buffer=2048):
+    def Receive(self, buffer=2048) -> (bytes, ClientConnectionBase):
         pass

@@ -1,4 +1,5 @@
 import socket
+import threading
 
 from engine.logging import Log, LOG_WARNINGS, LOG_ERRORS
 from engine.networking.connections.clientconnectionsocket import ClientConnectionSocket
@@ -10,7 +11,12 @@ class NetworkTCPTransport(NetworkTransportBase):
         super().__init__()
         self._socket : socket.socket = None
 
+        self.tcpRecvBuffer = 2048
+
         self.connections = []
+
+        self._messageQueue = []
+        self._queueLock : threading.Lock = threading.Lock()
 
 
     def Open(self, ip: str, port: int, listenCount=10) -> None:
@@ -38,18 +44,36 @@ class NetworkTCPTransport(NetworkTransportBase):
 
         self._socket.close()
         self._socket = None
+
+        connection : ClientConnectionSocket
+        for connection in self.connections:
+            connection.Close()
+
         self.active = False
 
     def Send(self, message, clientConnection : ClientConnectionSocket) -> None:
         if clientConnection:
-            self._socket.sendto(message, clientConnection.address)
+            clientConnection.tcpConnection.send(message)
         else:
-            self._socket.send(message)
+            self._socket.send(message) # Probably client not server
 
     def ThreadAccept(self):
-        # todo temporary solution
-        c, addr = self._socket.accept()
-        self.connections.append(c)
+        while self.active:
+            c, addr = self._socket.accept()
+            clientConnection = ClientConnectionSocket()
+            clientConnection.tcpConnection = c
+            self.connections.append(clientConnection)
 
-    def Receive(self, buffer=2048):
-        return self._socket.recv(buffer)
+    def ThreadReceive(self, connection : ClientConnectionSocket) -> None:
+        while connection.active:
+            message = connection.tcpConnection.recv(self.tcpRecvBuffer)
+            self._queueLock.acquire()
+            self._messageQueue.append((message, connection))
+            self._queueLock.release()
+
+    def Receive(self):
+        self._queueLock.acquire()
+        message = self._messageQueue[0]
+        self._messageQueue.pop(0)
+        self._queueLock.release()
+        return message
