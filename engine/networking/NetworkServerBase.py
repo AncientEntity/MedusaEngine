@@ -1,7 +1,7 @@
 import threading
 
 from engine.networking.connections.ClientConnectionBase import ClientConnectionBase
-from engine.networking.connections.ClientConnectionUDP import ClientConnectionUDP
+from engine.networking.connections.ClientConnectionSocket import ClientConnectionSocket
 from engine.networking.transport.NetworkTransportBase import NetworkTransportBase
 from engine.networking.transport.NetworkUDPTransport import NetworkUDPTransport
 
@@ -36,5 +36,5 @@ class NetworkServerBase:
             print(message)
 
 t = NetworkServerBase()
-t.Open("udp", NetworkUDPTransport(), ("127.0.0.1",25238))
-t.ThreadReceive(t.transportHandlers['udp'])
+t.Open("tcp", NetworkUDPTransport(), ("127.0.0.1",25238))
+t.ThreadReceive(t.transportHandlers['tcp'])

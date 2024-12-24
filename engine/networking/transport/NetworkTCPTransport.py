@@ -5,28 +5,30 @@ from engine.networking.connections.ClientConnectionSocket import ClientConnectio
 from engine.networking.transport.NetworkTransportBase import NetworkTransportBase
 
 
-class NetworkUDPTransport(NetworkTransportBase):
+class NetworkTCPTransport(NetworkTransportBase):
     def __init__(self):
         super().__init__()
         self._socket : socket.socket = None
 
-        self.targetServer : (str,int) = None
+        self.connections = []
 
-    def Open(self, ip: str, port: int) -> None:
+
+    def Open(self, ip: str, port: int, listenCount=10) -> None:
         if self._socket:
             Log("Socket already exists.", LOG_WARNINGS)
             return
 
-        self._socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        self._socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self._socket.bind((ip,port))
+        self._socket.listen(listenCount)
         self.active = True
 
     def Connect(self, targetServer : (str, int)):
         if self._socket:
             Log("Socket already exists.", LOG_WARNINGS)
             return
-        self._socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        self.targetServer = targetServer
+        self._socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self._socket.connect(targetServer)
         self.active = True
 
     def Close(self):
@@ -42,7 +44,12 @@ class NetworkUDPTransport(NetworkTransportBase):
         if clientConnection:
             self._socket.sendto(message, clientConnection.address)
         else:
-            self._socket.sendto(message, self.targetServer)
+            self._socket.send(message)
+
+    def ThreadAccept(self):
+        # todo temporary solution
+        c, addr = self._socket.accept()
+        self.connections.append(c)
 
     def Receive(self, buffer=2048):
-        return self._socket.recvfrom(buffer)
+        return self._socket.recv(buffer)
