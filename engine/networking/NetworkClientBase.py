@@ -1,9 +1,9 @@
 import threading
 
-from engine.networking.connections.ClientConnectionBase import ClientConnectionBase
-from engine.networking.connections.ClientConnectionSocket import ClientConnectionSocket
-from engine.networking.transport.NetworkTransportBase import NetworkTransportBase
-from engine.networking.transport.NetworkUDPTransport import NetworkUDPTransport
+from engine.networking.connections.clientconnectionbase import ClientConnectionBase
+from engine.networking.connections.clientconnectionsocket import ClientConnectionSocket
+from engine.networking.transport.networktransportbase import NetworkTransportBase
+from engine.networking.transport.networkudptransport import NetworkUDPTransport
 
 
 class NetworkClientBase:
@@ -27,9 +27,3 @@ class NetworkClientBase:
         while transporter.active:
             message = transporter.Receive(2048)
             print(message.decode())
-
-t = NetworkClientBase()
-t.Connect("tcp", NetworkUDPTransport(), ("127.0.0.1", 25238))
-while True:
-    import random
-    t.Send(f"test!{random.randint(0,999)}".encode(), "tcp")

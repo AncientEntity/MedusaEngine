@@ -1,4 +1,4 @@
-from engine.networking.connections.ClientConnectionBase import ClientConnectionBase
+from engine.networking.connections.clientconnectionbase import ClientConnectionBase
 
 
 class NetworkTransportBase:

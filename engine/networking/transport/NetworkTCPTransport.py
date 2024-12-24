@@ -1,8 +1,8 @@
 import socket
 
 from engine.logging import Log, LOG_WARNINGS, LOG_ERRORS
-from engine.networking.connections.ClientConnectionSocket import ClientConnectionSocket
-from engine.networking.transport.NetworkTransportBase import NetworkTransportBase
+from engine.networking.connections.clientconnectionsocket import ClientConnectionSocket
+from engine.networking.transport.networktransportbase import NetworkTransportBase
 
 
 class NetworkTCPTransport(NetworkTransportBase):
