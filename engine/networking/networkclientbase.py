@@ -17,6 +17,8 @@ class NetworkClientBase:
     def Connect(self, layerName : str, connectionHandler : NetworkTransportBase, address : (str, int)):
         self.transportHandlers[layerName] = connectionHandler
         connectionHandler.Connect(address)
+        connectionHandler.receiveThread = threading.Thread(target=self.ThreadReceive,args=(connectionHandler,))
+        connectionHandler.receiveThread.start()
 
     def Close(self, layerName : str):
         self.transportHandlers[layerName].Close()
@@ -27,10 +29,11 @@ class NetworkClientBase:
     def ThreadReceive(self, transporter: NetworkTransportBase):
         while transporter.active:
             message = transporter.Receive(2048)
-            print(message.decode())
+            print(message)
 
 t = NetworkClientBase()
 t.Connect("tcp", NetworkTCPTransport(), ("127.0.0.1", 25238))
 while True:
-    import random
+    import random, time
     t.Send(f"test!{random.randint(0,999)}".encode(), "tcp")
+    time.sleep(0.5)

@@ -16,6 +16,8 @@ class NetworkTCPTransport(NetworkTransportBase):
         self._messageQueue = []
         self._queueLock : threading.Lock = threading.Lock()
 
+        self.clientReceiveThread = None
+
 
     def Open(self, ip: str, port: int, listenCount=10) -> None:
         if self._socket:
@@ -37,6 +39,9 @@ class NetworkTCPTransport(NetworkTransportBase):
         self._socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self._socket.connect(targetServer)
         self.active = True
+
+        self.clientReceiveThread = threading.Thread(target=self.ThreadReceiveClient)
+        self.clientReceiveThread.start()
 
     def Close(self):
         if not self._socket:
@@ -68,17 +73,27 @@ class NetworkTCPTransport(NetworkTransportBase):
             clientConnection = ClientConnectionSocket()
             clientConnection.tcpConnection = c
             self.connections.append(clientConnection)
-            receiveThread = threading.Thread(target=self.ThreadReceive,args=(clientConnection,))
+            receiveThread = threading.Thread(target=self.ThreadReceiveListener, args=(clientConnection,))
             receiveThread.start()
 
 
-    def ThreadReceive(self, connection : ClientConnectionSocket) -> None:
+    def ThreadReceiveListener(self, connection : ClientConnectionSocket) -> None:
         while connection.active:
             messageSize = int.from_bytes(connection.tcpConnection.recv(4),byteorder='big')
             message = connection.tcpConnection.recv(messageSize)
             self._queueLock.acquire()
             self._messageQueue.append((message, connection))
             self._queueLock.release()
+
+    def ThreadReceiveClient(self):
+        while self._socket:
+            messageSize = int.from_bytes(self._socket.recv(4),byteorder='big')
+            message = self._socket.recv(messageSize)
+            self._queueLock.acquire()
+            self._messageQueue.append((message, None))
+            self._queueLock.release()
+
+
 
     def Receive(self, buffer=2048):
         while len(self._messageQueue) == 0:

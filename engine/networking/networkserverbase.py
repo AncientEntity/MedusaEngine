@@ -11,11 +11,11 @@ class NetworkServerBase:
     def __init__(self):
         self.transportHandlers : dict[str, NetworkTransportBase] = {}
 
-        self._threadReceive : threading.Thread = None
-
     def Open(self, layerName : str, connectionHandler : NetworkTransportBase, address : (str, int)):
         self.transportHandlers[layerName] = connectionHandler
         connectionHandler.Open(address[0], address[1])
+        connectionHandler.receiveThread = threading.Thread(target=self.ThreadReceive, args=(connectionHandler,))
+        connectionHandler.receiveThread.start()
 
     def Close(self, layerName):
         self.transportHandlers[layerName].Close()
@@ -33,8 +33,10 @@ class NetworkServerBase:
             import time
             message = transporter.Receive(2048)
             print(message)
+            transporter.Send(f"received{message}".encode(), message[1])
             time.sleep(1)
 
 t = NetworkServerBase()
 t.Open("tcp", NetworkTCPTransport(), ("127.0.0.1",25238))
-t.ThreadReceive(t.transportHandlers['tcp'])
+while True:
+    pass

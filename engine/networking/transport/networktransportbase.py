@@ -6,6 +6,8 @@ class NetworkTransportBase:
         self.active = False
         self.clientConnections = []
 
+        self.receiveThread = None
+
     def Connect(self):
         pass
     def Open(self, ip : str, port : int):
@@ -15,5 +17,5 @@ class NetworkTransportBase:
 
     def Send(self, message, clientConnection : ClientConnectionBase):
         pass
-    def Receive(self, buffer=2048) -> (bytes, ClientConnectionBase):
+    def Receive(self, buffer=2048) -> tuple[bytes, ClientConnectionBase]:
         pass
