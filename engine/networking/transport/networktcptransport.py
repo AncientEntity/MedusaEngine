@@ -11,8 +11,6 @@ class NetworkTCPTransport(NetworkTransportBase):
         super().__init__()
         self._socket : socket.socket = None
 
-        self.tcpRecvBuffer = 2048
-
         self.connections = []
 
         self._messageQueue = []
@@ -28,6 +26,9 @@ class NetworkTCPTransport(NetworkTransportBase):
         self._socket.bind((ip,port))
         self._socket.listen(listenCount)
         self.active = True
+
+        acceptThread = threading.Thread(target=self.ThreadAccept)
+        acceptThread.start()
 
     def Connect(self, targetServer : (str, int)):
         if self._socket:
@@ -53,25 +54,36 @@ class NetworkTCPTransport(NetworkTransportBase):
 
     def Send(self, message, clientConnection : ClientConnectionSocket) -> None:
         if clientConnection:
+            clientConnection.tcpConnection.send(len(message).to_bytes(4, byteorder='big'))
             clientConnection.tcpConnection.send(message)
         else:
+            self._socket.send(len(message).to_bytes(4, byteorder='big')) # Probably client not server
             self._socket.send(message) # Probably client not server
 
     def ThreadAccept(self):
         while self.active:
+            print("AWAITING")
             c, addr = self._socket.accept()
+            print("CONNECTION")
             clientConnection = ClientConnectionSocket()
             clientConnection.tcpConnection = c
             self.connections.append(clientConnection)
+            receiveThread = threading.Thread(target=self.ThreadReceive,args=(clientConnection,))
+            receiveThread.start()
+
 
     def ThreadReceive(self, connection : ClientConnectionSocket) -> None:
         while connection.active:
-            message = connection.tcpConnection.recv(self.tcpRecvBuffer)
+            messageSize = int.from_bytes(connection.tcpConnection.recv(4),byteorder='big')
+            message = connection.tcpConnection.recv(messageSize)
             self._queueLock.acquire()
             self._messageQueue.append((message, connection))
             self._queueLock.release()
 
-    def Receive(self):
+    def Receive(self, buffer=2048):
+        while len(self._messageQueue) == 0:
+            continue
+
         self._queueLock.acquire()
         message = self._messageQueue[0]
         self._messageQueue.pop(0)

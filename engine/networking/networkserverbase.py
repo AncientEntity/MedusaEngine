@@ -2,6 +2,7 @@ import threading
 
 from engine.networking.connections.clientconnectionbase import ClientConnectionBase
 from engine.networking.connections.clientconnectionsocket import ClientConnectionSocket
+from engine.networking.transport.networktcptransport import NetworkTCPTransport
 from engine.networking.transport.networktransportbase import NetworkTransportBase
 from engine.networking.transport.networkudptransport import NetworkUDPTransport
 
@@ -29,5 +30,11 @@ class NetworkServerBase:
 
     def ThreadReceive(self, transporter : NetworkTransportBase):
         while transporter.active:
+            import time
             message = transporter.Receive(2048)
             print(message)
+            time.sleep(1)
+
+t = NetworkServerBase()
+t.Open("tcp", NetworkTCPTransport(), ("127.0.0.1",25238))
+t.ThreadReceive(t.transportHandlers['tcp'])

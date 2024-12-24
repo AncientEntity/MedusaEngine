@@ -3,4 +3,4 @@
 
 class ClientConnectionBase:
     def __init__(self):
-        pass
+        self.active = True

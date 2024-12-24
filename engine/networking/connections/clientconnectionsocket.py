@@ -5,7 +5,7 @@ from engine.networking.connections.clientconnectionbase import ClientConnectionB
 
 class ClientConnectionSocket(ClientConnectionBase):
     def __int__(self, ip, port):
-        self.active = True
+        super().__init__()
 
         self.address = (ip,port)
         self.tcpConnection : socket.socket = None
