@@ -23,6 +23,10 @@ class NetworkClientBase:
     def Close(self, layerName : str):
         self.transportHandlers[layerName].Close()
 
+    def CloseAll(self):
+        for transport in self.transportHandlers:
+            self.Close(transport)
+
     def Send(self, message, transportName):
         self.transportHandlers[transportName].Send(message, None)
 
@@ -31,9 +35,10 @@ class NetworkClientBase:
             message = transporter.Receive(2048)
             print(message)
 
-t = NetworkClientBase()
-t.Connect("tcp", NetworkTCPTransport(), ("127.0.0.1", 25238))
-while True:
-    import random, time
-    t.Send(f"test!{random.randint(0,999)}".encode(), "tcp")
-    time.sleep(0.5)
+if __name__ == '__main__': # todo remove before putting into master
+    t = NetworkClientBase()
+    t.Connect("tcp", NetworkTCPTransport(), ("127.0.0.1", 25238))
+    while True:
+        import random, time
+        t.Send(f"test!{random.randint(0,999)}".encode(), "tcp")
+        time.sleep(0.5)

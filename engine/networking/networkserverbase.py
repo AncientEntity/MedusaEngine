@@ -36,7 +36,8 @@ class NetworkServerBase:
             transporter.Send(f"received{message}".encode(), message[1])
             time.sleep(1)
 
-t = NetworkServerBase()
-t.Open("tcp", NetworkTCPTransport(), ("127.0.0.1",25238))
-while True:
-    pass
+if __name__ == '__main__': # todo remove before putting into master
+    t = NetworkServerBase()
+    t.Open("tcp", NetworkTCPTransport(), ("127.0.0.1",25238))
+    while True:
+        pass
