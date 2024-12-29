@@ -1,6 +1,8 @@
 from engine.datatypes.timedevents import TimedEvent
 import time
 
+from engine.networking.variables.networkvarvector import NetworkVarVector
+
 
 class Component:
     def __init__(self):
@@ -130,14 +132,18 @@ class Scene:
         self.components = {}
         self.entities = []
 
-
 class Entity:
+    idIncrementor = -1
     def __init__(self):
+        Entity.idIncrementor+=1
+        self.entityId = Entity.idIncrementor
+
         self.name = "Unnamed Entity"
         self.position = (0, 0)
         self.components = []
 
         self._alive = False
+
     def GetComponent(self, t):
         for component in self.components:
             if(isinstance(component,t)):
@@ -152,6 +158,22 @@ class Entity:
 
     def IsAlive(self):
         return self._alive
+
+class NetworkedEntity(Entity):
+    def __init__(self):
+        self._position = NetworkVarVector(None) # allows the Entity constructor to run without issues. todo find better solution
+        super().__init__()
+
+        self._position = NetworkVarVector(self.entityId)
+
+    def get_position(self):
+        return self._position.Get()
+    def set_position(self, value):
+        self._position.Set(value)
+
+    position = property(get_position,
+                                 set_position)
+
 
 class EntitySystem:
     def __init__(self, targetComponents=[]):

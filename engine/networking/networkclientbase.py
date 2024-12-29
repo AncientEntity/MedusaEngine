@@ -14,6 +14,9 @@ class NetworkClientBase:
         self.transportHandlers  : dict[str, NetworkTransportBase] = {}
         self._threadReceive : threading.Thread = None
 
+        self._messageQueue = []
+        self._messageQueueLock = threading.Lock()
+
     def Connect(self, layerName : str, connectionHandler : NetworkTransportBase, address : (str, int)):
         self.transportHandlers[layerName] = connectionHandler
         connectionHandler.Connect(address)
@@ -33,7 +36,18 @@ class NetworkClientBase:
     def ThreadReceive(self, transporter: NetworkTransportBase):
         while transporter.active:
             message = transporter.Receive(2048)
-            print(message)
+            self._messageQueueLock.acquire()
+            self._messageQueue.append(message)
+            self._messageQueueLock.release()
+
+    def GetNextMessage(self):
+        while len(self._messageQueue) == 0:
+            continue
+
+        self._messageQueueLock.acquire()
+        message = self._messageQueue.pop(0)
+        self._messageQueueLock.release()
+        return message
 
 if __name__ == '__main__': # todo remove before putting into master
     t = NetworkClientBase()

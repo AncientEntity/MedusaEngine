@@ -100,7 +100,6 @@ class NetworkTCPTransport(NetworkTransportBase):
             continue
 
         self._queueLock.acquire()
-        message = self._messageQueue[0]
-        self._messageQueue.pop(0)
+        message = self._messageQueue.pop(0)
         self._queueLock.release()
         return message

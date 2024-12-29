@@ -32,3 +32,9 @@ ALIGN_CENTERTOP = 8
 SPLASH_DISABLED = 0 # No Splash
 SPLASH_ALWAYS = 1 # Always Show Splash
 SPLASH_BUILDONLY = 2 # Only show splash in build, not debug mode.
+
+# ----------------------------------------
+# NETWORK CONSTANTS
+# ----------------------------------------
+NET_TICKRATE = 64
+NET_SNAPSHOT_RATE = 20
