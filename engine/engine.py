@@ -6,6 +6,7 @@ import pygame._sdl2.controller
 import engine.ecs as ecs
 from engine.constants import KEYDOWN, KEYUP, KEYPRESSED, KEYINACTIVE, SPLASH_BUILDONLY, SPLASH_ALWAYS, \
     NET_EVENT_ENTITY_CREATE, NET_EVENT_ENTITY_DELETE
+from engine.datatypes.assetmanager import assets
 from engine.game import Game
 import time
 from sys import exit
@@ -14,7 +15,7 @@ import platform
 
 from engine.input import Input
 from engine.logging import Log, LOG_ERRORS, LOG_INFO, LOG_WARNINGS
-from engine.networking.networkevent import NetworkEvent
+from engine.networking.networkevent import NetworkEvent, NetworkEventCreateEntity
 from engine.scenes import splashscene
 from engine.tools.platform import IsBuilt, IsDebug, currentPlatform, IsPlatformWeb
 
@@ -85,11 +86,17 @@ class Engine:
             if(self._queuedScene != None):
                 self._LoadQueuedScene()
 
+            # Network Tick
+            self.NetworkTick()
+
             #Game Loop
             Input.InputTick()
             if Input.quitPressed:
                 self.Quit()
             self._currentScene.Update()
+
+            if Input.KeyDown(pygame.K_UP):
+                self._queuedNetworkEvents.append(NetworkEvent(NET_EVENT_ENTITY_CREATE, NetworkEventCreateEntity("particletest", (0,0)).ToBytes()))
 
             await asyncio.sleep(0)
     def Init(self):
@@ -139,8 +146,16 @@ class Engine:
         Log("Game Quitting",LOG_INFO)
         exit(0)
 
+    def NetworkTick(self):
+        for i in range(len(self._queuedNetworkEvents)):
+            self.NetworkHandleEvent(self._queuedNetworkEvents.pop(0))
+
     def NetworkHandleEvent(self, networkEvent : NetworkEvent):
         if networkEvent.eventId == NET_EVENT_ENTITY_CREATE:
-            pass
+            createEvent = NetworkEventCreateEntity.FromBytes(networkEvent.data)
+            newEntity = assets.Instantiate(createEvent.prefab_name, self._currentScene)
+            newEntity.position = createEvent.position
+            # todo figure out id syncing, might need to just have an OverrideId method
+            Log(f"Created {createEvent.prefab_name} at position {createEvent.position}")
         elif networkEvent.eventId == NET_EVENT_ENTITY_DELETE:
             pass

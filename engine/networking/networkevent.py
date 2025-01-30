@@ -1,4 +1,7 @@
+from engine.networking.variables.networkvarvector import NetworkVarVector
 
+# Used for conversions in NetworkEventCreateEntity and possibly other places.
+vectorForConversions = NetworkVarVector(None, (0,0))
 
 class NetworkEvent:
     def __init__(self, eventId, data : bytearray):
@@ -17,8 +20,30 @@ def NetworkEventFromBytes(bytes : bytearray):
     return NetworkEvent(int.from_bytes(bytes[0:4],"little"), bytes[4:])
 
 class NetworkEventCreateEntity:
-    def __init__(self):
-        pass
+    def __init__(self, prefab_name, position):
+        self.prefab_name : str = prefab_name
+        self.position : str = position
+    def ToBytes(self):
+        byteArray = bytearray()
+        # name
+        nameAsBytes = self.prefab_name.encode('utf-8')
+        byteArray.extend(len(nameAsBytes).to_bytes(4,"little"))
+        byteArray.extend(nameAsBytes)
+        # position
+        vectorForConversions.Set(self.position)
+        vectorAsBytes = vectorForConversions.GetAsBytes()
+        byteArray.extend(len(vectorAsBytes).to_bytes(4,"little"))
+        byteArray.extend(vectorAsBytes)
+
+        return byteArray
+    @staticmethod
+    def FromBytes(byteArray : bytearray):
+        nameSize = int.from_bytes(byteArray[0:4],"little")
+        positionSize = int.from_bytes(byteArray[4+nameSize:8+nameSize],"little")
+        vectorForConversions.SetFromBytes(byteArray[8+nameSize:8+nameSize+positionSize])
+        return NetworkEventCreateEntity(byteArray[4:4+nameSize].decode(), vectorForConversions.Get())
+
+
 
 if __name__ == "__main__":
     testEvent = NetworkEvent(2334532, bytearray(b"test"))
@@ -29,3 +54,9 @@ if __name__ == "__main__":
     print(testEvent, testEventBack, stillEqual)
     if not stillEqual:
         raise Exception("Before and After test event are not equal")
+
+    testCreateEntity = NetworkEventCreateEntity("test", (-1.523,10324.2))
+    print(testCreateEntity.prefab_name, testCreateEntity.position)
+    testCreateEntityBytes = testCreateEntity.ToBytes()
+    testCreateEntity = NetworkEventCreateEntity.FromBytes(testCreateEntityBytes)
+    print(testCreateEntity.prefab_name, testCreateEntity.position)

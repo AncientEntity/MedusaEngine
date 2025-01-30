@@ -61,6 +61,6 @@ def CreateParticleTestPrefab(scene):
 
     particleComponent.sprite.SetColor((random.randint(0,255),random.randint(0,255),random.randint(0,255)))
 
-    return scene.CreateEntity("PARTICLE",[0,0],components=[particleComponent])
+    return scene.CreateNetworkEntity("PARTICLE",[0,0],components=[particleComponent])
 
 assetmanager.assets.prefabs['particletest'] = CreateParticleTestPrefab

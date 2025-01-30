@@ -7,7 +7,7 @@ class NetworkVarBase:
         self._modified = False
         self.entityId = entityId # Pass in entity id on creation, as long as entity is valid, it will update this.
 
-        if entityId != None:
+        if entityId is not None:
             RegisterNetworkVariable(self)
 
     # Get/Set as intended values

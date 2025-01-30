@@ -13,6 +13,8 @@ LOG_WARNINGS = 2
 LOG_INFO = 3
 LOG_ALL = 4
 
+LOG_NETWORKING = 2.1
+
 # Log Settings
 LOG_LEVEL = LOG_INFO
 MAX_LOG_FILES = 10
@@ -30,6 +32,8 @@ def LogPrefix(level):
         return "[Warning]"
     elif(level == LOG_ERRORS):
         return "[ERROR]"
+    elif(level == LOG_NETWORKING):
+        return "[NET]"
 
 def CreateErrorBox(message):
     stacktrace = "\nTrace\n"
