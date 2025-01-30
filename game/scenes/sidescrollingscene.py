@@ -3,6 +3,7 @@ import pygame
 import random
 
 from engine.components.rendering.tilemaprenderer import Tilemap
+from engine.datatypes.assetmanager import assets
 from engine.ecs import Scene
 from engine.systems import physics, renderer
 from engine.systems.renderer import TilemapRenderer
@@ -34,10 +35,10 @@ class SideScrollingScene(Scene):
                     #mapEntity.GetComponent(TilemapRenderer).tileMap.SetTile("floor_" + str(random.randint(1, 8)), x, y)
         for i in range(100):
             if(random.randint(0,100) <= 10):
-                prefabs.CreateSkeleton(self).position=[16*i-50,-20]
+                assets.Instantiate("skeleton", self).position=[16*i-50,-20]
 
-        p1 = prefabs.CreatePlayer(self)
-        p2 = prefabs.CreatePlayer(self)
+        p1 = assets.Instantiate("player", self)
+        p2 = assets.Instantiate("player", self)
         p2.GetComponent(PlayerComponent).controls = {'up' : pygame.K_UP, 'down' : pygame.K_DOWN, 'left' : pygame.K_LEFT, 'right' : pygame.K_RIGHT}
 
         super().Init()

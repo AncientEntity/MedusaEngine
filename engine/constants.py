@@ -38,3 +38,7 @@ SPLASH_BUILDONLY = 2 # Only show splash in build, not debug mode.
 # ----------------------------------------
 NET_TICKRATE = 64
 NET_SNAPSHOT_RATE = 20
+
+NET_EVENT_NONE = 0
+NET_EVENT_ENTITY_CREATE = 1
+NET_EVENT_ENTITY_DELETE = 2

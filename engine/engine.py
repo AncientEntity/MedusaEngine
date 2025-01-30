@@ -4,7 +4,8 @@ from typing import Type
 import pygame
 import pygame._sdl2.controller
 import engine.ecs as ecs
-from engine.constants import KEYDOWN, KEYUP, KEYPRESSED, KEYINACTIVE, SPLASH_BUILDONLY, SPLASH_ALWAYS
+from engine.constants import KEYDOWN, KEYUP, KEYPRESSED, KEYINACTIVE, SPLASH_BUILDONLY, SPLASH_ALWAYS, \
+    NET_EVENT_ENTITY_CREATE, NET_EVENT_ENTITY_DELETE
 from engine.game import Game
 import time
 from sys import exit
@@ -13,6 +14,7 @@ import platform
 
 from engine.input import Input
 from engine.logging import Log, LOG_ERRORS, LOG_INFO, LOG_WARNINGS
+from engine.networking.networkevent import NetworkEvent
 from engine.scenes import splashscene
 from engine.tools.platform import IsBuilt, IsDebug, currentPlatform, IsPlatformWeb
 
@@ -28,16 +30,23 @@ class Engine:
         self._currentScene : ecs.Scene = None
         self.running = False
 
+        # Display
         self.display : pygame.Surface = None
         self.displayFlags = 0
 
+        # Delta Time
         self._lastTickStart = 0
         self.deltaTime = 0
         self.frameStartTime = 0
         self.maxDeltaTime = 0.1 #Maximum delta time enforced to prevent unintended concequences of super high delta time.
 
+        # Scene Loading
         self._lastLoadedScene = None # Last scene class to be loaded.
         self._queuedScene = None # LoadScene sets this, and the update loop will swap scenes if this isn't none.
+
+        # Networking
+        self._queuedNetworkEvents = []
+
 
         self.LoadGame() #Loads self._game into the engine
     def LoadGame(self):
@@ -129,3 +138,9 @@ class Engine:
     def Quit(self):
         Log("Game Quitting",LOG_INFO)
         exit(0)
+
+    def NetworkHandleEvent(self, networkEvent : NetworkEvent):
+        if networkEvent.eventId == NET_EVENT_ENTITY_CREATE:
+            pass
+        elif networkEvent.eventId == NET_EVENT_ENTITY_DELETE:
+            pass

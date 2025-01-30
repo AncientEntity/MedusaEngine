@@ -10,6 +10,7 @@ from engine.systems.renderer import SpriteRenderer
 from game import assets
 from game.systems import playersystem
 from game.systems.NPCSystem import NPCComponent
+from engine.datatypes import assetmanager
 
 def CreatePlayer(scene):
     physicsComponent = physics.PhysicsComponent()
@@ -27,6 +28,7 @@ def CreatePlayer(scene):
 
     return scene.CreateEntity(name="Player",position=[0,0],components=[SpriteRenderer(None),playersystem.PlayerComponent(),physicsComponent])
 
+assetmanager.assets.prefabs['player'] = CreatePlayer
 
 def CreateSkeleton(scene):
     npcComponent = NPCComponent()
@@ -51,6 +53,8 @@ def CreateSkeleton(scene):
     t.GetComponent(PhysicsComponent).bounds = [10,16]
     return t
 
+assetmanager.assets.prefabs['skeleton'] = CreateSkeleton
+
 def CreateParticleTestPrefab(scene):
     particleComponent = ParticleEmitterComponent()
 
@@ -58,3 +62,5 @@ def CreateParticleTestPrefab(scene):
     particleComponent.sprite.SetColor((random.randint(0,255),random.randint(0,255),random.randint(0,255)))
 
     return scene.CreateEntity("PARTICLE",[0,0],components=[particleComponent])
+
+assetmanager.assets.prefabs['particletest'] = CreateParticleTestPrefab

@@ -1,6 +1,7 @@
 from engine.datatypes.timedevents import TimedEvent
 import time
 
+from engine.networking.variables.networkvarbase import NetworkVarBase
 from engine.networking.variables.networkvarvector import NetworkVarVector
 
 
@@ -25,8 +26,18 @@ class Scene:
 
         self._newComponentQueue = [] #Contains the list of components just added into the scene. For running EntitySystem.OnNewComponent on them.
 
+        self._networkedEntities = [] # List of just the network entities (they are also in self.entities)
+
     def CreateEntity(self,name,position,components):
         newEnt = Entity()
+        newEnt.name = name
+        newEnt.position = position
+        newEnt.components = components
+        self.AddEntity(newEnt)
+        return newEnt
+
+    def CreateNetworkEntity(self, name, position, components, netentityId=None):
+        newEnt = NetworkEntity(netentityId)
         newEnt.name = name
         newEnt.position = position
         newEnt.components = components
@@ -133,10 +144,13 @@ class Scene:
         self.entities = []
 
 class Entity:
-    idIncrementor = -1
-    def __init__(self):
-        Entity.idIncrementor+=1
-        self.entityId = Entity.idIncrementor
+    idIncrementor = -1 # Network Entity's always have negative IDs. Non networked entities are positive.
+    def __init__(self, forcedId=None):
+        if not forcedId:
+            Entity.idIncrementor+=1
+            self.entityId = Entity.idIncrementor
+        else:
+            self.entityId = forcedId
 
         self.name = "Unnamed Entity"
         self.position = (0, 0)
@@ -159,12 +173,32 @@ class Entity:
     def IsAlive(self):
         return self._alive
 
-class NetworkedEntity(Entity):
-    def __init__(self):
+class NetworkEntity(Entity):
+    def __init__(self, forcedId=None):
         self._position = NetworkVarVector(None) # allows the Entity constructor to run without issues. todo find better solution
-        super().__init__()
+
+        # Entity ID for networked object is always negative.
+        if forcedId is not None:
+            super().__init__(-abs(forcedId))
+        else:
+            self.entityId = -abs(self.entityId)
 
         self._position = NetworkVarVector(self.entityId)
+
+        self._networkVariables = None
+
+
+    def GetNetworkVariables(self):
+        if self._networkVariables:
+            return self._networkVariables
+        self._networkVariables = []
+        self._networkVariables.append(("pos", self._position))
+        for component in self.components:
+            for attr in dir(component):
+                attrValue = getattr(component, attr)
+                if isinstance(attrValue, NetworkVarBase):
+                    self._networkVariables.append((attr, attrValue))
+                    print("Found",(attr,attrValue))
 
     def get_position(self):
         return self._position.Get()

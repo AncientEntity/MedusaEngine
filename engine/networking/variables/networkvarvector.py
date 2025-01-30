@@ -33,7 +33,7 @@ class NetworkVarVector(NetworkVarBase):
 
 if __name__ == '__main__':
     t = NetworkVarVector(0)
-    t.Set([2.100,5.0,2.9])
+    t.Set([-2.100,5.0,-2.9])
     s = t.GetAsBytes()
     print(s)
     t.SetFromBytes(s)

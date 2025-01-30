@@ -1,5 +1,6 @@
 import pygame
 
+from engine.datatypes.assetmanager import assets
 from engine.datatypes.timedevents import TimedEvent
 from engine.ecs import EntitySystem, Scene
 from engine.engine import Input
@@ -23,7 +24,7 @@ class PlayerSystem(EntitySystem):
             RenderingSystem.instance.cameraPosition = player.parentEntity.position
 
         if Input.KeyPressed(pygame.K_g):
-            newSkeleton = prefabs.CreateSkeleton(currentScene)
+            newSkeleton = assets.Instantiate("skeleton",self)
             newSkeleton.position = [player.parentEntity.position[0],player.parentEntity.position[1]-100]
         if Input.KeyDown(pygame.K_q):
             if player.tintEvent == None:
