@@ -11,8 +11,6 @@ class NetworkTCPTransport(NetworkTransportBase):
         super().__init__()
         self._socket : socket.socket = None
 
-        self.connections = []
-
         self._messageQueue = []
         self._queueLock : threading.Lock = threading.Lock()
 
@@ -48,14 +46,14 @@ class NetworkTCPTransport(NetworkTransportBase):
             Log("Socket doesnt exist.", LOG_ERRORS)
             return
 
+        self.active = False
+
         self._socket.close()
         self._socket = None
 
         connection : ClientConnectionSocket
-        for connection in self.connections:
+        for connection in self.clientConnections:
             connection.Close()
-
-        self.active = False
 
     def Send(self, message, clientConnection : ClientConnectionSocket) -> None:
         if clientConnection:
@@ -67,12 +65,16 @@ class NetworkTCPTransport(NetworkTransportBase):
 
     def ThreadAccept(self):
         while self.active:
-            print("AWAITING")
-            c, addr = self._socket.accept()
-            print("CONNECTION")
+            try:
+                c, addr = self._socket.accept()
+            except Exception as e:
+                if not self.active:
+                    return
+                else:
+                    raise e
             clientConnection = ClientConnectionSocket()
             clientConnection.tcpConnection = c
-            self.connections.append(clientConnection)
+            self.clientConnections.append(clientConnection)
             receiveThread = threading.Thread(target=self.ThreadReceiveListener, args=(clientConnection,))
             receiveThread.start()
 
@@ -97,7 +99,8 @@ class NetworkTCPTransport(NetworkTransportBase):
 
     def Receive(self, buffer=2048):
         while len(self._messageQueue) == 0:
-            continue
+            if not self.active:
+                return None
 
         self._queueLock.acquire()
         message = self._messageQueue.pop(0)

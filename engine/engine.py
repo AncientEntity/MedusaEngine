@@ -5,7 +5,7 @@ import pygame
 import pygame._sdl2.controller
 import engine.ecs as ecs
 from engine.constants import KEYDOWN, KEYUP, KEYPRESSED, KEYINACTIVE, SPLASH_BUILDONLY, SPLASH_ALWAYS, \
-    NET_EVENT_ENTITY_CREATE, NET_EVENT_ENTITY_DELETE, NET_NONE, NET_HOST, NET_CLIENT, NET_EVENT_INIT
+    NET_NONE, NET_HOST, NET_CLIENT, NET_EVENT_INIT, NET_EVENT_SNAPSHOT_PARTIAL, NET_EVENT_SNAPSHOT_FULL
 from engine.datatypes.assetmanager import assets
 from engine.game import Game
 import time
@@ -19,6 +19,8 @@ from engine.networking.networkclientbase import NetworkClientBase
 from engine.networking.networkevent import NetworkEvent, NetworkEventCreateEntity, NetworkEventToBytes, \
     NetworkEventFromBytes
 from engine.networking.networkserverbase import NetworkServerBase
+from engine.networking.networksnapshot import NetworkSnapshot
+from engine.networking.networkstate import NetworkState
 from engine.networking.transport.networktcptransport import NetworkTCPTransport
 from engine.networking.transport.networkudptransport import NetworkUDPTransport
 from engine.scenes import splashscene
@@ -51,11 +53,12 @@ class Engine:
         self._queuedScene = None # LoadScene sets this, and the update loop will swap scenes if this isn't none.
 
         # Networking
-        self.identity = NET_HOST
-        self.clientId = -1
+        self.snapshotDelay = 10.0 / 60.0
+
         self._lastClientId = -1
         self._queuedNetworkEvents = []
         self._networkSendQueue = []
+        self._lastSnapshotTime = 0
 
         self._networkServer : NetworkServerBase = None
         self._networkClient : NetworkClientBase = None
@@ -153,32 +156,57 @@ class Engine:
         return self._currentScene
     def Quit(self):
         Log("Game Quitting",LOG_INFO)
+
+        if NetworkState.identity & NET_CLIENT:
+            self.NetworkClientDisconnect()
+        if NetworkState.identity & NET_HOST:
+            self.NetworkHostStop()
+
         exit(0)
 
     def NetworkTick(self):
-        if self._networkClient:
-            nextMessageBytes = self._networkClient.GetNextMessage()
-            if nextMessageBytes:
-                nextMessage = NetworkEventFromBytes(nextMessageBytes[0])
-                nextMessage.processAs = NET_CLIENT
-                self._queuedNetworkEvents.append(nextMessage)
-                print(nextMessage)
-
-        if self._networkServer:
-            nextMessageBytes = self._networkServer.GetNextMessage()
-            if nextMessageBytes:
-                nextMessage = NetworkEventFromBytes(nextMessageBytes[0])
-                nextMessage.processAs = NET_HOST
-                nextMessage.sender = nextMessageBytes[1]
-                self._queuedNetworkEvents.append(nextMessage)
-
-        for i in range(len(self._queuedNetworkEvents)):
-            self.NetworkHandleEvent(self._queuedNetworkEvents.pop(0))
-
+        # debug testing remove eventually
         if Input.KeyDown(pygame.K_LEFTBRACKET):
             self.NetworkHostStart('127.0.0.1', 25565)
         elif Input.KeyDown(pygame.K_RIGHTBRACKET):
             self.NetworkClientConnect('127.0.0.1', 25565)
+
+        if NetworkState.identity == NET_NONE:
+            return
+
+        # Receieve New Messages
+        if NetworkState.identity & NET_CLIENT:
+            nextMessageBytes = 1
+            while nextMessageBytes:
+                nextMessageBytes = self._networkClient.GetNextMessage()
+                if nextMessageBytes:
+                    nextMessage = NetworkEventFromBytes(nextMessageBytes[0])
+                    nextMessage.processAs = NET_CLIENT
+                    self._queuedNetworkEvents.append(nextMessage)
+                    print(nextMessage)
+
+        if NetworkState.identity & NET_HOST:
+            nextMessageBytes = 1
+            while nextMessageBytes:
+                nextMessageBytes = self._networkServer.GetNextMessage()
+                if nextMessageBytes:
+                    nextMessage = NetworkEventFromBytes(nextMessageBytes[0])
+                    nextMessage.processAs = NET_HOST
+                    nextMessage.sender = nextMessageBytes[1]
+                    self._queuedNetworkEvents.append(nextMessage)
+
+        # Handle new queued network events
+        for i in range(len(self._queuedNetworkEvents)):
+            self.NetworkHandleEvent(self._queuedNetworkEvents.pop(0))
+
+        # Snapshots
+        if NetworkState.identity & NET_HOST:
+            curTime = time.time()
+            if curTime - self._lastSnapshotTime >= self.snapshotDelay:
+                self._lastSnapshotTime = curTime
+                snapshot = NetworkSnapshot.GenerateSnapshotFull(self._currentScene) # todo sometimes just do partial snapshots
+                bytesToSend = NetworkEventToBytes(NetworkEvent(NET_EVENT_SNAPSHOT_FULL, snapshot.SnapshotToBytes()))
+                self._networkServer.SendAll(bytesToSend, "tcp")
 
     def NetworkHostStart(self, ip, port):
         if self._networkServer:
@@ -187,19 +215,19 @@ class Engine:
         self._networkServer = NetworkServerBase()
         self._networkServer.Open("tcp", NetworkTCPTransport(), (ip, port))
         self._networkServer.Open("udp", NetworkUDPTransport(), (ip, port+1))
-        self.identity |= NET_HOST
+        NetworkState.identity |= NET_HOST
 
-        Log(f"Network Host Start, Identity: {self.identity}", LOG_NETWORKING)
+        Log(f"Network Host Start, Identity: {NetworkState.identity}", LOG_NETWORKING)
 
     def NetworkHostStop(self):
         Log("Network Host Stop", LOG_NETWORKING)
         self._networkServer.Close("tcp")
         self._networkServer.Close("udp")
 
-        if self.identity | NET_HOST:
-            self.identity -= NET_HOST
+        if NetworkState.identity | NET_HOST:
+            NetworkState.identity -= NET_HOST
 
-        Log(f"Network Host Stop, Identity: {self.identity}", LOG_NETWORKING)
+        Log(f"Network Host Stop, Identity: {NetworkState.identity}", LOG_NETWORKING)
 
     def NetworkClientConnect(self, ip : str, port : int):
         Log(f"Network Client Connect ({ip},{port})", LOG_NETWORKING)
@@ -209,40 +237,37 @@ class Engine:
         self._networkClient = NetworkClientBase()
         self._networkClient.Connect("tcp", NetworkTCPTransport(), (ip, port))
         self._networkClient.Connect("udp", NetworkUDPTransport(), (ip, port+1))
-        self.identity |= NET_CLIENT
+        NetworkState.identity |= NET_CLIENT
 
         networkEventBytes = NetworkEventToBytes(NetworkEvent(NET_EVENT_INIT, bytearray()))
         self._networkClient.Send(networkEventBytes, "tcp")
 
-        Log(f"Network Client Connect, Identity: {self.identity}", LOG_NETWORKING)
+        Log(f"Network Client Connect, Identity: {NetworkState.identity}", LOG_NETWORKING)
 
     def NetworkClientDisconnect(self):
         Log("Network Client Disconnect", LOG_NETWORKING)
         self._networkClient.Close("tcp")
         self._networkClient.Close("udp")
 
-        if self.identity | NET_CLIENT:
-            self.identity -= NET_CLIENT
+        if NetworkState.identity | NET_CLIENT:
+            NetworkState.identity -= NET_CLIENT
 
-        Log(f"Network Client Disconnect, Identity: {self.identity}", LOG_NETWORKING)
+        Log(f"Network Client Disconnect, Identity: {NetworkState.identity}", LOG_NETWORKING)
 
     def NetworkHandleEvent(self, networkEvent : NetworkEvent):
         if networkEvent.eventId == NET_EVENT_INIT:
             if networkEvent.processAs & NET_CLIENT:
-                self.clientId = int.from_bytes(networkEvent.data,"big")
-                Log(f"Received Init Event, Client Id: {self.clientId}", LOG_NETWORKING)
+                NetworkState.clientId = int.from_bytes(networkEvent.data,"big")
+                Log(f"Received Init Event, Client Id: {NetworkState.clientId}", LOG_NETWORKING)
                 # todo save client info to list somewhere and mark client as initialized and dont reply to NET_EVENT_INIT from the client anymore.
             elif networkEvent.processAs & NET_HOST:
                 self._lastClientId += 1
                 networkEventBytes = NetworkEventToBytes(NetworkEvent(NET_EVENT_INIT, self._lastClientId.to_bytes(4,"big")))
                 self._networkServer.Send(networkEventBytes, networkEvent.sender, "tcp")
                 print('got and returning')
-
-        elif networkEvent.eventId == NET_EVENT_ENTITY_CREATE:
-            createEvent = NetworkEventCreateEntity.FromBytes(networkEvent.data)
-            newEntity = assets.Instantiate(createEvent.prefab_name, self._currentScene)
-            newEntity.position = createEvent.position
-            # todo figure out id syncing, might need to just have an OverrideId method
-            Log(f"Created {createEvent.prefab_name} at position {createEvent.position}")
-        elif networkEvent.eventId == NET_EVENT_ENTITY_DELETE:
-            pass
+        elif networkEvent.eventId == NET_EVENT_SNAPSHOT_PARTIAL or networkEvent.eventId == NET_EVENT_SNAPSHOT_FULL:
+            snapshot = NetworkSnapshot.SnapshotFromBytes(networkEvent.data)
+            print("received snapshot ", snapshot)
+            # todo creating entities via snapshot
+            # todo destroying entities via snapshot
+            # todo updating variables over snapshot

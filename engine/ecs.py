@@ -26,9 +26,12 @@ class Scene:
 
         self._newComponentQueue = [] #Contains the list of components just added into the scene. For running EntitySystem.OnNewComponent on them.
 
-        self._networkedEntities = [] # List of just the network entities (they are also in self.entities)
+        self.networkedEntities = [] # List of just the network entities (they are also in self.entities)
 
     def CreateEntity(self,name,position,components):
+        import random
+        return self.CreateNetworkEntity(name,position,components,0,random.randint(-10000,-1))
+
         newEnt = Entity()
         newEnt.name = name
         newEnt.position = position
@@ -48,6 +51,8 @@ class Scene:
         if(entity._alive):
             return
         self.entities.append(entity)
+        if isinstance(entity, NetworkEntity):
+            self.networkedEntities.append(entity)
         for component in entity.components:
             self.AddComponent(component, entity)
         entity._alive = True
@@ -60,6 +65,8 @@ class Scene:
         for component in entity.components:
             self.RemoveComponent(component)
         self.entities.remove(entity)
+        if isinstance(entity, NetworkEntity):
+            self.networkedEntities.remove(entity)
         entity._alive = False
 
     def AddComponent(self, component : Component, parentEntity):
@@ -197,13 +204,14 @@ class NetworkEntity(Entity):
         if self._networkVariables:
             return self._networkVariables
         self._networkVariables = []
-        self._networkVariables.append(("pos", self._position))
+        self._networkVariables.append(("_position", self._position))
         for component in self.components:
             for attr in dir(component):
                 attrValue = getattr(component, attr)
                 if isinstance(attrValue, NetworkVarBase):
                     self._networkVariables.append((attr, attrValue))
                     print("Found",(attr,attrValue))
+        return self._networkVariables
 
     def get_position(self):
         return self._position.Get()

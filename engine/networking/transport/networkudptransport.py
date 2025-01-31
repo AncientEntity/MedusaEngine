@@ -40,9 +40,9 @@ class NetworkUDPTransport(NetworkTransportBase):
             Log("Socket doesnt exist.", LOG_ERRORS)
             return
 
+        self.active = False
         self._socket.close()
         self._socket = None
-        self.active = False
         self._isServer = False
 
     def Send(self, message, clientConnection : ClientConnectionSocket) -> None:
@@ -52,11 +52,17 @@ class NetworkUDPTransport(NetworkTransportBase):
             self._socket.sendto(message, self.targetServer)
 
     def Receive(self, buffer=2048) -> (bytes, ClientConnectionBase):
-        if self._isServer:
-            recv = self._socket.recvfrom(buffer)
-            c = ClientConnectionSocket()
-            c.address = recv[1]
-            return (recv[0], c)
-        else:
-            recv = self._socket.recv(buffer)
-            return (recv, None)
+        try:
+            if self._isServer:
+                recv = self._socket.recvfrom(buffer)
+                c = ClientConnectionSocket()
+                c.address = recv[1]
+                return (recv[0], c)
+            else:
+                recv = self._socket.recv(buffer)
+                return (recv, None)
+        except Exception as e:
+            if not self.active:
+                return None
+            else:
+                raise e
