@@ -1,3 +1,4 @@
+from engine.constants import NET_NONE
 from engine.networking.variables.networkvarvector import NetworkVarVector
 
 # Used for conversions in NetworkEventCreateEntity and possibly other places.
@@ -7,8 +8,11 @@ class NetworkEvent:
     def __init__(self, eventId, data : bytearray):
         self.eventId : int = eventId
         self.data : bytearray = data
+
+        # not serialized
+        self.processAs = NET_NONE # NET_NONE or NET_CLIENT or NET_HOST or NET_LISTENSERVER
     def __str__(self):
-        return f"NetworkEvent({self.eventId}, data: {self.data})"
+        return f"NetworkEvent({self.eventId}, data: {self.data}, processAs: {self.processAs})"
 
 def NetworkEventToBytes(networkEvent : NetworkEvent):
     byteArray = bytearray()

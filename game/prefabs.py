@@ -2,7 +2,7 @@ import random
 
 from engine.components.rendering.particlecomponent import ParticleEmitterComponent, Particle
 from engine.datatypes.sprites import AnimatedSprite
-from engine.ecs import Entity
+from engine.ecs import Entity, Scene
 from engine.engine import Engine
 from engine.systems import physics
 from engine.systems.physics import PhysicsComponent
@@ -12,7 +12,8 @@ from game.systems import playersystem
 from game.systems.NPCSystem import NPCComponent
 from engine.datatypes import assetmanager
 
-def CreatePlayer(scene):
+def CreatePlayer(entity : Entity, currentScene : Scene):
+    entity.name = "Player"
     physicsComponent = physics.PhysicsComponent()
     physicsComponent.gravity = (0,500)
     physicsComponent.bounds = [10,16]
@@ -23,14 +24,16 @@ def CreatePlayer(scene):
     physicsComponent.mapToSpriteOnStart = False
     def TriggersSomething(self,other):
         if(other.parentEntity.name == "SkeletonEnemy"):
-            scene.DeleteEntity(other.parentEntity)
+            currentScene.DeleteEntity(other.parentEntity)
     physicsComponent.onTriggerStart.append(TriggersSomething)
 
-    return scene.CreateEntity(name="Player",position=[0,0],components=[SpriteRenderer(None),playersystem.PlayerComponent(),physicsComponent])
+    currentScene.AddComponents([SpriteRenderer(None),playersystem.PlayerComponent(),physicsComponent], entity)
+    return entity
 
 assetmanager.assets.prefabs['player'] = CreatePlayer
 
-def CreateSkeleton(scene):
+def CreateSkeleton(entity : Entity, currentScene : Scene):
+    entity.name = "SkeletonEnemy"
     npcComponent = NPCComponent()
 
     npcComponent.idleAnim = AnimatedSprite([assets.dungeonTileSet["skelet_idle_anim_f0"],assets.dungeonTileSet["skelet_idle_anim_f1"],assets.dungeonTileSet["skelet_idle_anim_f2"],assets.dungeonTileSet["skelet_idle_anim_f3"]],6)
@@ -45,22 +48,25 @@ def CreateSkeleton(scene):
 
     npcComponent.behaviourTick = SkeletonBehaviour
 
-    t = scene.CreateEntity("SkeletonEnemy",position=[0,0],components=[SpriteRenderer(npcComponent.idleAnim),npcComponent,physics.PhysicsComponent(gravity=(0,250))])
-    t.GetComponent(PhysicsComponent).collidesWithLayers = [1,2]
-    t.GetComponent(PhysicsComponent).triggersWithLayers = [0,2]
-    t.GetComponent(PhysicsComponent).physicsLayer = 0
-    t.GetComponent(PhysicsComponent).mapToSpriteOnStart = False
-    t.GetComponent(PhysicsComponent).bounds = [10,16]
-    return t
+    currentScene.AddComponents([SpriteRenderer(npcComponent.idleAnim),npcComponent,physics.PhysicsComponent(gravity=(0,250))], entity)
+    entity.GetComponent(PhysicsComponent).collidesWithLayers = [1, 2]
+    entity.GetComponent(PhysicsComponent).triggersWithLayers = [0, 2]
+    entity.GetComponent(PhysicsComponent).physicsLayer = 0
+    entity.GetComponent(PhysicsComponent).mapToSpriteOnStart = False
+    entity.GetComponent(PhysicsComponent).bounds = [10, 16]
+    return entity
+
 
 assetmanager.assets.prefabs['skeleton'] = CreateSkeleton
 
-def CreateParticleTestPrefab(scene):
+def CreateParticleTestPrefab(entity : Entity, currentScene : Scene):
+    entity.name = "Particle Test"
     particleComponent = ParticleEmitterComponent()
 
 
     particleComponent.sprite.SetColor((random.randint(0,255),random.randint(0,255),random.randint(0,255)))
 
-    return scene.CreateNetworkEntity("PARTICLE",[0,0],components=[particleComponent])
+    currentScene.AddComponents([particleComponent], entity)
+    return entity
 
 assetmanager.assets.prefabs['particletest'] = CreateParticleTestPrefab

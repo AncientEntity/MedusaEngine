@@ -36,8 +36,8 @@ class Scene:
         self.AddEntity(newEnt)
         return newEnt
 
-    def CreateNetworkEntity(self, name, position, components, netentityId=None):
-        newEnt = NetworkEntity(netentityId)
+    def CreateNetworkEntity(self, name, position, components, ownerId, netentityId=None):
+        newEnt = NetworkEntity(ownerId, netentityId)
         newEnt.name = name
         newEnt.position = position
         newEnt.components = components
@@ -73,6 +73,10 @@ class Scene:
         if (componentType in self.components):
             self.HandleDeleteComponent(component)
             self.components[componentType].remove(component)
+
+    def AddComponents(self, components : list[Component], parentEntity):
+        for component in components:
+            self.AddComponent(component, parentEntity)
 
     def GetSystemByClass(self,systemType : type):
         for system in self.systems:
@@ -174,7 +178,7 @@ class Entity:
         return self._alive
 
 class NetworkEntity(Entity):
-    def __init__(self, forcedId=None):
+    def __init__(self, ownerId, forcedId=None):
         self._position = NetworkVarVector(None) # allows the Entity constructor to run without issues. todo find better solution
 
         # Entity ID for networked object is always negative.
@@ -187,6 +191,7 @@ class NetworkEntity(Entity):
 
         self._networkVariables = None
 
+        self.ownerId = ownerId
 
     def GetNetworkVariables(self):
         if self._networkVariables:

@@ -41,8 +41,8 @@ class NetworkClientBase:
             self._messageQueueLock.release()
 
     def GetNextMessage(self):
-        while len(self._messageQueue) == 0:
-            continue
+        if len(self._messageQueue) == 0:
+            return None
 
         self._messageQueueLock.acquire()
         message = self._messageQueue.pop(0)
