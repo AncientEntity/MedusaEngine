@@ -1,4 +1,5 @@
 from engine.constants import NET_NONE
+from engine.networking.connections.clientconnectionbase import ClientConnectionBase
 from engine.networking.variables.networkvarvector import NetworkVarVector
 
 # Used for conversions in NetworkEventCreateEntity and possibly other places.
@@ -11,6 +12,7 @@ class NetworkEvent:
 
         # not serialized
         self.processAs = NET_NONE # NET_NONE or NET_CLIENT or NET_HOST or NET_LISTENSERVER
+        self.sender : ClientConnectionBase = None
     def __str__(self):
         return f"NetworkEvent({self.eventId}, data: {self.data}, processAs: {self.processAs})"
 

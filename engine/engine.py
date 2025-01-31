@@ -169,8 +169,8 @@ class Engine:
             if nextMessageBytes:
                 nextMessage = NetworkEventFromBytes(nextMessageBytes[0])
                 nextMessage.processAs = NET_HOST
+                nextMessage.sender = nextMessageBytes[1]
                 self._queuedNetworkEvents.append(nextMessage)
-                print(nextMessage)
 
         for i in range(len(self._queuedNetworkEvents)):
             self.NetworkHandleEvent(self._queuedNetworkEvents.pop(0))
@@ -228,14 +228,15 @@ class Engine:
 
     def NetworkHandleEvent(self, networkEvent : NetworkEvent):
         if networkEvent.eventId == NET_EVENT_INIT:
-            if self.identity & NET_HOST:
+            if networkEvent.processAs & NET_CLIENT:
                 self.clientId = int.from_bytes(networkEvent.data,"big")
                 Log(f"Received Init Event, Client Id: {self.clientId}", LOG_NETWORKING)
                 # todo save client info to list somewhere and mark client as initialized and dont reply to NET_EVENT_INIT from the client anymore.
-            elif self.identity & NET_CLIENT:
+            elif networkEvent.processAs & NET_HOST:
                 self._lastClientId += 1
                 networkEventBytes = NetworkEventToBytes(NetworkEvent(NET_EVENT_INIT, self._lastClientId.to_bytes(4,"big")))
-                self._networkServer.Send(networkEventBytes, "tcp")
+                self._networkServer.Send(networkEventBytes, networkEvent.sender, "tcp")
+                print('got and returning')
 
         elif networkEvent.eventId == NET_EVENT_ENTITY_CREATE:
             createEvent = NetworkEventCreateEntity.FromBytes(networkEvent.data)
