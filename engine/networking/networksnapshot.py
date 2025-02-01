@@ -9,6 +9,7 @@ class NetworkEntitySnapshot:
     def __init__(self, networkId, ownerId, variables):
         self.networkId = networkId
         self.ownerId = ownerId
+        self.prefabName = ""
         self.variables = variables
 
     # SERIALIZATION IMPORTANT
@@ -20,6 +21,11 @@ class NetworkEntitySnapshot:
         snapshotBytes = bytearray()
         snapshotBytes.extend(self.networkId.to_bytes(4, byteorder='big', signed=True))
         snapshotBytes.extend(self.ownerId.to_bytes(4, byteorder='big'))
+        if self.prefabName:
+            snapshotBytes.extend(len(self.prefabName).to_bytes(4, byteorder='big'))
+            snapshotBytes.extend(self.prefabName.encode('utf-8'))
+        else:
+            snapshotBytes.extend((0).to_bytes(4, byteorder='big'))
         snapshotBytes.extend(len(self.variables).to_bytes(4, byteorder='big'))
         for variable in self.variables:
             snapshotBytes.extend(len(variable[0]).to_bytes(4, byteorder='big'))
@@ -36,8 +42,11 @@ class NetworkEntitySnapshot:
         entitySnapshot = NetworkEntitySnapshot(0,0,[])
         entitySnapshot.networkId = int.from_bytes(bytes[0:4], byteorder='big', signed=True)
         entitySnapshot.ownerId = int.from_bytes(bytes[4:8], byteorder='big')
-        variableCount = int.from_bytes(bytes[8:12], byteorder='big')
-        currentByte = 12
+        prefabNameLength = int.from_bytes(bytes[8:12], byteorder='big')
+        entitySnapshot.prefabName = bytes[12:12+prefabNameLength].decode('utf-8')
+        currentByte = 12+prefabNameLength
+        variableCount = int.from_bytes(bytes[currentByte:currentByte+4], byteorder='big')
+        currentByte += 4
         for i in range(variableCount):
             nameSize = int.from_bytes(bytes[currentByte:currentByte+4], byteorder='big')
             currentByte += 4
@@ -62,8 +71,9 @@ class NetworkSnapshot:
     def GenerateSnapshotFull(currentScene : Scene):
         snapshot = NetworkSnapshot(NET_SNAPSHOT_FULL)
         netEntity : NetworkEntity
-        for netEntity in currentScene.networkedEntities:
+        for netEntity in currentScene.networkedEntities.values():
             entitySnapshot = NetworkEntitySnapshot(netEntity.entityId, netEntity.ownerId, netEntity.GetNetworkVariables())
+            entitySnapshot.prefabName = netEntity.prefabName
             snapshot.entities.append(entitySnapshot)
         return snapshot
 
@@ -83,6 +93,7 @@ class NetworkSnapshot:
                     continue # no need to include in snapshot
 
             entitySnapshot = NetworkEntitySnapshot(netEntity.entityId, netEntity.ownerId, variablesToUpdate)
+            entitySnapshot.prefabName = netEntity.prefabName
             snapshot.entities.append(entitySnapshot)
         return snapshot
 
@@ -119,9 +130,11 @@ if __name__ == '__main__':
     variables.append(("test", NetworkVarInt(60, 100001)))
 
     t = NetworkEntitySnapshot(12, 69, variables)
+    t.prefabName = "test_prefab_null"
 
     t2 = NetworkSnapshot(0)
     t2.entities.append(t)
 
     snapBytes = t2.SnapshotToBytes()
     backSnap = NetworkSnapshot.SnapshotFromBytes(snapBytes)
+    print(backSnap.entities[0].prefabName)

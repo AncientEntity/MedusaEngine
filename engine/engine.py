@@ -5,7 +5,8 @@ import pygame
 import pygame._sdl2.controller
 import engine.ecs as ecs
 from engine.constants import KEYDOWN, KEYUP, KEYPRESSED, KEYINACTIVE, SPLASH_BUILDONLY, SPLASH_ALWAYS, \
-    NET_NONE, NET_HOST, NET_CLIENT, NET_EVENT_INIT, NET_EVENT_SNAPSHOT_PARTIAL, NET_EVENT_SNAPSHOT_FULL
+    NET_NONE, NET_HOST, NET_CLIENT, NET_EVENT_INIT, NET_EVENT_SNAPSHOT_PARTIAL, NET_EVENT_SNAPSHOT_FULL, \
+    NET_LISTENSERVER
 from engine.datatypes.assetmanager import assets
 from engine.game import Game
 import time
@@ -19,10 +20,11 @@ from engine.networking.networkclientbase import NetworkClientBase
 from engine.networking.networkevent import NetworkEvent, NetworkEventCreateEntity, NetworkEventToBytes, \
     NetworkEventFromBytes
 from engine.networking.networkserverbase import NetworkServerBase
-from engine.networking.networksnapshot import NetworkSnapshot
+from engine.networking.networksnapshot import NetworkSnapshot, NetworkEntitySnapshot
 from engine.networking.networkstate import NetworkState
 from engine.networking.transport.networktcptransport import NetworkTCPTransport
 from engine.networking.transport.networkudptransport import NetworkUDPTransport
+from engine.networking.variables.networkvarbase import NetworkVarBase
 from engine.scenes import splashscene
 from engine.tools.platform import IsBuilt, IsDebug, currentPlatform, IsPlatformWeb
 
@@ -183,7 +185,6 @@ class Engine:
                     nextMessage = NetworkEventFromBytes(nextMessageBytes[0])
                     nextMessage.processAs = NET_CLIENT
                     self._queuedNetworkEvents.append(nextMessage)
-                    print(nextMessage)
 
         if NetworkState.identity & NET_HOST:
             nextMessageBytes = 1
@@ -264,10 +265,31 @@ class Engine:
                 self._lastClientId += 1
                 networkEventBytes = NetworkEventToBytes(NetworkEvent(NET_EVENT_INIT, self._lastClientId.to_bytes(4,"big")))
                 self._networkServer.Send(networkEventBytes, networkEvent.sender, "tcp")
-                print('got and returning')
-        elif networkEvent.eventId == NET_EVENT_SNAPSHOT_PARTIAL or networkEvent.eventId == NET_EVENT_SNAPSHOT_FULL:
+        elif NetworkState.identity != NET_LISTENSERVER and (networkEvent.eventId == NET_EVENT_SNAPSHOT_PARTIAL or networkEvent.eventId == NET_EVENT_SNAPSHOT_FULL):
             snapshot = NetworkSnapshot.SnapshotFromBytes(networkEvent.data)
-            print("received snapshot ", snapshot)
+            self.NetworkHandleSnapshot(snapshot)
             # todo creating entities via snapshot
             # todo destroying entities via snapshot
             # todo updating variables over snapshot
+
+    def NetworkHandleSnapshot(self, snapshot : NetworkSnapshot):
+        netEntitySnapshot : NetworkEntitySnapshot
+        for netEntitySnapshot in snapshot.entities:
+            if netEntitySnapshot.prefabName == '':
+                continue
+            #todo check if entity marked for deletion
+
+            # If entity doesnt exist create it
+            if netEntitySnapshot.networkId not in self._currentScene.networkedEntities:
+                ent = assets.NetInstantiate(netEntitySnapshot.prefabName, self._currentScene, netEntitySnapshot.ownerId, netEntitySnapshot.networkId, [0,0])
+                #print(f"Replicating over network: {netEntitySnapshot.prefabName}, id: {netEntitySnapshot.networkId}, vars: {netEntitySnapshot.variables}")
+            else:
+                ent = self._currentScene.networkedEntities[netEntitySnapshot.networkId]
+
+            entVars = ent.GetNetworkVariables()
+            for variable in netEntitySnapshot.variables:
+                for foundVar in entVars:
+                    if foundVar[0] == variable[0]:
+                        foundVar[1].SetFromBytes(variable[1], modified=False)
+                        print(f"Updated var entityId={netEntitySnapshot.networkId}, varname={variable[0]}")
+                        break

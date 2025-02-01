@@ -25,7 +25,7 @@ def NetworkEventToBytes(networkEvent : NetworkEvent):
 def NetworkEventFromBytes(bytes : bytearray):
     return NetworkEvent(int.from_bytes(bytes[0:4],"little"), bytes[4:])
 
-class NetworkEventCreateEntity:
+class NetworkEventCreateEntity: #todo probably remove
     def __init__(self, prefab_name, position):
         self.prefab_name : str = prefab_name
         self.position : str = position
