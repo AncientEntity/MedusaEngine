@@ -27,6 +27,7 @@ class NetworkClientBase:
 
     def Close(self, layerName : str):
         self.transportHandlers[layerName].Close()
+        self.transportHandlers.pop(layerName)
 
     def CloseAll(self):
         for transport in self.transportHandlers:

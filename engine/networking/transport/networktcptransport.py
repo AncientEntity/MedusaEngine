@@ -76,14 +76,22 @@ class NetworkTCPTransport(NetworkTransportBase):
             clientConnection = ClientConnectionSocket()
             clientConnection.tcpConnection = c
             self.clientConnections.append(clientConnection)
+            self.CallHook(self.onClientConnect, (clientConnection,))
             receiveThread = threading.Thread(target=self.ThreadReceiveListener, args=(clientConnection,))
             receiveThread.start()
 
 
     def ThreadReceiveListener(self, connection : ClientConnectionSocket) -> None:
         while connection.active:
-            messageSize = int.from_bytes(connection.tcpConnection.recv(4),byteorder='big')
-            message = connection.tcpConnection.recv(messageSize)
+            try:
+                messageSize = int.from_bytes(connection.tcpConnection.recv(4),byteorder='big')
+                message = connection.tcpConnection.recv(messageSize)
+            except Exception:
+                Log(f"Error receiving from client: {connection.referenceId}, assuming disconnect.")
+                connection.Close()
+                if connection in self.clientConnections:
+                    self.clientConnections.remove(connection)
+                self.CallHook(self.onClientDisconnect, (connection,))
             self._queueLock.acquire()
             self._messageQueue.append((message, connection))
             self._queueLock.release()

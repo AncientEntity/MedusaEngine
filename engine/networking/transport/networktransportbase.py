@@ -9,6 +9,9 @@ class NetworkTransportBase:
         self.receiveThread = None
         self.receiveProcess = None
 
+        self.onClientConnect = [] # func(ClientConnectionBase)
+        self.onClientDisconnect = [] # func(ClientConnectionBase)
+
     def Connect(self):
         pass
     def Open(self, ip : str, port : int):
@@ -20,3 +23,7 @@ class NetworkTransportBase:
         pass
     def Receive(self, buffer=2048) -> tuple[bytes, ClientConnectionBase]:
         pass
+
+    def CallHook(self, hookArray, args):
+        for hook in hookArray:
+            hook(*args)

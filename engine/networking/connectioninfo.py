@@ -2,6 +2,5 @@ from engine.networking.connections.clientconnectionbase import ClientConnectionB
 
 
 class ConnectionInfo:
-    def __init__(self, clientId, connection : ClientConnectionBase):
-        self.clientID = clientId
-        self.connection = connection
+    def __init__(self, referenceId):
+        self.connectionReferenceId = referenceId

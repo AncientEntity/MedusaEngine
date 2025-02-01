@@ -54,33 +54,35 @@ def NetworkProcessMain(inQueue : multiprocessing.Queue, outQueue : multiprocessi
             openTransportInfo : NetworkUpdateTransport = nextMessage.data
             if not networkServer:
                 networkServer = NetworkServerBase()
-                networkServer.Open(openTransportInfo.name, openTransportInfo.transport(), openTransportInfo.ipandport)
+            networkServer.Open(openTransportInfo.name, openTransportInfo.transport(), openTransportInfo.ipandport)
+            networkServer.transportHandlers[openTransportInfo.name].onClientConnect.append(NetworkClientConnect)
+            networkServer.transportHandlers[openTransportInfo.name].onClientDisconnect.append(NetworkClientDisconnect)
             Log(f"Transport Opened {openTransportInfo.name} on ipandport={openTransportInfo.ipandport}", LOG_NETWORKING)
         elif nextMessage.id == NET_PROCESS_CLOSE_SERVER_TRANSPORT:
             if not networkServer:
                 Log(f"Network Server doesnt exist while trying to close server transport {nextMessage.data}", LOG_NETWORKING)
                 continue
             closeTransportInfo : NetworkUpdateTransport = nextMessage.data
-            if closeTransportInfo not in networkServer.transportHandlers:
-                Log(f"Transport doesnt exist while trying to close transport {nextMessage.data}", LOG_NETWORKING)
+            if closeTransportInfo.name not in networkServer.transportHandlers:
+                Log(f"STransport doesnt exist while trying to close transport {nextMessage.data}", LOG_NETWORKING)
                 continue
             networkServer.Close(closeTransportInfo.name)
-            Log(f"Transport Closed {openTransportInfo.name} on ipandport={openTransportInfo.ipandport}", LOG_NETWORKING)
+            Log(f"STransport Closed {openTransportInfo.name} on ipandport={openTransportInfo.ipandport}", LOG_NETWORKING)
 
         # connect / close client transport
         elif nextMessage.id == NET_PROCESS_CONNECT_CLIENT_TRANSPORT:
             openTransportInfo : NetworkUpdateTransport = nextMessage.data
             if not networkClient:
                 networkClient = NetworkClientBase()
-                networkClient.Connect(openTransportInfo.name, openTransportInfo.transport(), openTransportInfo.ipandport)
+            networkClient.Connect(openTransportInfo.name, openTransportInfo.transport(), openTransportInfo.ipandport)
             Log(f"Transport Opened {openTransportInfo.name} on ipandport={openTransportInfo.ipandport}", LOG_NETWORKING)
         elif nextMessage.id == NET_PROCESS_CLOSE_CLIENT_TRANSPORT:
             if not networkClient:
-                Log(f"Network Server doesnt exist while trying to close server transport {nextMessage.data}", LOG_NETWORKING)
+                Log(f"CNetwork Server doesnt exist while trying to close server transport {nextMessage.data}", LOG_NETWORKING)
                 continue
             closeTransportInfo : NetworkUpdateTransport = nextMessage.data
-            if closeTransportInfo not in networkClient.transportHandlers:
-                Log(f"Transport doesnt exist while trying to close transport {nextMessage.data}", LOG_NETWORKING)
+            if closeTransportInfo.name not in networkClient.transportHandlers:
+                Log(f"CTransport doesnt exist while trying to close transport {nextMessage.data}", LOG_NETWORKING)
                 continue
             networkClient.Close(closeTransportInfo.name)
 
@@ -97,6 +99,15 @@ def NetworkProcessMain(inQueue : multiprocessing.Queue, outQueue : multiprocessi
             else:
                 networkServer.Send(sendMessageInfo.msgBytes, connections[sendMessageInfo.target], sendMessageInfo.transportName)
 
+def NetworkClientConnect(connection : ClientConnectionBase):
+    global connections
+    connections[connection.referenceId] = connection
+    Log(f"New client connection: {connection.referenceId}")
+def NetworkClientDisconnect(connection : ClientConnectionBase):
+    global connections
+    connections.pop(connection.referenceId)
+    Log(f"Client disconnected: {connection.referenceId}")
+
 def NetworkProcessReceiveThread(outQueue : multiprocessing.Queue):
     global networkServer, networkClient, active
 
@@ -110,9 +121,6 @@ def NetworkProcessReceiveThread(outQueue : multiprocessing.Queue):
                     nextMessage = NetworkEventFromBytes(nextMessageBytes[0])
                     nextMessage.processAs = NET_HOST
                     nextMessage.sender = nextMessageBytes[1].referenceId
-
-                    if nextMessageBytes[1] not in connections:
-                        connections[nextMessageBytes[1].referenceId] = nextMessageBytes[1]
 
                     outQueue.put(NetworkProcessMessage(NET_PROCESS_RECEIVE_MESSAGE, nextMessage))
 

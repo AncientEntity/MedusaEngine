@@ -70,7 +70,6 @@ class Engine:
         self.connectionsReference : dict[ClientConnectionBase, ConnectionInfo] = {} # key=ClientConnectionBase, value=ConnectionInfo
 
         self.clientInitialized = False
-        self._lastClientId = -1
         self._queuedNetworkEvents = []
         self._networkSendQueue = []
         self._lastSnapshotTime = 0
@@ -262,10 +261,13 @@ class Engine:
 
     def NetworkHostStop(self):
         Log("Network Host Stop", LOG_NETWORKING)
+        if not NetworkState.identity & NET_HOST:
+            return
+
         self._networkQueueIn.put(NetworkProcessMessage(NET_PROCESS_CLOSE_SERVER_TRANSPORT,
-                                                       NetworkProcessMessage("tcp", None)))
+                                                       NetworkUpdateTransport("tcp", None, None)))
         self._networkQueueIn.put(NetworkProcessMessage(NET_PROCESS_CLOSE_SERVER_TRANSPORT,
-                                                       NetworkProcessMessage("udp", None)))
+                                                       NetworkUpdateTransport("udp", None, None)))
 
         if NetworkState.identity | NET_HOST:
             NetworkState.identity -= NET_HOST
@@ -305,10 +307,14 @@ class Engine:
 
     def NetworkClientDisconnect(self):
         Log("Network Client Disconnect", LOG_NETWORKING)
+        if not NetworkState.identity & NET_CLIENT:
+            return
+
+
         self._networkQueueIn.put(NetworkProcessMessage(NET_PROCESS_CLOSE_CLIENT_TRANSPORT,
-                                                       NetworkProcessMessage("tcp", None)))
+                                                       NetworkUpdateTransport("tcp", None, None)))
         self._networkQueueIn.put(NetworkProcessMessage(NET_PROCESS_CLOSE_CLIENT_TRANSPORT,
-                                                       NetworkProcessMessage("udp", None)))
+                                                       NetworkUpdateTransport("udp", None, None)))
 
         if NetworkState.identity | NET_CLIENT:
             NetworkState.identity -= NET_CLIENT
@@ -330,9 +336,8 @@ class Engine:
                 if networkEvent.sender in self.connectionsReference:
                     return # Already initialized the client.
 
-                self._lastClientId += 1
-                networkEventBytes = NetworkEventToBytes(NetworkEvent(NET_EVENT_INIT, self._lastClientId.to_bytes(4,"big")))
-                connectionInfo = ConnectionInfo(self._lastClientId, networkEvent.sender)
+                networkEventBytes = NetworkEventToBytes(NetworkEvent(NET_EVENT_INIT, networkEvent.sender.to_bytes(4,"big")))
+                connectionInfo = ConnectionInfo(networkEvent.sender)
                 self.connections.append(connectionInfo) # todo handle removing (disconnecting) from the list
                 self.connectionsReference[networkEvent.sender] = connectionInfo
                 self.NetworkServerSend(networkEventBytes, "tcp", networkEvent.sender)
