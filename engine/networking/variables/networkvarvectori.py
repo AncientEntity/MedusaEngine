@@ -23,15 +23,15 @@ class NetworkVarVectorInterpolate(NetworkVarVector):
     def __init__(self, defaultValue=[0,0]):
         super().__init__(defaultValue)
 
-        self.interpolateSpeed = 100
-        self.interpolateMaxDistance = 100
+        self.interpolateSpeed = 5
+        self.interpolateMaxDistance = 500
         self._interpolatePosition = defaultValue[:]
         self._lastInterpolateTime = time.time()
 
     def Set(self, value : list, modified=True):
         super().Set(value, modified)
         distance = Distance(self._interpolatePosition, self.value)
-        if distance >= self.interpolateMaxDistance:
+        if distance >= self.interpolateMaxDistance or self.hasAuthority:
             self._interpolatePosition = self.value[:]
 
     def Get(self):
@@ -41,9 +41,10 @@ class NetworkVarVectorInterpolate(NetworkVarVector):
             distance = Distance(self._interpolatePosition, self.value)
             if distance > self.interpolateMaxDistance:
                 self._interpolatePosition = self.value[:]
+                return self._interpolatePosition
 
             curTime = time.time()
-            self._interpolatePosition = MoveTowards(self._interpolatePosition, self.value, self.interpolateSpeed*(curTime-self._lastInterpolateTime))
+            self._interpolatePosition = MoveTowards(self._interpolatePosition, self.value, self.interpolateSpeed*(curTime-self._lastInterpolateTime)*distance)
             self._lastInterpolateTime = curTime
             return WrappedList(self.value,self._interpolatePosition, self)
 

@@ -7,6 +7,7 @@ from engine.engine import Input
 from engine.networking.networkstate import NetworkState
 from engine.systems import physics
 from engine.systems.renderer import SpriteRenderer, RenderingSystem
+from engine.tools.math import Magnitude
 from game import prefabs
 from game.components.playercomponent import PlayerComponent
 from game.scenes import sidescrollingscene
@@ -22,10 +23,18 @@ class PlayerSystem(EntitySystem):
     def OnNewComponent(self,component : PlayerComponent):
         component.parentEntity.GetComponent(SpriteRenderer).sprite = component.idleAnim
     def Update(self, currentScene: Scene):
+        player : PlayerComponent
         for player in currentScene.components[PlayerComponent]:
             if player.parentEntity.ownerId == NetworkState.clientId:
                 self.PlayerMovement(player)
                 RenderingSystem.instance.cameraPosition = player.parentEntity.position
+            velocity = player.parentEntity.GetComponent(physics.PhysicsComponent).velocity
+            if Magnitude(velocity) >= 10:
+                player.parentEntity.GetComponent(SpriteRenderer).sprite = player.runAnim
+                player.runAnim.SetFlipX(velocity[0] < 0)
+                player.idleAnim.SetFlipX(velocity[0] < 0)
+            else:
+                player.parentEntity.GetComponent(SpriteRenderer).sprite = player.idleAnim
 
         if Input.KeyPressed(pygame.K_g):
             newSkeleton = assets.Instantiate("skeleton",currentScene)
@@ -48,17 +57,12 @@ class PlayerSystem(EntitySystem):
             moved = True
         if (Input.KeyPressed(player.controls["left"])):
             player.parentEntity.GetComponent(physics.PhysicsComponent).AddVelocity((-self.game.deltaTime * player.speed,0))
-            player.parentEntity.GetComponent(SpriteRenderer).sprite.SetFlipX(True)
             moved = True
         elif(Input.KeyPressed(player.controls["right"])):
             player.parentEntity.GetComponent(physics.PhysicsComponent).AddVelocity((self.game.deltaTime * player.speed,0))
-            player.parentEntity.GetComponent(SpriteRenderer).sprite.SetFlipX(False)
             moved = True
         if(moved):
             RenderingSystem.instance.cameraPosition = player.parentEntity.position
-            player.parentEntity.GetComponent(SpriteRenderer).sprite = player.runAnim
-        else:
-            player.parentEntity.GetComponent(SpriteRenderer).sprite = player.idleAnim
 
     def DoTint(self, player):
         import random
