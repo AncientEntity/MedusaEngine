@@ -1,13 +1,18 @@
 import asyncio
+import multiprocessing
 import threading
 from typing import Type
 
 import pygame
 import pygame._sdl2.controller
+from _queue import Empty
+
 import engine.ecs as ecs
 from engine.constants import KEYDOWN, KEYUP, KEYPRESSED, KEYINACTIVE, SPLASH_BUILDONLY, SPLASH_ALWAYS, \
     NET_NONE, NET_HOST, NET_CLIENT, NET_EVENT_INIT, NET_EVENT_SNAPSHOT_PARTIAL, NET_EVENT_SNAPSHOT_FULL, \
-    NET_LISTENSERVER
+    NET_LISTENSERVER, NET_PROCESS_OPEN_SERVER_TRANSPORT, NET_PROCESS_SHUTDOWN, NET_PROCESS_CONNECT_CLIENT_TRANSPORT, \
+    NET_PROCESS_CLOSE_CLIENT_TRANSPORT, NET_PROCESS_CLOSE_SERVER_TRANSPORT, NET_PROCESS_CLIENT_SEND_MESSAGE, \
+    NET_PROCESS_RECEIVE_MESSAGE, NET_PROCESS_SERVER_SEND_MESSAGE
 from engine.datatypes.assetmanager import assets
 from engine.game import Game
 import time
@@ -22,6 +27,8 @@ from engine.networking.connections.clientconnectionbase import ClientConnectionB
 from engine.networking.networkclientbase import NetworkClientBase
 from engine.networking.networkevent import NetworkEvent, NetworkEventCreateEntity, NetworkEventToBytes, \
     NetworkEventFromBytes
+from engine.networking.networkprocess import NetworkProcessMain, NetworkProcessMessage, NetworkUpdateTransport, \
+    NetworkSendMessage
 from engine.networking.networkserverbase import NetworkServerBase
 from engine.networking.networksnapshot import NetworkSnapshot, NetworkEntitySnapshot
 from engine.networking.networkstate import NetworkState
@@ -71,6 +78,10 @@ class Engine:
         self._networkServer : NetworkServerBase = None
         self._networkClient : NetworkClientBase = None
 
+        self._networkQueueIn : multiprocessing.Queue = None
+        self._networkQueueOut : multiprocessing.Queue = None
+        self._networkProcess : multiprocessing.Process = None
+
 
         self.LoadGame() #Loads self._game into the engine
     def LoadGame(self):
@@ -104,9 +115,6 @@ class Engine:
             if(self.deltaTime > self.maxDeltaTime): #Maximum delta time enforced to prevent unintended concequences of super high delta time.
                 self.deltaTime = self.maxDeltaTime
             self._lastTickStart = self.frameStartTime
-
-            if self.deltaTime != 0:
-                print(1.0 / self.deltaTime)
 
             #Check if there is a queued scene, if so swap to it.
             if(self._queuedScene != None):
@@ -173,6 +181,9 @@ class Engine:
         if NetworkState.identity & NET_HOST:
             self.NetworkHostStop()
 
+        if self._networkProcess:
+            self.NetworkShutdownProcess()
+
         exit(0)
 
     def NetworkTick(self):
@@ -188,25 +199,15 @@ class Engine:
         if NetworkState.identity == NET_NONE:
             return
 
-        # Receieve New Messages
-        if NetworkState.identity & NET_CLIENT:
-            nextMessageBytes = 1
-            while nextMessageBytes:
-                nextMessageBytes = self._networkClient.GetNextMessage()
-                if nextMessageBytes:
-                    nextMessage = NetworkEventFromBytes(nextMessageBytes[0])
-                    nextMessage.processAs = NET_CLIENT
-                    self._queuedNetworkEvents.append(nextMessage)
-
-        if NetworkState.identity & NET_HOST:
-            nextMessageBytes = 1
-            while nextMessageBytes:
-                nextMessageBytes = self._networkServer.GetNextMessage()
-                if nextMessageBytes:
-                    nextMessage = NetworkEventFromBytes(nextMessageBytes[0])
-                    nextMessage.processAs = NET_HOST
-                    nextMessage.sender = nextMessageBytes[1]
-                    self._queuedNetworkEvents.append(nextMessage)
+        queueEmptyError = False
+        while not queueEmptyError:
+            try:
+                nextMessage : NetworkProcessMessage = self._networkQueueOut.get(False)
+            except Empty:
+                queueEmptyError = True
+                break
+            if nextMessage.id == NET_PROCESS_RECEIVE_MESSAGE:
+                self._queuedNetworkEvents.append(nextMessage.data)
 
         # Handle new queued network events
         for i in range(len(self._queuedNetworkEvents)):
@@ -225,54 +226,95 @@ class Engine:
                 bytesToSend = NetworkEventToBytes(NetworkEvent(NET_EVENT_SNAPSHOT_PARTIAL, snapshot.SnapshotToBytes()))
 
             if NetworkState.identity & NET_HOST:
-                self._networkServer.SendAll(bytesToSend, "tcp")
+                self.NetworkServerSend(bytesToSend, "tcp", None)
             elif NetworkState.identity & NET_CLIENT:
-                self._networkClient.Send(bytesToSend, "tcp")
+                self.NetworkClientSend(bytesToSend, "tcp")
+
+    def NetworkShutdownProcess(self):
+        self._networkQueueIn.put(NetworkProcessMessage(NET_PROCESS_SHUTDOWN, None))
+        self._networkQueueIn.close()
+        self._networkQueueOut.close()
+        self._networkProcess = None
 
     def NetworkHostStart(self, ip, port):
-        if self._networkServer:
-            Log("Failed to NetworkHostStart, network server already exists", LOG_ERRORS)
+        if not self._networkProcess:
+            self._networkQueueIn = multiprocessing.Queue()
+            self._networkQueueOut = multiprocessing.Queue()
+            self._networkProcess = multiprocessing.Process(target=NetworkProcessMain, args=(self._networkQueueIn,
+                                                                                     self._networkQueueOut))
+            self._networkProcess.name = "MedusaNetProcess"
+            self._networkProcess.start()
 
-        self._networkServer = NetworkServerBase()
-        self._networkServer.Open("tcp", NetworkTCPTransport(), (ip, port))
-        self._networkServer.Open("udp", NetworkUDPTransport(), (ip, port+1))
+        #if self._networkServer:
+        #    Log("Failed to NetworkHostStart, network server already exists", LOG_ERRORS)
+
+        self._networkQueueIn.put(NetworkProcessMessage(NET_PROCESS_OPEN_SERVER_TRANSPORT,
+                                                       NetworkUpdateTransport("tcp", NetworkTCPTransport, (ip, port))))
+        self._networkQueueIn.put(NetworkProcessMessage(NET_PROCESS_OPEN_SERVER_TRANSPORT,
+                                                       NetworkUpdateTransport("udp", NetworkUDPTransport, (ip, port + 1))))
+
+        #self._networkServer = NetworkServerBase()
+        #self._networkServer.Open("tcp", NetworkTCPTransport(), (ip, port))
+        #self._networkServer.Open("udp", NetworkUDPTransport(), (ip, port+1))
         NetworkState.identity |= NET_HOST
 
         Log(f"Network Host Start, Identity: {NetworkState.identity}", LOG_NETWORKING)
 
     def NetworkHostStop(self):
         Log("Network Host Stop", LOG_NETWORKING)
-        self._networkServer.Close("tcp")
-        self._networkServer.Close("udp")
+        self._networkQueueIn.put(NetworkProcessMessage(NET_PROCESS_CLOSE_SERVER_TRANSPORT,
+                                                       NetworkProcessMessage("tcp", None)))
+        self._networkQueueIn.put(NetworkProcessMessage(NET_PROCESS_CLOSE_SERVER_TRANSPORT,
+                                                       NetworkProcessMessage("udp", None)))
 
         if NetworkState.identity | NET_HOST:
             NetworkState.identity -= NET_HOST
 
+        if NetworkState.identity == NET_NONE:
+            self.NetworkShutdownProcess()
+
         Log(f"Network Host Stop, Identity: {NetworkState.identity}", LOG_NETWORKING)
 
     def NetworkClientConnect(self, ip : str, port : int):
+        if not self._networkProcess:
+            self._networkQueueIn = multiprocessing.Queue()
+            self._networkQueueOut = multiprocessing.Queue()
+            self._networkProcess = multiprocessing.Process(target=NetworkProcessMain, args=(self._networkQueueIn,
+                                                                                     self._networkQueueOut))
+            self._networkProcess.start()
+
         Log(f"Network Client Connect ({ip},{port})", LOG_NETWORKING)
         if self._networkClient:
             Log("Failed to NetworkClientConnect, network client already exists", LOG_ERRORS)
 
-        self._networkClient = NetworkClientBase()
-        self._networkClient.Connect("tcp", NetworkTCPTransport(), (ip, port))
-        self._networkClient.Connect("udp", NetworkUDPTransport(), (ip, port+1))
+        self._networkQueueIn.put(NetworkProcessMessage(NET_PROCESS_CONNECT_CLIENT_TRANSPORT,
+                                                       NetworkUpdateTransport("tcp", NetworkTCPTransport, (ip, port))))
+        self._networkQueueIn.put(NetworkProcessMessage(NET_PROCESS_CONNECT_CLIENT_TRANSPORT,
+                                                       NetworkUpdateTransport("udp", NetworkUDPTransport, (ip, port + 1))))
+
+        #self._networkClient = NetworkClientBase()
+        #self._networkClient.Connect("tcp", NetworkTCPTransport(), (ip, port))
+        #self._networkClient.Connect("udp", NetworkUDPTransport(), (ip, port+1))
         NetworkState.identity |= NET_CLIENT
 
         networkEventBytes = NetworkEventToBytes(NetworkEvent(NET_EVENT_INIT, bytearray()))
-        self._networkClient.Send(networkEventBytes, "tcp")
+        self.NetworkClientSend(networkEventBytes, "tcp")
 
         self.clientInitialized = False
         Log(f"Network Client Connect, Identity: {NetworkState.identity}", LOG_NETWORKING)
 
     def NetworkClientDisconnect(self):
         Log("Network Client Disconnect", LOG_NETWORKING)
-        self._networkClient.Close("tcp")
-        self._networkClient.Close("udp")
+        self._networkQueueIn.put(NetworkProcessMessage(NET_PROCESS_CLOSE_CLIENT_TRANSPORT,
+                                                       NetworkProcessMessage("tcp", None)))
+        self._networkQueueIn.put(NetworkProcessMessage(NET_PROCESS_CLOSE_CLIENT_TRANSPORT,
+                                                       NetworkProcessMessage("udp", None)))
 
         if NetworkState.identity | NET_CLIENT:
             NetworkState.identity -= NET_CLIENT
+
+        if NetworkState.identity == NET_NONE:
+            self.NetworkShutdownProcess()
 
         Log(f"Network Client Disconnect, Identity: {NetworkState.identity}", LOG_NETWORKING)
 
@@ -293,7 +335,8 @@ class Engine:
                 connectionInfo = ConnectionInfo(self._lastClientId, networkEvent.sender)
                 self.connections.append(connectionInfo) # todo handle removing (disconnecting) from the list
                 self.connectionsReference[networkEvent.sender] = connectionInfo
-                self._networkServer.Send(networkEventBytes, networkEvent.sender, "tcp")
+                self.NetworkServerSend(networkEventBytes, "tcp", networkEvent.sender)
+                #self._networkServer.Send(networkEventBytes, networkEvent.sender, "tcp")
         if not self.clientInitialized and NetworkState.identity != NET_HOST:
             return
 
@@ -327,3 +370,10 @@ class Engine:
                         foundVar[1].SetFromBytes(variable[1], modified=False)
                         #print(f"Updated var entityId={netEntitySnapshot.networkId}, varname={variable[0]}, val={foundVar[1].Get()}")
                         break
+    # If target is None, it will send all
+    def NetworkServerSend(self, message, transport, target):
+        self._networkQueueIn.put(NetworkProcessMessage(NET_PROCESS_SERVER_SEND_MESSAGE,
+                                                       NetworkSendMessage(transport, target,
+                                                                          message)))
+    def NetworkClientSend(self, message, transport):
+        self._networkQueueIn.put(NetworkProcessMessage(NET_PROCESS_CLIENT_SEND_MESSAGE, NetworkSendMessage(transport, None, message)))

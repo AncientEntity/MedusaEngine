@@ -161,7 +161,7 @@ class Entity:
         if not forcedId:
             Entity.idIncrementor+=1
             import random
-            self.entityId = random.randint(0,1000000)#Entity.idIncrementor
+            self.entityId = random.randint(0,1000000)#Entity.idIncrementor #todo proper solution to this
         else:
             self.entityId = forcedId
 

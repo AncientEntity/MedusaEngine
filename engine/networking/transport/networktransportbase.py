@@ -7,6 +7,7 @@ class NetworkTransportBase:
         self.clientConnections = []
 
         self.receiveThread = None
+        self.receiveProcess = None
 
     def Connect(self):
         pass
