@@ -23,8 +23,8 @@ class PlayerSystem(EntitySystem):
         component.parentEntity.GetComponent(SpriteRenderer).sprite = component.idleAnim
     def Update(self, currentScene: Scene):
         for player in currentScene.components[PlayerComponent]:
-            self.PlayerMovement(player)
-            if player.parentEntity.entityId == NetworkState.clientId:
+            if player.parentEntity.ownerId == NetworkState.clientId:
+                self.PlayerMovement(player)
                 RenderingSystem.instance.cameraPosition = player.parentEntity.position
 
         if Input.KeyPressed(pygame.K_g):

@@ -1,5 +1,6 @@
-from engine.constants import NET_SNAPSHOT_FULL, NET_SNAPSHOT_PARTIAL
+from engine.constants import NET_SNAPSHOT_FULL, NET_SNAPSHOT_PARTIAL, NET_HOST
 from engine.ecs import Scene, NetworkEntity
+from engine.networking.networkstate import NetworkState
 from engine.networking.variables.networkvarbase import NetworkVarBase
 from engine.networking.variables.networkvarint import NetworkVarInt
 from engine.networking.variables.networkvarvector import NetworkVarVector
@@ -20,7 +21,7 @@ class NetworkEntitySnapshot:
     def ToBytes(self):
         snapshotBytes = bytearray()
         snapshotBytes.extend(self.networkId.to_bytes(4, byteorder='big', signed=True))
-        snapshotBytes.extend(self.ownerId.to_bytes(4, byteorder='big'))
+        snapshotBytes.extend(self.ownerId.to_bytes(4, byteorder='big', signed=True))
         if self.prefabName:
             snapshotBytes.extend(len(self.prefabName).to_bytes(4, byteorder='big'))
             snapshotBytes.extend(self.prefabName.encode('utf-8'))
@@ -41,7 +42,7 @@ class NetworkEntitySnapshot:
     def FromBytes(bytes : bytearray):
         entitySnapshot = NetworkEntitySnapshot(0,0,[])
         entitySnapshot.networkId = int.from_bytes(bytes[0:4], byteorder='big', signed=True)
-        entitySnapshot.ownerId = int.from_bytes(bytes[4:8], byteorder='big')
+        entitySnapshot.ownerId = int.from_bytes(bytes[4:8], byteorder='big', signed=True)
         prefabNameLength = int.from_bytes(bytes[8:12], byteorder='big')
         entitySnapshot.prefabName = bytes[12:12+prefabNameLength].decode('utf-8')
         currentByte = 12+prefabNameLength
@@ -81,7 +82,10 @@ class NetworkSnapshot:
     def GenerateSnapshotPartial(currentScene : Scene):
         snapshot = NetworkSnapshot(NET_SNAPSHOT_PARTIAL)
         netEntity : NetworkEntity
-        for netEntity in currentScene.networkedEntities:
+        for netEntity in currentScene.networkedEntities.values():
+            if not NetworkState.identity == NET_HOST and NetworkState.clientId != netEntity.ownerId:
+                continue
+
             if netEntity.entityId:
                 variablesToUpdate = []
                 variable : NetworkVarBase
@@ -126,8 +130,8 @@ class NetworkSnapshot:
 
 if __name__ == '__main__':
     variables = []
-    variables.append(("_position", NetworkVarVector(12, (-12.29,3,5.234))))
-    variables.append(("test", NetworkVarInt(60, 100001)))
+    variables.append(("_position", NetworkVarVector((-12.29,3,5.234))))
+    variables.append(("test", NetworkVarInt(100001)))
 
     t = NetworkEntitySnapshot(12, 69, variables)
     t.prefabName = "test_prefab_null"

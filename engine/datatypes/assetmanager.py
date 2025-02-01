@@ -25,7 +25,7 @@ class AssetManager:
         if ownerId == -1:
             ownerId = NetworkState.clientId
 
-        entity = currentScene.CreateNetworkEntity("",position,[], ownerId, networkId)#, Engine._instance.clientId)
+        entity = currentScene.CreateNetworkEntity(prefab_name,position,[], ownerId, networkId)#, Engine._instance.clientId)
         entity.prefabName = prefab_name
 
         return self.prefabs[prefab_name](entity, currentScene)

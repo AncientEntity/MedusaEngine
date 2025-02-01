@@ -2,13 +2,16 @@ from engine.networking.variables.networkvarbase import NetworkVarBase
 
 
 class NetworkVarInt(NetworkVarBase):
-    def __init__(self, entityId, defaultValue=0):
-        super().__init__(entityId)
+    def __init__(self, defaultValue=0):
+        super().__init__()
         self.value : int = defaultValue
 
     def Set(self, value, modified=True):
         self.value = value
         super().Set(value, modified)
+    def Add(self, value, modified=True):
+        self.value += value
+        super().Add(value, modified)
     def Get(self):
         return self.value
 

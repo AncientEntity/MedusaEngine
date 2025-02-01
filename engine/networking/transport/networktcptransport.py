@@ -28,6 +28,7 @@ class NetworkTCPTransport(NetworkTransportBase):
         self.active = True
 
         acceptThread = threading.Thread(target=self.ThreadAccept)
+        acceptThread.name = "SNetThreadAccept"
         acceptThread.start()
 
     def Connect(self, targetServer : (str, int)):

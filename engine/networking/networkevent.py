@@ -3,7 +3,7 @@ from engine.networking.connections.clientconnectionbase import ClientConnectionB
 from engine.networking.variables.networkvarvector import NetworkVarVector
 
 # Used for conversions in NetworkEventCreateEntity and possibly other places.
-vectorForConversions = NetworkVarVector(None, (0,0))
+vectorForConversions = NetworkVarVector((0,0))
 
 class NetworkEvent:
     def __init__(self, eventId, data : bytearray):

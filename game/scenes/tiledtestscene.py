@@ -39,8 +39,7 @@ class TiledTestScene(LevelScene):
 
         def SpawnEnemyAbovePlayer(s,o):
             if(o.parentEntity.name == "Player") and NetworkState.identity & NET_HOST:
-                newSkeleton = assets.Instantiate("skeleton",self)
-                newSkeleton.position = [o.parentEntity.position[0], o.parentEntity.position[1] - 100]
+                assets.NetInstantiate("skeleton",self, position=[o.parentEntity.position[0], o.parentEntity.position[1] - 100])
 
         for i in range(5):
             p = assets.Instantiate("particletest", self)

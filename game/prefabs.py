@@ -28,6 +28,7 @@ def CreatePlayer(entity : Entity, currentScene : Scene):
     physicsComponent.onTriggerStart.append(TriggersSomething)
 
     currentScene.AddComponents([SpriteRenderer(None),playersystem.PlayerComponent(),physicsComponent], entity)
+    entity._position.interpolate = True
     return entity
 
 assetmanager.assets.prefabs['player'] = CreatePlayer

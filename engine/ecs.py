@@ -3,6 +3,7 @@ import time
 
 from engine.networking.variables.networkvarbase import NetworkVarBase
 from engine.networking.variables.networkvarvector import NetworkVarVector
+from engine.networking.variables.networkvarvectori import NetworkVarVectorInterpolate
 
 
 class Component:
@@ -29,8 +30,8 @@ class Scene:
         self.networkedEntities = {} # List of just the network entities (they are also in self.entities)
 
     def CreateEntity(self,name,position,components):
-        import random
-        return self.CreateNetworkEntity(name,position,components,0,random.randint(-10000,-1))
+        #import random
+        #return self.CreateNetworkEntity(name,position,components,0,random.randint(-10000,-1))
 
         newEnt = Entity()
         newEnt.name = name
@@ -159,7 +160,8 @@ class Entity:
     def __init__(self, forcedId=None):
         if not forcedId:
             Entity.idIncrementor+=1
-            self.entityId = Entity.idIncrementor
+            import random
+            self.entityId = random.randint(0,1000000)#Entity.idIncrementor
         else:
             self.entityId = forcedId
 
@@ -188,7 +190,7 @@ class Entity:
 
 class NetworkEntity(Entity):
     def __init__(self, ownerId, forcedId=None):
-        self._position = NetworkVarVector(None) # allows the Entity constructor to run without issues. todo find better solution
+        self._position = NetworkVarVector()
 
         # Entity ID for networked object is always negative.
         if forcedId is not None:
@@ -196,8 +198,6 @@ class NetworkEntity(Entity):
         else:
             super().__init__()
             self.entityId = -abs(self.entityId)
-
-        self._position = NetworkVarVector(self.entityId)
 
         self._networkVariables = None
 
@@ -216,9 +216,10 @@ class NetworkEntity(Entity):
         return self._networkVariables
 
     def get_position(self):
+        self._position._modified = True # todo fix this god dammit
         return self._position.Get()
     def set_position(self, value):
-        self._position.Set(value)
+        self._position.Set(value, True)
 
     position = property(get_position,
                                  set_position)

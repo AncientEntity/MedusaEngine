@@ -1,4 +1,5 @@
 import asyncio
+import threading
 from typing import Type
 
 import pygame
@@ -16,6 +17,8 @@ import platform
 
 from engine.input import Input
 from engine.logging import Log, LOG_ERRORS, LOG_INFO, LOG_WARNINGS, LOG_NETWORKING
+from engine.networking.connectioninfo import ConnectionInfo
+from engine.networking.connections.clientconnectionbase import ClientConnectionBase
 from engine.networking.networkclientbase import NetworkClientBase
 from engine.networking.networkevent import NetworkEvent, NetworkEventCreateEntity, NetworkEventToBytes, \
     NetworkEventFromBytes
@@ -46,7 +49,7 @@ class Engine:
 
         # Delta Time
         self._lastTickStart = 0
-        self.deltaTime = 0
+        self.deltaTime = 0 # Can be got anywhere via engine.time.Time.deltaTime
         self.frameStartTime = 0
         self.maxDeltaTime = 0.1 #Maximum delta time enforced to prevent unintended concequences of super high delta time.
 
@@ -56,6 +59,8 @@ class Engine:
 
         # Networking
         self.snapshotDelay = 10.0 / 60.0
+        self.connections = []
+        self.connectionsReference : dict[ClientConnectionBase, ConnectionInfo] = {} # key=ClientConnectionBase, value=ConnectionInfo
 
         self.clientInitialized = False
         self._lastClientId = -1
@@ -99,6 +104,9 @@ class Engine:
             if(self.deltaTime > self.maxDeltaTime): #Maximum delta time enforced to prevent unintended concequences of super high delta time.
                 self.deltaTime = self.maxDeltaTime
             self._lastTickStart = self.frameStartTime
+
+            if self.deltaTime != 0:
+                print(1.0 / self.deltaTime)
 
             #Check if there is a queued scene, if so swap to it.
             if(self._queuedScene != None):
@@ -173,6 +181,9 @@ class Engine:
             self.NetworkHostStart('127.0.0.1', 25565)
         elif Input.KeyDown(pygame.K_RIGHTBRACKET):
             self.NetworkClientConnect('127.0.0.1', 25565)
+        elif Input.KeyDown(pygame.K_n):
+            for thread in threading.enumerate():
+                print(thread.name)
 
         if NetworkState.identity == NET_NONE:
             return
@@ -202,13 +213,21 @@ class Engine:
             self.NetworkHandleEvent(self._queuedNetworkEvents.pop(0))
 
         # Snapshots
-        if NetworkState.identity & NET_HOST:
-            curTime = time.time()
-            if curTime - self._lastSnapshotTime >= self.snapshotDelay:
-                self._lastSnapshotTime = curTime
+        #if NetworkState.identity & NET_HOST:
+        curTime = time.time()
+        if curTime - self._lastSnapshotTime >= self.snapshotDelay:
+            self._lastSnapshotTime = curTime
+            if NetworkState.identity & NET_HOST:
                 snapshot = NetworkSnapshot.GenerateSnapshotFull(self._currentScene) # todo sometimes just do partial snapshots
                 bytesToSend = NetworkEventToBytes(NetworkEvent(NET_EVENT_SNAPSHOT_FULL, snapshot.SnapshotToBytes()))
+            elif NetworkState.identity & NET_CLIENT:
+                snapshot = NetworkSnapshot.GenerateSnapshotPartial(self._currentScene)
+                bytesToSend = NetworkEventToBytes(NetworkEvent(NET_EVENT_SNAPSHOT_PARTIAL, snapshot.SnapshotToBytes()))
+
+            if NetworkState.identity & NET_HOST:
                 self._networkServer.SendAll(bytesToSend, "tcp")
+            elif NetworkState.identity & NET_CLIENT:
+                self._networkClient.Send(bytesToSend, "tcp")
 
     def NetworkHostStart(self, ip, port):
         if self._networkServer:
@@ -263,17 +282,25 @@ class Engine:
                 NetworkState.clientId = int.from_bytes(networkEvent.data,"big")
                 self.clientInitialized = True
                 Log(f"Received Init Event, Client Id: {NetworkState.clientId}", LOG_NETWORKING)
-                assets.NetInstantiate("player",self._currentScene)
+                assets.NetInstantiate("player",self._currentScene, position=self._currentScene.GetRandomTiledObjectByName("SPAWN")["position"][:])
                 # todo save client info to list somewhere and mark client as initialized and dont reply to NET_EVENT_INIT from the client anymore.
             elif networkEvent.processAs & NET_HOST:
+                if networkEvent.sender in self.connectionsReference:
+                    return # Already initialized the client.
+
                 self._lastClientId += 1
                 networkEventBytes = NetworkEventToBytes(NetworkEvent(NET_EVENT_INIT, self._lastClientId.to_bytes(4,"big")))
+                connectionInfo = ConnectionInfo(self._lastClientId, networkEvent.sender)
+                self.connections.append(connectionInfo) # todo handle removing (disconnecting) from the list
+                self.connectionsReference[networkEvent.sender] = connectionInfo
                 self._networkServer.Send(networkEventBytes, networkEvent.sender, "tcp")
-        if not self.clientInitialized:
+        if not self.clientInitialized and NetworkState.identity != NET_HOST:
             return
 
-        if NetworkState.identity == NET_CLIENT and (networkEvent.eventId == NET_EVENT_SNAPSHOT_PARTIAL or networkEvent.eventId == NET_EVENT_SNAPSHOT_FULL):
+        if networkEvent.eventId == NET_EVENT_SNAPSHOT_PARTIAL or networkEvent.eventId == NET_EVENT_SNAPSHOT_FULL:
             snapshot = NetworkSnapshot.SnapshotFromBytes(networkEvent.data)
+            #if networkEvent.sender:
+            #    print(f"Handling snapshot from client={self.connectionsReference[networkEvent.sender].clientID}, entcount={len(snapshot.entities)}")
             self.NetworkHandleSnapshot(snapshot)
             # todo creating entities via snapshot
             # todo destroying entities via snapshot
@@ -282,7 +309,7 @@ class Engine:
     def NetworkHandleSnapshot(self, snapshot : NetworkSnapshot):
         netEntitySnapshot : NetworkEntitySnapshot
         for netEntitySnapshot in snapshot.entities:
-            if netEntitySnapshot.prefabName == '':
+            if netEntitySnapshot.prefabName == '' or netEntitySnapshot.ownerId == NetworkState.clientId:
                 continue
             #todo check if entity marked for deletion
 
@@ -298,5 +325,5 @@ class Engine:
                 for foundVar in entVars:
                     if foundVar[0] == variable[0]:
                         foundVar[1].SetFromBytes(variable[1], modified=False)
-                        print(f"Updated var entityId={netEntitySnapshot.networkId}, varname={variable[0]}, val={foundVar[1].Get()}")
+                        #print(f"Updated var entityId={netEntitySnapshot.networkId}, varname={variable[0]}, val={foundVar[1].Get()}")
                         break

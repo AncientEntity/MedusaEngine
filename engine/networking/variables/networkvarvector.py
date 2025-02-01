@@ -2,8 +2,8 @@ from engine.networking.variables.networkvarbase import NetworkVarBase
 import struct
 
 class NetworkVarVector(NetworkVarBase):
-    def __init__(self, entityId, defaultValue=[0,0]):
-        super().__init__(entityId)
+    def __init__(self, defaultValue=[0,0]):
+        super().__init__()
         self.value : list = defaultValue
 
         self.byteType = 'd' # either 'f' or 'd' to select float or double for byte serialization.
@@ -12,9 +12,12 @@ class NetworkVarVector(NetworkVarBase):
     def Set(self, value : list, modified=True):
         self.value = value
         super().Set(value, modified)
+    def Add(self, value, modified=True):
+        for i in range(len(self.value)):
+            self.value[i] += value[i]
+        super().Add(value, modified)
     def Get(self):
         return self.value
-
 
     def SetFromBytes(self, byteValue : bytes, modified=True):
         self.value = []
@@ -32,7 +35,7 @@ class NetworkVarVector(NetworkVarBase):
 
 
 if __name__ == '__main__':
-    t = NetworkVarVector(0)
+    t = NetworkVarVector()
     t.Set([-2.100,5.0,-2.9])
     s = t.GetAsBytes()
     print(s)
