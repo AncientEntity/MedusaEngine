@@ -194,6 +194,7 @@ class NetworkEntity(Entity):
         if forcedId is not None:
             super().__init__(-abs(forcedId))
         else:
+            super().__init__()
             self.entityId = -abs(self.entityId)
 
         self._position = NetworkVarVector(self.entityId)
@@ -212,7 +213,6 @@ class NetworkEntity(Entity):
                 attrValue = getattr(component, attr)
                 if isinstance(attrValue, NetworkVarBase):
                     self._networkVariables.append((attr, attrValue))
-                    print("Found",(attr,attrValue))
         return self._networkVariables
 
     def get_position(self):

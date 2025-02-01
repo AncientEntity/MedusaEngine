@@ -5,6 +5,7 @@
 # A asset manager instance should be created on start and loaded into the engine instance.
 from engine.ecs import Scene
 from engine.networking.networkevent import NetworkEvent, NetworkEventCreateEntity
+from engine.networking.networkstate import NetworkState
 
 
 class AssetManager:
@@ -20,7 +21,10 @@ class AssetManager:
         def _Instantiate(_currentScene : Scene):
             return self.Instantiate(prefab_name, _currentScene)
         return _Instantiate
-    def NetInstantiate(self, prefab_name : str, currentScene : Scene, ownerId, networkId, position=[0,0]):
+    def NetInstantiate(self, prefab_name : str, currentScene : Scene, networkId = None, ownerId = -1, position=[0,0]):
+        if ownerId == -1:
+            ownerId = NetworkState.clientId
+
         entity = currentScene.CreateNetworkEntity("",position,[], ownerId, networkId)#, Engine._instance.clientId)
         entity.prefabName = prefab_name
 

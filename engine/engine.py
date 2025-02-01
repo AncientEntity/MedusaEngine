@@ -57,6 +57,7 @@ class Engine:
         # Networking
         self.snapshotDelay = 10.0 / 60.0
 
+        self.clientInitialized = False
         self._lastClientId = -1
         self._queuedNetworkEvents = []
         self._networkSendQueue = []
@@ -243,6 +244,7 @@ class Engine:
         networkEventBytes = NetworkEventToBytes(NetworkEvent(NET_EVENT_INIT, bytearray()))
         self._networkClient.Send(networkEventBytes, "tcp")
 
+        self.clientInitialized = False
         Log(f"Network Client Connect, Identity: {NetworkState.identity}", LOG_NETWORKING)
 
     def NetworkClientDisconnect(self):
@@ -259,13 +261,18 @@ class Engine:
         if networkEvent.eventId == NET_EVENT_INIT:
             if networkEvent.processAs & NET_CLIENT:
                 NetworkState.clientId = int.from_bytes(networkEvent.data,"big")
+                self.clientInitialized = True
                 Log(f"Received Init Event, Client Id: {NetworkState.clientId}", LOG_NETWORKING)
+                assets.NetInstantiate("player",self._currentScene)
                 # todo save client info to list somewhere and mark client as initialized and dont reply to NET_EVENT_INIT from the client anymore.
             elif networkEvent.processAs & NET_HOST:
                 self._lastClientId += 1
                 networkEventBytes = NetworkEventToBytes(NetworkEvent(NET_EVENT_INIT, self._lastClientId.to_bytes(4,"big")))
                 self._networkServer.Send(networkEventBytes, networkEvent.sender, "tcp")
-        elif NetworkState.identity != NET_LISTENSERVER and (networkEvent.eventId == NET_EVENT_SNAPSHOT_PARTIAL or networkEvent.eventId == NET_EVENT_SNAPSHOT_FULL):
+        if not self.clientInitialized:
+            return
+
+        if NetworkState.identity == NET_CLIENT and (networkEvent.eventId == NET_EVENT_SNAPSHOT_PARTIAL or networkEvent.eventId == NET_EVENT_SNAPSHOT_FULL):
             snapshot = NetworkSnapshot.SnapshotFromBytes(networkEvent.data)
             self.NetworkHandleSnapshot(snapshot)
             # todo creating entities via snapshot
@@ -281,7 +288,7 @@ class Engine:
 
             # If entity doesnt exist create it
             if netEntitySnapshot.networkId not in self._currentScene.networkedEntities:
-                ent = assets.NetInstantiate(netEntitySnapshot.prefabName, self._currentScene, netEntitySnapshot.ownerId, netEntitySnapshot.networkId, [0,0])
+                ent = assets.NetInstantiate(netEntitySnapshot.prefabName, self._currentScene, netEntitySnapshot.networkId, netEntitySnapshot.ownerId, [0,0])
                 #print(f"Replicating over network: {netEntitySnapshot.prefabName}, id: {netEntitySnapshot.networkId}, vars: {netEntitySnapshot.variables}")
             else:
                 ent = self._currentScene.networkedEntities[netEntitySnapshot.networkId]
@@ -291,5 +298,5 @@ class Engine:
                 for foundVar in entVars:
                     if foundVar[0] == variable[0]:
                         foundVar[1].SetFromBytes(variable[1], modified=False)
-                        print(f"Updated var entityId={netEntitySnapshot.networkId}, varname={variable[0]}")
+                        print(f"Updated var entityId={netEntitySnapshot.networkId}, varname={variable[0]}, val={foundVar[1].Get()}")
                         break

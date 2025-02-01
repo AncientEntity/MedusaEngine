@@ -28,8 +28,12 @@ class NetworkServerBase:
         self.transportHandlers[transportName].Send(message, clientConnection)
 
     def SendAll(self, message, transportName):
-        for clientConnection in self.transportHandlers[transportName].clientConnections:
-            self.transportHandlers[transportName].Send(message, clientConnection)
+        for clientConnection in self.transportHandlers[transportName].clientConnections[:]:
+            try:
+                self.transportHandlers[transportName].Send(message, clientConnection)
+            except Exception as e:
+                self.transportHandlers[transportName].clientConnections.remove(clientConnection)
+                print(f"Error sending to client, possibly disconnected? {e}")
 
     def ThreadReceive(self, transporter : NetworkTransportBase):
         while transporter.active:

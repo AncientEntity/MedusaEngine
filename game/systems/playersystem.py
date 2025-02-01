@@ -4,6 +4,7 @@ from engine.datatypes.assetmanager import assets
 from engine.datatypes.timedevents import TimedEvent
 from engine.ecs import EntitySystem, Scene
 from engine.engine import Input
+from engine.networking.networkstate import NetworkState
 from engine.systems import physics
 from engine.systems.renderer import SpriteRenderer, RenderingSystem
 from game import prefabs
@@ -18,10 +19,13 @@ class PlayerSystem(EntitySystem):
     def OnEnable(self, currentScene : Scene):
         for player in self.game.GetCurrentScene().components[PlayerComponent]:
             player.parentEntity.GetComponent(SpriteRenderer).sprite = player.idleAnim
+    def OnNewComponent(self,component : PlayerComponent):
+        component.parentEntity.GetComponent(SpriteRenderer).sprite = component.idleAnim
     def Update(self, currentScene: Scene):
         for player in currentScene.components[PlayerComponent]:
             self.PlayerMovement(player)
-            RenderingSystem.instance.cameraPosition = player.parentEntity.position
+            if player.parentEntity.entityId == NetworkState.clientId:
+                RenderingSystem.instance.cameraPosition = player.parentEntity.position
 
         if Input.KeyPressed(pygame.K_g):
             newSkeleton = assets.Instantiate("skeleton",currentScene)
@@ -33,6 +37,10 @@ class PlayerSystem(EntitySystem):
             else:
                 player.tintEvent.repeatCount = 0
                 player.tintEvent = None
+        if(Input.KeyDown(pygame.K_r)):
+            self.game.LoadScene(sidescrollingscene.SideScrollingScene)
+        if (Input.KeyDown(pygame.K_t)):
+            self.game.LoadScene(TiledTestScene)
     def PlayerMovement(self,player : PlayerComponent):
         moved = False
         if (Input.KeyPressed(player.controls["up"]) and player.parentEntity.GetComponent(physics.PhysicsComponent).touchingDirections['bottom']):
@@ -51,10 +59,6 @@ class PlayerSystem(EntitySystem):
             player.parentEntity.GetComponent(SpriteRenderer).sprite = player.runAnim
         else:
             player.parentEntity.GetComponent(SpriteRenderer).sprite = player.idleAnim
-        if(Input.KeyDown(pygame.K_r)):
-            self.game.LoadScene(sidescrollingscene.SideScrollingScene)
-        if (Input.KeyDown(pygame.K_t) or player.parentEntity.position[1] >= 200):
-            self.game.LoadScene(TiledTestScene)
 
     def DoTint(self, player):
         import random

@@ -4,8 +4,9 @@ import pygame.font
 
 from engine.components.recttransformcomponent import RectTransformComponent
 from engine.components.rendering.textrenderer import TextRenderer
-from engine.constants import ALIGN_TOPLEFT
+from engine.constants import ALIGN_TOPLEFT, NET_HOST
 from engine.datatypes.assetmanager import assets
+from engine.networking.networkstate import NetworkState
 from engine.scenes.levelscene import LevelScene
 from engine.systems.physics import PhysicsSystem
 from engine.systems.ui import UISystem
@@ -26,8 +27,8 @@ class TiledTestScene(LevelScene):
         self.player = None
         
     def LevelStart(self):
-        self.player = assets.Instantiate("player", self)
-        self.player.position = self.GetRandomTiledObjectByName("SPAWN")["position"][:]
+        #self.player = assets.Instantiate("player", self)
+        #self.player.position = self.GetRandomTiledObjectByName("SPAWN")["position"][:]
 
         self.worldTextTest = self.CreateEntity("World Text Test",[-150,0],[TextRenderer("World Test String :)", 12, "Arial")])
         self.worldTextTest.GetComponent(TextRenderer).screenSpace = False
@@ -37,9 +38,9 @@ class TiledTestScene(LevelScene):
         self.screenSpaceText.GetComponent(TextRenderer).SetAlign(ALIGN_TOPLEFT)
 
         def SpawnEnemyAbovePlayer(s,o):
-            if(o.parentEntity.name == "Player"):
+            if(o.parentEntity.name == "Player") and NetworkState.identity & NET_HOST:
                 newSkeleton = assets.Instantiate("skeleton",self)
-                newSkeleton.position = [self.player.position[0], self.player.position[1] - 100]
+                newSkeleton.position = [o.parentEntity.position[0], o.parentEntity.position[1] - 100]
 
         for i in range(5):
             p = assets.Instantiate("particletest", self)
