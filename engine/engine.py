@@ -12,7 +12,7 @@ from engine.constants import KEYDOWN, KEYUP, KEYPRESSED, KEYINACTIVE, SPLASH_BUI
     NET_NONE, NET_HOST, NET_CLIENT, NET_EVENT_INIT, NET_EVENT_SNAPSHOT_PARTIAL, NET_EVENT_SNAPSHOT_FULL, \
     NET_LISTENSERVER, NET_PROCESS_OPEN_SERVER_TRANSPORT, NET_PROCESS_SHUTDOWN, NET_PROCESS_CONNECT_CLIENT_TRANSPORT, \
     NET_PROCESS_CLOSE_CLIENT_TRANSPORT, NET_PROCESS_CLOSE_SERVER_TRANSPORT, NET_PROCESS_CLIENT_SEND_MESSAGE, \
-    NET_PROCESS_RECEIVE_MESSAGE, NET_PROCESS_SERVER_SEND_MESSAGE
+    NET_PROCESS_RECEIVE_MESSAGE, NET_PROCESS_SERVER_SEND_MESSAGE, NET_SUBPROCESS_NAME
 from engine.datatypes.assetmanager import assets
 from engine.game import Game
 import time
@@ -103,6 +103,9 @@ class Engine:
         Log("Finished loading game into engine",LOG_INFO)
 
     async def Start(self):
+        if IsBuilt() and not IsPlatformWeb():
+            multiprocessing.freeze_support() # Ensures freeze support with multiprocessing.
+
         Log("Game Starting",LOG_INFO)
         self.Init()
 
@@ -131,6 +134,10 @@ class Engine:
             await asyncio.sleep(0)
     def Init(self):
         Log(f"Game Initializing (IsBuilt:{IsBuilt()}, IsDebug:{IsDebug()}, Platform:{currentPlatform})",LOG_INFO)
+
+        if not IsPlatformWeb():
+            self.NetworkCreateProcess()
+
         pygame.init()
         pygame.mixer.init()
         pygame.joystick.init()
@@ -213,7 +220,6 @@ class Engine:
             self.NetworkHandleEvent(self._queuedNetworkEvents.pop(0))
 
         # Snapshots
-        #if NetworkState.identity & NET_HOST:
         curTime = time.time()
         if curTime - self._lastSnapshotTime >= self.snapshotDelay:
             self._lastSnapshotTime = curTime
@@ -225,32 +231,29 @@ class Engine:
             elif NetworkState.identity & NET_CLIENT:
                 self.NetworkClientSend(bytesToSend, "tcp")
 
+    def NetworkCreateProcess(self):
+        if not self._networkProcess:
+            Log("Creating network process", LOG_NETWORKING)
+            self._networkQueueIn = multiprocessing.Queue()
+            self._networkQueueOut = multiprocessing.Queue()
+            self._networkProcess = multiprocessing.Process(target=NetworkProcessMain, args=(self._networkQueueIn,
+                                                                                            self._networkQueueOut))
+            self._networkProcess.name = NET_SUBPROCESS_NAME
+            self._networkProcess.daemon = True
+            self._networkProcess.start()
     def NetworkShutdownProcess(self):
+        Log("Shutting down network process", LOG_NETWORKING)
         self._networkQueueIn.put(NetworkProcessMessage(NET_PROCESS_SHUTDOWN, None))
         self._networkQueueIn.close()
         self._networkQueueOut.close()
         self._networkProcess = None
 
     def NetworkHostStart(self, ip, port):
-        if not self._networkProcess:
-            self._networkQueueIn = multiprocessing.Queue()
-            self._networkQueueOut = multiprocessing.Queue()
-            self._networkProcess = multiprocessing.Process(target=NetworkProcessMain, args=(self._networkQueueIn,
-                                                                                     self._networkQueueOut))
-            self._networkProcess.name = "MedusaNetProcess"
-            self._networkProcess.start()
-
-        #if self._networkServer:
-        #    Log("Failed to NetworkHostStart, network server already exists", LOG_ERRORS)
-
         self._networkQueueIn.put(NetworkProcessMessage(NET_PROCESS_OPEN_SERVER_TRANSPORT,
                                                        NetworkUpdateTransport("tcp", NetworkTCPTransport, (ip, port))))
         self._networkQueueIn.put(NetworkProcessMessage(NET_PROCESS_OPEN_SERVER_TRANSPORT,
                                                        NetworkUpdateTransport("udp", NetworkUDPTransport, (ip, port + 1))))
 
-        #self._networkServer = NetworkServerBase()
-        #self._networkServer.Open("tcp", NetworkTCPTransport(), (ip, port))
-        #self._networkServer.Open("udp", NetworkUDPTransport(), (ip, port+1))
         NetworkState.identity |= NET_HOST
 
         Log(f"Network Host Start, Identity: {NetworkState.identity}", LOG_NETWORKING)
@@ -268,19 +271,9 @@ class Engine:
         if NetworkState.identity | NET_HOST:
             NetworkState.identity -= NET_HOST
 
-        if NetworkState.identity == NET_NONE:
-            self.NetworkShutdownProcess()
-
         Log(f"Network Host Stop, Identity: {NetworkState.identity}", LOG_NETWORKING)
 
     def NetworkClientConnect(self, ip : str, port : int):
-        if not self._networkProcess:
-            self._networkQueueIn = multiprocessing.Queue()
-            self._networkQueueOut = multiprocessing.Queue()
-            self._networkProcess = multiprocessing.Process(target=NetworkProcessMain, args=(self._networkQueueIn,
-                                                                                     self._networkQueueOut))
-            self._networkProcess.start()
-
         Log(f"Network Client Connect ({ip},{port})", LOG_NETWORKING)
         if self._networkClient:
             Log("Failed to NetworkClientConnect, network client already exists", LOG_ERRORS)
@@ -290,9 +283,6 @@ class Engine:
         self._networkQueueIn.put(NetworkProcessMessage(NET_PROCESS_CONNECT_CLIENT_TRANSPORT,
                                                        NetworkUpdateTransport("udp", NetworkUDPTransport, (ip, port + 1))))
 
-        #self._networkClient = NetworkClientBase()
-        #self._networkClient.Connect("tcp", NetworkTCPTransport(), (ip, port))
-        #self._networkClient.Connect("udp", NetworkUDPTransport(), (ip, port+1))
         NetworkState.identity |= NET_CLIENT
 
         networkEventBytes = NetworkEventToBytes(NetworkEvent(NET_EVENT_INIT, bytearray()))
@@ -314,9 +304,6 @@ class Engine:
 
         if NetworkState.identity | NET_CLIENT:
             NetworkState.identity -= NET_CLIENT
-
-        if NetworkState.identity == NET_NONE:
-            self.NetworkShutdownProcess()
 
         Log(f"Network Client Disconnect, Identity: {NetworkState.identity}", LOG_NETWORKING)
 
