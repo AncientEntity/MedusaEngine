@@ -90,7 +90,6 @@ def NetworkProcessMain(inQueue : multiprocessing.Queue, outQueue : multiprocessi
         elif nextMessage.id == NET_PROCESS_CLIENT_SEND_MESSAGE:
             sendMessageInfo : NetworkSendMessage = nextMessage.data
             networkClient.Send(sendMessageInfo.msgBytes, sendMessageInfo.transportName)
-            Log(f"Client Sending Message transport={sendMessageInfo.transportName}, msglength: {len(sendMessageInfo.msgBytes)}")
 
         elif nextMessage.id == NET_PROCESS_SERVER_SEND_MESSAGE:
             sendMessageInfo : NetworkSendMessage = nextMessage.data

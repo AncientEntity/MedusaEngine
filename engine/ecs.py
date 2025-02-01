@@ -1,6 +1,7 @@
 from engine.datatypes.timedevents import TimedEvent
 import time
 
+from engine.networking.networkstate import NetworkState
 from engine.networking.variables.networkvarbase import NetworkVarBase
 from engine.networking.variables.networkvarvector import NetworkVarVector
 from engine.networking.variables.networkvarvectori import NetworkVarVectorInterpolate
@@ -190,7 +191,7 @@ class Entity:
 
 class NetworkEntity(Entity):
     def __init__(self, ownerId, forcedId=None):
-        self._position = NetworkVarVector()
+        self._position = NetworkVarVectorInterpolate()
 
         # Entity ID for networked object is always negative.
         if forcedId is not None:
@@ -206,13 +207,19 @@ class NetworkEntity(Entity):
     def GetNetworkVariables(self):
         if self._networkVariables:
             return self._networkVariables
+        hasAuthority = NetworkState.clientId == self.ownerId
+
+
         self._networkVariables = []
         self._networkVariables.append(("_position", self._position))
+        if hasAuthority:
+            self._position.hasAuthority = hasAuthority
         for component in self.components:
             for attr in dir(component):
                 attrValue = getattr(component, attr)
                 if isinstance(attrValue, NetworkVarBase):
                     self._networkVariables.append((attr, attrValue))
+                    attrValue.hasAuthority = hasAuthority
         return self._networkVariables
 
     def get_position(self):

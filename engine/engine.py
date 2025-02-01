@@ -217,12 +217,8 @@ class Engine:
         curTime = time.time()
         if curTime - self._lastSnapshotTime >= self.snapshotDelay:
             self._lastSnapshotTime = curTime
-            if NetworkState.identity & NET_HOST:
-                snapshot = NetworkSnapshot.GenerateSnapshotFull(self._currentScene) # todo sometimes just do partial snapshots
-                bytesToSend = NetworkEventToBytes(NetworkEvent(NET_EVENT_SNAPSHOT_FULL, snapshot.SnapshotToBytes()))
-            elif NetworkState.identity & NET_CLIENT:
-                snapshot = NetworkSnapshot.GenerateSnapshotPartial(self._currentScene)
-                bytesToSend = NetworkEventToBytes(NetworkEvent(NET_EVENT_SNAPSHOT_PARTIAL, snapshot.SnapshotToBytes()))
+            snapshot = NetworkSnapshot.GenerateSnapshotPartial(self._currentScene)
+            bytesToSend = NetworkEventToBytes(NetworkEvent(NET_EVENT_SNAPSHOT_PARTIAL, snapshot.SnapshotToBytes()))
 
             if NetworkState.identity & NET_HOST:
                 self.NetworkServerSend(bytesToSend, "tcp", None)
@@ -336,11 +332,18 @@ class Engine:
                 if networkEvent.sender in self.connectionsReference:
                     return # Already initialized the client.
 
+                # send new connection it's client ID and such
                 networkEventBytes = NetworkEventToBytes(NetworkEvent(NET_EVENT_INIT, networkEvent.sender.to_bytes(4,"big")))
                 connectionInfo = ConnectionInfo(networkEvent.sender)
                 self.connections.append(connectionInfo) # todo handle removing (disconnecting) from the list
                 self.connectionsReference[networkEvent.sender] = connectionInfo
                 self.NetworkServerSend(networkEventBytes, "tcp", networkEvent.sender)
+
+                # send new connection full snapshot
+                snapshot = NetworkSnapshot.GenerateSnapshotFull(self._currentScene) # todo sometimes just do partial snapshots
+                bytesToSend = NetworkEventToBytes(NetworkEvent(NET_EVENT_SNAPSHOT_FULL, snapshot.SnapshotToBytes()))
+                self.NetworkServerSend(bytesToSend, "tcp", networkEvent.sender)
+
                 #self._networkServer.Send(networkEventBytes, networkEvent.sender, "tcp")
         if not self.clientInitialized and NetworkState.identity != NET_HOST:
             return

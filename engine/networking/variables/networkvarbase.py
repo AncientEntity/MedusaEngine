@@ -4,6 +4,7 @@ from engine.logging import Log
 class NetworkVarBase:
     def __init__(self):
         self._modified = False
+        self.hasAuthority = False
 
 
     # Get/Set/Add as intended values

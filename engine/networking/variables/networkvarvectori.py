@@ -16,35 +16,36 @@ class WrappedList:
     def __setitem__(self, key, value):
         self.list[key] = value
         self.interp[key] = value
-        self.netVar._modified = True #todo temp
+        if self.netVar.hasAuthority:
+            self.netVar._modified = True #todo temp
 
 class NetworkVarVectorInterpolate(NetworkVarVector):
     def __init__(self, defaultValue=[0,0]):
         super().__init__(defaultValue)
 
-        self.interpolateSpeed = 10
+        self.interpolateSpeed = 100
         self.interpolateMaxDistance = 100
         self._interpolatePosition = defaultValue[:]
         self._lastInterpolateTime = time.time()
 
     def Set(self, value : list, modified=True):
         super().Set(value, modified)
-        if modified:
-            self._interpolatePosition = value[:]
+        distance = Distance(self._interpolatePosition, self.value)
+        if distance >= self.interpolateMaxDistance:
+            self._interpolatePosition = self.value[:]
 
     def Get(self):
-        if self._modified:
+        if self.hasAuthority:
             return self.value
-        print("INTERP")
-        d = Distance(self.value, self._interpolatePosition)
-        if d > self.interpolateMaxDistance:
-            self._interpolatePosition = self.value[:]
         else:
+            distance = Distance(self._interpolatePosition, self.value)
+            if distance > self.interpolateMaxDistance:
+                self._interpolatePosition = self.value[:]
+
             curTime = time.time()
             self._interpolatePosition = MoveTowards(self._interpolatePosition, self.value, self.interpolateSpeed*(curTime-self._lastInterpolateTime))
             self._lastInterpolateTime = curTime
-        return WrappedList(self.value, self._interpolatePosition, self)
-
+            return WrappedList(self.value,self._interpolatePosition, self)
 
 if __name__ == '__main__':
     t = NetworkVarVectorInterpolate()
