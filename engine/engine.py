@@ -251,8 +251,8 @@ class Engine:
     def NetworkHostStart(self, ip, port):
         self._networkQueueIn.put(NetworkProcessMessage(NET_PROCESS_OPEN_SERVER_TRANSPORT,
                                                        NetworkUpdateTransport("tcp", NetworkTCPTransport, (ip, port))))
-        self._networkQueueIn.put(NetworkProcessMessage(NET_PROCESS_OPEN_SERVER_TRANSPORT,
-                                                       NetworkUpdateTransport("udp", NetworkUDPTransport, (ip, port + 1))))
+        #self._networkQueueIn.put(NetworkProcessMessage(NET_PROCESS_OPEN_SERVER_TRANSPORT,
+        #                                               NetworkUpdateTransport("udp", NetworkUDPTransport, (ip, port + 1))))
 
         NetworkState.identity |= NET_HOST
 
@@ -265,8 +265,8 @@ class Engine:
 
         self._networkQueueIn.put(NetworkProcessMessage(NET_PROCESS_CLOSE_SERVER_TRANSPORT,
                                                        NetworkUpdateTransport("tcp", None, None)))
-        self._networkQueueIn.put(NetworkProcessMessage(NET_PROCESS_CLOSE_SERVER_TRANSPORT,
-                                                       NetworkUpdateTransport("udp", None, None)))
+        #self._networkQueueIn.put(NetworkProcessMessage(NET_PROCESS_CLOSE_SERVER_TRANSPORT,
+        #                                               NetworkUpdateTransport("udp", None, None)))
 
         if NetworkState.identity | NET_HOST:
             NetworkState.identity -= NET_HOST
@@ -280,8 +280,8 @@ class Engine:
 
         self._networkQueueIn.put(NetworkProcessMessage(NET_PROCESS_CONNECT_CLIENT_TRANSPORT,
                                                        NetworkUpdateTransport("tcp", NetworkTCPTransport, (ip, port))))
-        self._networkQueueIn.put(NetworkProcessMessage(NET_PROCESS_CONNECT_CLIENT_TRANSPORT,
-                                                       NetworkUpdateTransport("udp", NetworkUDPTransport, (ip, port + 1))))
+        #self._networkQueueIn.put(NetworkProcessMessage(NET_PROCESS_CONNECT_CLIENT_TRANSPORT,
+        #                                               NetworkUpdateTransport("udp", NetworkUDPTransport, (ip, port + 1))))
 
         NetworkState.identity |= NET_CLIENT
 
@@ -299,8 +299,8 @@ class Engine:
 
         self._networkQueueIn.put(NetworkProcessMessage(NET_PROCESS_CLOSE_CLIENT_TRANSPORT,
                                                        NetworkUpdateTransport("tcp", None, None)))
-        self._networkQueueIn.put(NetworkProcessMessage(NET_PROCESS_CLOSE_CLIENT_TRANSPORT,
-                                                       NetworkUpdateTransport("udp", None, None)))
+        #self._networkQueueIn.put(NetworkProcessMessage(NET_PROCESS_CLOSE_CLIENT_TRANSPORT,
+        #                                               NetworkUpdateTransport("udp", None, None)))
 
         if NetworkState.identity | NET_CLIENT:
             NetworkState.identity -= NET_CLIENT
