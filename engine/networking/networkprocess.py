@@ -47,7 +47,7 @@ def NetworkProcessMain(inQueue : multiprocessing.Queue, outQueue : multiprocessi
         t += 1
         if t % 20 == 0:
             print(f"Process Delay: {time.time() - nextMessage.requestMade}, queuelen: {inQueue.qsize()}, delay between: {timeDiff}, pps: {1.0 / timeDiff if timeDiff != 0 else 0}, t: {t}")
-
+        lastMessageStart = curTime
 
         if nextMessage.id == NET_PROCESS_SHUTDOWN:
             active = False
