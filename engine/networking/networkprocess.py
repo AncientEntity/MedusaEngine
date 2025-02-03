@@ -1,4 +1,4 @@
-import multiprocessing, threading
+import multiprocessing, threading, time
 from collections import namedtuple
 
 from engine.constants import NET_PROCESS_SHUTDOWN, NET_PROCESS_OPEN_SERVER_TRANSPORT, \
@@ -12,7 +12,12 @@ from engine.networking.networkserverbase import NetworkServerBase
 
 # id is from constants.py NET_PROCESS_*
 # data is whatever data is required.
-NetworkProcessMessage = namedtuple('NetworkProcessMessage', ['id', 'data'])
+#NetworkProcessMessage = namedtuple('NetworkProcessMessage', ['id', 'data'])
+class NetworkProcessMessage:
+    def __init__(self, id, data):
+        self.id : int = id
+        self.data = data
+        self.requestMade : float = time.time()
 
 NetworkUpdateTransport = namedtuple('NetworkUpdateTransport', ['name', 'transport', 'ipandport'])
 
@@ -32,8 +37,18 @@ def NetworkProcessMain(inQueue : multiprocessing.Queue, outQueue : multiprocessi
     receiveThread.start()
 
     active = True
+    lastMessageStart = time.time()
+    t = 0
     while active:
         nextMessage : NetworkProcessMessage = inQueue.get()
+
+        curTime = time.time()
+        timeDiff = curTime - lastMessageStart
+        t += 1
+        if t % 20 == 0:
+            print(f"Process Delay: {time.time() - nextMessage.requestMade}, queuelen: {inQueue.qsize()}, delay between: {timeDiff}, pps: {1.0 / timeDiff if timeDiff != 0 else 0}, t: {t}")
+
+
         if nextMessage.id == NET_PROCESS_SHUTDOWN:
             active = False
 

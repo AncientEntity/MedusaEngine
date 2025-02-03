@@ -1,5 +1,6 @@
 import socket
 import threading
+import time
 
 from engine.logging import Log, LOG_WARNINGS, LOG_ERRORS
 from engine.networking.connections.clientconnectionsocket import ClientConnectionSocket
@@ -58,11 +59,11 @@ class NetworkTCPTransport(NetworkTransportBase):
 
     def Send(self, message, clientConnection : ClientConnectionSocket) -> None:
         if clientConnection:
-            clientConnection.tcpConnection.send(len(message).to_bytes(4, byteorder='big'))
-            clientConnection.tcpConnection.send(message)
+            clientConnection.tcpConnection.send(len(message).to_bytes(4, byteorder='big')+message)
+            #clientConnection.tcpConnection.send(message)
         else:
-            self._socket.send(len(message).to_bytes(4, byteorder='big')) # Probably client not server
-            self._socket.send(message) # Probably client not server
+            self._socket.send(len(message).to_bytes(4, byteorder='big')+message) # Probably client not server
+            #self._socket.send(message) # Probably client not server
 
     def ThreadAccept(self):
         while self.active:

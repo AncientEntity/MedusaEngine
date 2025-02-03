@@ -65,7 +65,7 @@ class Engine:
         self._queuedScene = None # LoadScene sets this, and the update loop will swap scenes if this isn't none.
 
         # Networking
-        self.snapshotDelay = 10.0 / 60.0
+        self.snapshotDelay = 1.0 / 20.0
         self.connections = []
         self.connectionsReference : dict[ClientConnectionBase, ConnectionInfo] = {} # key=ClientConnectionBase, value=ConnectionInfo
 
