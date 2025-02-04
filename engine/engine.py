@@ -210,10 +210,10 @@ class Engine:
                 self._queuedNetworkEvents.append(nextMessage.data)
             elif nextMessage.id == NET_PROCESS_CLIENT_CONNECT:
                 NetworkState.TriggerHook(NetworkState.onClientConnect, (nextMessage.data.referenceId,))
-                Log(f"New Client Connected: {nextMessage.data.referenceId}, {nextMessage.data.nickname}")
+                Log(f"New Client Connected: {nextMessage.data.referenceId}, {nextMessage.data.nickname}", LOG_NETWORKING)
             elif nextMessage.id == NET_PROCESS_CLIENT_DISCONNECT:
                 NetworkState.TriggerHook(NetworkState.onClientDisconnect, (nextMessage.data.referenceId,))
-                Log(f"New Client Disconnected: {nextMessage.data.referenceId}, {nextMessage.data.nickname}")
+                Log(f"New Client Disconnected: {nextMessage.data.referenceId}, {nextMessage.data.nickname}", LOG_NETWORKING)
             else:
                 Log(f"Engine Unknown message type received: {nextMessage}", LOG_NETWORKING)
 
