@@ -6,7 +6,7 @@ import zmq
 from engine.constants import NET_PROCESS_SHUTDOWN, NET_PROCESS_OPEN_SERVER_TRANSPORT, \
     NET_PROCESS_CLOSE_SERVER_TRANSPORT, NET_PROCESS_CONNECT_CLIENT_TRANSPORT, NET_PROCESS_CLOSE_CLIENT_TRANSPORT, \
     NET_PROCESS_CLIENT_SEND_MESSAGE, NET_PROCESS_SERVER_SEND_MESSAGE, NET_CLIENT, NET_PROCESS_RECEIVE_MESSAGE, NET_HOST, \
-    NET_SAFE_PROCESS_DELAY, NET_PROCESS_CLIENT_CONNECT
+    NET_SAFE_PROCESS_DELAY, NET_PROCESS_CLIENT_CONNECT, NET_PROCESS_CONNECT_SUCCESS, NET_PROCESS_CONNECT_FAIL
 from engine.logging import Log, LOG_NETWORKING, LOG_NETWORKPROCESS
 from engine.networking.connections.clientconnectionbase import ClientConnectionBase
 from engine.networking.networkclientbase import NetworkClientBase
@@ -93,7 +93,15 @@ def NetworkProcessMain(portUsed : int):
             openTransportInfo : NetworkUpdateTransport = nextMessage.data
             if not networkClient:
                 networkClient = NetworkClientBase()
-            networkClient.Connect(openTransportInfo.name, openTransportInfo.transport(), openTransportInfo.ipandport)
+            try:
+                networkClient.Connect(openTransportInfo.name, openTransportInfo.transport(), openTransportInfo.ipandport)
+            except Exception:
+                Log(f"Failed to open transport {openTransportInfo.name} on ipandport={openTransportInfo.ipandport}", LOG_NETWORKPROCESS)
+                processSocket.send_pyobj(NetworkProcessMessage(NET_PROCESS_CONNECT_FAIL, nextMessage.data))
+                networkClient.Close(openTransportInfo.name)
+                continue
+
+            processSocket.send_pyobj(NetworkProcessMessage(NET_PROCESS_CONNECT_SUCCESS, nextMessage.data))
             Log(f"Transport Opened {openTransportInfo.name} on ipandport={openTransportInfo.ipandport}", LOG_NETWORKPROCESS)
         elif nextMessage.id == NET_PROCESS_CLOSE_CLIENT_TRANSPORT:
             if not networkClient:

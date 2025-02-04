@@ -214,6 +214,12 @@ class Engine:
             elif nextMessage.id == NET_PROCESS_CLIENT_DISCONNECT:
                 NetworkState.TriggerHook(NetworkState.onClientDisconnect, (nextMessage.data.referenceId,))
                 Log(f"New Client Disconnected: {nextMessage.data.referenceId}, {nextMessage.data.nickname}", LOG_NETWORKING)
+            elif nextMessage.id == NET_PROCESS_CONNECT_SUCCESS:
+                NetworkState.TriggerHook(NetworkState.onConnectSuccess, (nextMessage.data,))
+                Log(f"Connected to {nextMessage.data.ipandport}", LOG_NETWORKING)
+            elif nextMessage.id == NET_PROCESS_CONNECT_FAIL:
+                NetworkState.TriggerHook(NetworkState.onConnectFail, (nextMessage.data,))
+                Log(f"Failed to connect to {nextMessage.data.ipandport}", LOG_NETWORKING)
             else:
                 Log(f"Engine Unknown message type received: {nextMessage}", LOG_NETWORKING)
 

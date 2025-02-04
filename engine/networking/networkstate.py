@@ -10,7 +10,8 @@ class NetworkState:
     onClientDisconnect = [] #func(clientId)
 
     # Client Events
-    # None currently implemented
+    onConnectSuccess = [] #func()
+    onConnectFail = [] # func()
 
 
     @staticmethod
