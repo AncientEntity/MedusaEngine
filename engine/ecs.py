@@ -169,6 +169,7 @@ class Entity:
         self.name = "Unnamed Entity"
         self.position = (0, 0)
         self.components = []
+        self.ownerId = None # Used for multiplayer (see NetworkEntity)
 
         self.prefabName = None
 

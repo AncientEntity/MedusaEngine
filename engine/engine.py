@@ -5,15 +5,9 @@ from typing import Type
 
 import pygame
 import pygame._sdl2.controller
-import zmq
-from _queue import Empty
 
-import engine.ecs as ecs
-from engine.constants import KEYDOWN, KEYUP, KEYPRESSED, KEYINACTIVE, SPLASH_BUILDONLY, SPLASH_ALWAYS, \
-    NET_NONE, NET_HOST, NET_CLIENT, NET_EVENT_INIT, NET_EVENT_SNAPSHOT_PARTIAL, NET_EVENT_SNAPSHOT_FULL, \
-    NET_LISTENSERVER, NET_PROCESS_OPEN_SERVER_TRANSPORT, NET_PROCESS_SHUTDOWN, NET_PROCESS_CONNECT_CLIENT_TRANSPORT, \
-    NET_PROCESS_CLOSE_CLIENT_TRANSPORT, NET_PROCESS_CLOSE_SERVER_TRANSPORT, NET_PROCESS_CLIENT_SEND_MESSAGE, \
-    NET_PROCESS_RECEIVE_MESSAGE, NET_PROCESS_SERVER_SEND_MESSAGE, NET_SUBPROCESS_NAME
+from engine import ecs
+from engine.constants import *
 from engine.datatypes.assetmanager import assets
 from engine.game import Game
 import time
@@ -26,19 +20,17 @@ from engine.logging import Log, LOG_ERRORS, LOG_INFO, LOG_WARNINGS, LOG_NETWORKI
 from engine.networking.connectioninfo import ConnectionInfo
 from engine.networking.connections.clientconnectionbase import ClientConnectionBase
 from engine.networking.networkclientbase import NetworkClientBase
-from engine.networking.networkevent import NetworkEvent, NetworkEventCreateEntity, NetworkEventToBytes, \
-    NetworkEventFromBytes
-from engine.networking.networkprocess import NetworkProcessMain, NetworkProcessMessage, NetworkUpdateTransport, \
-    NetworkSendMessage
+from engine.networking.networkevent import NetworkEvent, NetworkEventToBytes
 from engine.networking.networkserverbase import NetworkServerBase
 from engine.networking.networksnapshot import NetworkSnapshot, NetworkEntitySnapshot
 from engine.networking.networkstate import NetworkState
 from engine.networking.transport.networktcptransport import NetworkTCPTransport
-from engine.networking.transport.networkudptransport import NetworkUDPTransport
-from engine.networking.variables.networkvarbase import NetworkVarBase
 from engine.scenes import splashscene
 from engine.tools.platform import IsBuilt, IsDebug, currentPlatform, IsPlatformWeb
-
+if not IsPlatformWeb():
+    import zmq
+    from engine.networking.networkprocess import NetworkProcessMain, NetworkProcessMessage, NetworkUpdateTransport, \
+        NetworkSendMessage
 
 class Engine:
     _instance = None
@@ -66,21 +58,22 @@ class Engine:
         self._queuedScene = None # LoadScene sets this, and the update loop will swap scenes if this isn't none.
 
         # Networking
-        self.snapshotDelay = 1.0 / 25.0
-        self.connections = []
-        self.connectionsReference : dict[ClientConnectionBase, ConnectionInfo] = {} # key=ClientConnectionBase, value=ConnectionInfo
+        if not IsPlatformWeb():
+            self.snapshotDelay = 1.0 / 25.0
+            self.connections = []
+            self.connectionsReference : dict[ClientConnectionBase, ConnectionInfo] = {} # key=ClientConnectionBase, value=ConnectionInfo
 
-        self.clientInitialized = False
-        self._queuedNetworkEvents = []
-        self._networkSendQueue = []
-        self._lastSnapshotTime = 0
+            self.clientInitialized = False
+            self._queuedNetworkEvents = []
+            self._networkSendQueue = []
+            self._lastSnapshotTime = 0
 
-        self._networkServer : NetworkServerBase = None
-        self._networkClient : NetworkClientBase = None
+            self._networkServer : NetworkServerBase = None
+            self._networkClient : NetworkClientBase = None
 
-        self._netContext : zmq.Context = zmq.Context()
-        self._networkProcessSocket : zmq.Socket = None
-        self._networkProcess : multiprocessing.Process = None
+            self._netContext : zmq.Context = zmq.Context()
+            self._networkProcessSocket : zmq.Socket = None
+            self._networkProcess : multiprocessing.Process = None
 
 
         self.LoadGame() #Loads self._game into the engine

@@ -10,6 +10,7 @@ from engine.networking.networkstate import NetworkState
 from engine.scenes.levelscene import LevelScene
 from engine.systems.physics import PhysicsSystem
 from engine.systems.ui import UISystem
+from engine.tools.platform import IsPlatformWeb
 from game import prefabs
 from game.assets import worldTileset
 from game.systems import playersystem
@@ -27,8 +28,9 @@ class TiledTestScene(LevelScene):
         self.player = None
         
     def LevelStart(self):
-        #self.player = assets.Instantiate("player", self)
-        #self.player.position = self.GetRandomTiledObjectByName("SPAWN")["position"][:]
+        if IsPlatformWeb():
+            self.player = assets.Instantiate("player", self)
+            self.player.position = self.GetRandomTiledObjectByName("SPAWN")["position"][:]
 
         self.worldTextTest = self.CreateEntity("World Text Test",[-150,0],[TextRenderer("World Test String :)", 12, "Arial")])
         self.worldTextTest.GetComponent(TextRenderer).screenSpace = False
