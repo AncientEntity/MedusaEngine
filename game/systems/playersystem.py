@@ -37,7 +37,7 @@ class PlayerSystem(EntitySystem):
                 player.parentEntity.GetComponent(SpriteRenderer).sprite = player.idleAnim
 
         if Input.KeyPressed(pygame.K_g):
-            newSkeleton = assets.Instantiate("skeleton",currentScene)
+            newSkeleton = assets.NetInstantiate("skeleton",currentScene)
             newSkeleton.position = [player.parentEntity.position[0],player.parentEntity.position[1]-100]
         if Input.KeyDown(pygame.K_q):
             if player.tintEvent == None:

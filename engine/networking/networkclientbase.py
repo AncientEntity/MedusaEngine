@@ -58,4 +58,8 @@ if __name__ == '__main__': # todo remove before putting into master
     while True:
         import random, time
         t.Send(f"test!{random.randint(0,999)}".encode(), "tcp")
+        msg = None
+        while not msg:
+            msg = t.GetNextMessage()
+        print(f"Reply: {msg[0].decode()}")
         time.sleep(0.5)

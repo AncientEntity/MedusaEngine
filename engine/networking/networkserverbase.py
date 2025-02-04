@@ -27,8 +27,11 @@ class NetworkServerBase:
     def Send(self, message, clientConnection : ClientConnectionBase, transportName):
         self.transportHandlers[transportName].Send(message, clientConnection)
 
-    def SendAll(self, message, transportName):
+    def SendAll(self, message, transportName, ignoreTargets=[]):
         for clientConnection in self.transportHandlers[transportName].clientConnections[:]:
+            if clientConnection.referenceId in ignoreTargets:
+                continue
+
             try:
                 self.transportHandlers[transportName].Send(message, clientConnection)
             except Exception as e:
@@ -55,4 +58,7 @@ if __name__ == '__main__': # todo remove before putting into master
     t = NetworkServerBase()
     t.Open("tcp", NetworkTCPTransport(), ("127.0.0.1",25238))
     while True:
-        pass
+        next = t.GetNextMessage()
+        if next:
+            print(next[0].decode())
+            t.Send(f"Reply: {next[0].decode()}".encode(), next[1], "tcp")

@@ -1,6 +1,8 @@
 import multiprocessing, threading, time
 from collections import namedtuple
 
+import zmq
+
 from engine.constants import NET_PROCESS_SHUTDOWN, NET_PROCESS_OPEN_SERVER_TRANSPORT, \
     NET_PROCESS_CLOSE_SERVER_TRANSPORT, NET_PROCESS_CONNECT_CLIENT_TRANSPORT, NET_PROCESS_CLOSE_CLIENT_TRANSPORT, \
     NET_PROCESS_CLIENT_SEND_MESSAGE, NET_PROCESS_SERVER_SEND_MESSAGE, NET_CLIENT, NET_PROCESS_RECEIVE_MESSAGE, NET_HOST
@@ -9,10 +11,9 @@ from engine.networking.connections.clientconnectionbase import ClientConnectionB
 from engine.networking.networkclientbase import NetworkClientBase
 from engine.networking.networkevent import NetworkEventFromBytes
 from engine.networking.networkserverbase import NetworkServerBase
+from engine.tools.platform import IsBuilt
 
-# id is from constants.py NET_PROCESS_*
-# data is whatever data is required.
-#NetworkProcessMessage = namedtuple('NetworkProcessMessage', ['id', 'data'])
+
 class NetworkProcessMessage:
     def __init__(self, id, data):
         self.id : int = id
@@ -21,32 +22,38 @@ class NetworkProcessMessage:
 
 NetworkUpdateTransport = namedtuple('NetworkUpdateTransport', ['name', 'transport', 'ipandport'])
 
-NetworkSendMessage = namedtuple('NetworkSendMessage', ['transportName', 'target', 'msgBytes'])
+NetworkSendMessage = namedtuple('NetworkSendMessage', ['transportName', 'target', 'msgBytes', 'ignoreTarget'])
 
 active = True
 networkServer: NetworkServerBase = None
 networkClient: NetworkClientBase = None
 connections = {}
+context: zmq.Context = zmq.Context()
 
-def NetworkProcessMain(inQueue : multiprocessing.Queue, outQueue : multiprocessing.Queue):
+def NetworkProcessMain(portUsed : int):
     global networkServer, networkClient, active, connections
     #todo log files should have a different prefix set like log-net-* right now 2 files are generated.
     Log("Network Process Main Started", LOG_NETWORKING)
 
-    receiveThread = threading.Thread(target=NetworkProcessReceiveThread, args=(outQueue,))
+    processSocket = context.socket(zmq.DEALER)
+    processSocket.connect(f"tcp://localhost:{portUsed}")
+    processSocket.send(b"ack")
+
+    receiveThread = threading.Thread(target=NetworkProcessReceiveThread, args=(processSocket,))
     receiveThread.start()
 
     active = True
     lastMessageStart = time.time()
     t = 0
     while active:
-        nextMessage : NetworkProcessMessage = inQueue.get()
+        nextMessage : NetworkProcessMessage = processSocket.recv_pyobj()#inQueue.get()
 
         curTime = time.time()
         timeDiff = curTime - lastMessageStart
         t += 1
-        if t % 20 == 0:
-            print(f"Process Delay: {time.time() - nextMessage.requestMade}, queuelen: {inQueue.qsize()}, delay between: {timeDiff}, pps: {1.0 / timeDiff if timeDiff != 0 else 0}, t: {t}")
+        if t % 20 == 0 and not IsBuilt():
+            import pickle
+            print(f"Process Delay: {time.time() - nextMessage.requestMade}, msg size: {len(pickle.dumps(nextMessage))}, mps: {1.0 / timeDiff if timeDiff != 0 else 0}, t: {t}")
         lastMessageStart = curTime
 
         if nextMessage.id == NET_PROCESS_SHUTDOWN:
@@ -59,8 +66,7 @@ def NetworkProcessMain(inQueue : multiprocessing.Queue, outQueue : multiprocessi
                 for layer in list(networkClient.transportHandlers.keys()):
                     networkClient.Close(layer)
 
-            inQueue.close()
-            outQueue.close()
+            processSocket.close()
             Log("Network Process Main Shutdown")
             exit(0)
 
@@ -109,9 +115,11 @@ def NetworkProcessMain(inQueue : multiprocessing.Queue, outQueue : multiprocessi
         elif nextMessage.id == NET_PROCESS_SERVER_SEND_MESSAGE:
             sendMessageInfo : NetworkSendMessage = nextMessage.data
             if not sendMessageInfo.target:
-                networkServer.SendAll(sendMessageInfo.msgBytes, sendMessageInfo.transportName)
+                networkServer.SendAll(sendMessageInfo.msgBytes, sendMessageInfo.transportName, [sendMessageInfo.ignoreTarget])
             else:
                 networkServer.Send(sendMessageInfo.msgBytes, connections[sendMessageInfo.target], sendMessageInfo.transportName)
+
+    processSocket.close()
 
 def NetworkClientConnect(connection : ClientConnectionBase):
     global connections
@@ -122,7 +130,7 @@ def NetworkClientDisconnect(connection : ClientConnectionBase):
     connections.pop(connection.referenceId)
     Log(f"Client disconnected: {connection.referenceId}")
 
-def NetworkProcessReceiveThread(outQueue : multiprocessing.Queue):
+def NetworkProcessReceiveThread(outSocket : zmq.Socket):
     global networkServer, networkClient, active
 
     Log("NetworkProcessReceiveThread Started", LOG_NETWORKING)
@@ -136,7 +144,7 @@ def NetworkProcessReceiveThread(outQueue : multiprocessing.Queue):
                     nextMessage.processAs = NET_HOST
                     nextMessage.sender = nextMessageBytes[1].referenceId
 
-                    outQueue.put(NetworkProcessMessage(NET_PROCESS_RECEIVE_MESSAGE, nextMessage))
+                    outSocket.send_pyobj(NetworkProcessMessage(NET_PROCESS_RECEIVE_MESSAGE, nextMessage))
 
         if networkClient:
             nextMessageBytes = 1
@@ -145,4 +153,4 @@ def NetworkProcessReceiveThread(outQueue : multiprocessing.Queue):
                 if nextMessageBytes:
                     nextMessage = NetworkEventFromBytes(nextMessageBytes[0])
                     nextMessage.processAs = NET_CLIENT
-                    outQueue.put(NetworkProcessMessage(NET_PROCESS_RECEIVE_MESSAGE, nextMessage))
+                    outSocket.send_pyobj(NetworkProcessMessage(NET_PROCESS_RECEIVE_MESSAGE, nextMessage))

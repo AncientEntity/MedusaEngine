@@ -5,6 +5,7 @@ from typing import Type
 
 import pygame
 import pygame._sdl2.controller
+import zmq
 from _queue import Empty
 
 import engine.ecs as ecs
@@ -65,7 +66,7 @@ class Engine:
         self._queuedScene = None # LoadScene sets this, and the update loop will swap scenes if this isn't none.
 
         # Networking
-        self.snapshotDelay = 1.0 / 20.0
+        self.snapshotDelay = 1.0 / 25.0
         self.connections = []
         self.connectionsReference : dict[ClientConnectionBase, ConnectionInfo] = {} # key=ClientConnectionBase, value=ConnectionInfo
 
@@ -77,8 +78,8 @@ class Engine:
         self._networkServer : NetworkServerBase = None
         self._networkClient : NetworkClientBase = None
 
-        self._networkQueueIn : multiprocessing.Queue = None
-        self._networkQueueOut : multiprocessing.Queue = None
+        self._netContext : zmq.Context = zmq.Context()
+        self._networkProcessSocket : zmq.Socket = None
         self._networkProcess : multiprocessing.Process = None
 
 
@@ -195,9 +196,9 @@ class Engine:
     def NetworkTick(self):
         # debug testing remove eventually
         if Input.KeyDown(pygame.K_LEFTBRACKET):
-            self.NetworkHostStart('127.0.0.1', 25565)
+            self.NetworkHostStart('192.168.0.135', 25565)
         elif Input.KeyDown(pygame.K_RIGHTBRACKET):
-            self.NetworkClientConnect('127.0.0.1', 25565)
+            self.NetworkClientConnect('192.168.0.135', 25565)
         elif Input.KeyDown(pygame.K_n):
             for thread in threading.enumerate():
                 print(thread.name)
@@ -205,12 +206,12 @@ class Engine:
         if NetworkState.identity == NET_NONE:
             return
 
-        queueEmptyError = False
-        while not queueEmptyError:
+        messageWaiting = True
+        while messageWaiting:
             try:
-                nextMessage : NetworkProcessMessage = self._networkQueueOut.get(False)
-            except Empty:
-                queueEmptyError = True
+                nextMessage = self._networkProcessSocket.recv_pyobj(zmq.NOBLOCK)
+            except zmq.error.ZMQError:
+                messageWaiting = False
                 break
             if nextMessage.id == NET_PROCESS_RECEIVE_MESSAGE:
                 self._queuedNetworkEvents.append(nextMessage.data)
@@ -223,8 +224,12 @@ class Engine:
         curTime = time.time()
         if curTime - self._lastSnapshotTime >= self.snapshotDelay:
             self._lastSnapshotTime = curTime
-            snapshot = NetworkSnapshot.GenerateSnapshotPartial(self._currentScene)
-            bytesToSend = NetworkEventToBytes(NetworkEvent(NET_EVENT_SNAPSHOT_PARTIAL, snapshot.SnapshotToBytes()))
+            if NetworkState.identity & NET_HOST:
+                snapshot = NetworkSnapshot.GenerateSnapshotFull(self._currentScene)
+                bytesToSend = NetworkEventToBytes(NetworkEvent(NET_EVENT_SNAPSHOT_PARTIAL, snapshot.SnapshotToBytes()))
+            elif NetworkState.identity & NET_CLIENT:
+                snapshot = NetworkSnapshot.GenerateSnapshotPartial(self._currentScene)
+                bytesToSend = NetworkEventToBytes(NetworkEvent(NET_EVENT_SNAPSHOT_PARTIAL, snapshot.SnapshotToBytes()))
 
             if NetworkState.identity & NET_HOST:
                 self.NetworkServerSend(bytesToSend, "tcp", None)
@@ -234,25 +239,30 @@ class Engine:
     def NetworkCreateProcess(self):
         if not self._networkProcess:
             Log("Creating network process", LOG_NETWORKING)
-            self._networkQueueIn = multiprocessing.Queue()
-            self._networkQueueOut = multiprocessing.Queue()
-            self._networkProcess = multiprocessing.Process(target=NetworkProcessMain, args=(self._networkQueueIn,
-                                                                                            self._networkQueueOut))
+
+            self._networkProcessSocket = self._netContext.socket(zmq.DEALER)
+            portUsed = self._networkProcessSocket.bind_to_random_port('tcp://localhost', min_port=30000)
+
+            self._networkProcess = multiprocessing.Process(target=NetworkProcessMain, args=(portUsed,))
             self._networkProcess.name = NET_SUBPROCESS_NAME
             self._networkProcess.daemon = True
             self._networkProcess.start()
+            subprocessAck = self._networkProcessSocket.recv(4)
+            if subprocessAck != b"ack":
+                Log(f"Incorrect acknowledgement from network subprocess. Port: {portUsed}", LOG_NETWORKING)
+            else:
+                Log(f"Acknowledgement receieved from network subprocess Port: {portUsed}", LOG_NETWORKING)
+
     def NetworkShutdownProcess(self):
         Log("Shutting down network process", LOG_NETWORKING)
-        self._networkQueueIn.put(NetworkProcessMessage(NET_PROCESS_SHUTDOWN, None))
-        self._networkQueueIn.close()
-        self._networkQueueOut.close()
+        self._networkProcessSocket.send_pyobj(NetworkProcessMessage(NET_PROCESS_SHUTDOWN, None))
+        #self._networkQueueIn.put(NetworkProcessMessage(NET_PROCESS_SHUTDOWN, None))
+        self._networkProcessSocket.close()
         self._networkProcess = None
 
     def NetworkHostStart(self, ip, port):
-        self._networkQueueIn.put(NetworkProcessMessage(NET_PROCESS_OPEN_SERVER_TRANSPORT,
-                                                       NetworkUpdateTransport("tcp", NetworkTCPTransport, (ip, port))))
-        #self._networkQueueIn.put(NetworkProcessMessage(NET_PROCESS_OPEN_SERVER_TRANSPORT,
-        #                                               NetworkUpdateTransport("udp", NetworkUDPTransport, (ip, port + 1))))
+        self._networkProcessSocket.send_pyobj(NetworkProcessMessage(NET_PROCESS_OPEN_SERVER_TRANSPORT,
+                                                                    NetworkUpdateTransport("tcp", NetworkTCPTransport, (ip, port))))
 
         NetworkState.identity |= NET_HOST
 
@@ -262,11 +272,8 @@ class Engine:
         Log("Network Host Stop", LOG_NETWORKING)
         if not NetworkState.identity & NET_HOST:
             return
-
-        self._networkQueueIn.put(NetworkProcessMessage(NET_PROCESS_CLOSE_SERVER_TRANSPORT,
-                                                       NetworkUpdateTransport("tcp", None, None)))
-        #self._networkQueueIn.put(NetworkProcessMessage(NET_PROCESS_CLOSE_SERVER_TRANSPORT,
-        #                                               NetworkUpdateTransport("udp", None, None)))
+        self._networkProcessSocket.send_pyobj(NetworkProcessMessage(NET_PROCESS_CLOSE_SERVER_TRANSPORT,
+                                                                    NetworkUpdateTransport("tcp", None, None)))
 
         if NetworkState.identity | NET_HOST:
             NetworkState.identity -= NET_HOST
@@ -278,10 +285,8 @@ class Engine:
         if self._networkClient:
             Log("Failed to NetworkClientConnect, network client already exists", LOG_ERRORS)
 
-        self._networkQueueIn.put(NetworkProcessMessage(NET_PROCESS_CONNECT_CLIENT_TRANSPORT,
-                                                       NetworkUpdateTransport("tcp", NetworkTCPTransport, (ip, port))))
-        #self._networkQueueIn.put(NetworkProcessMessage(NET_PROCESS_CONNECT_CLIENT_TRANSPORT,
-        #                                               NetworkUpdateTransport("udp", NetworkUDPTransport, (ip, port + 1))))
+        self._networkProcessSocket.send_pyobj(NetworkProcessMessage(NET_PROCESS_CONNECT_CLIENT_TRANSPORT,
+                                                                    NetworkUpdateTransport("tcp", NetworkTCPTransport, (ip, port))))
 
         NetworkState.identity |= NET_CLIENT
 
@@ -296,11 +301,8 @@ class Engine:
         if not NetworkState.identity & NET_CLIENT:
             return
 
-
-        self._networkQueueIn.put(NetworkProcessMessage(NET_PROCESS_CLOSE_CLIENT_TRANSPORT,
-                                                       NetworkUpdateTransport("tcp", None, None)))
-        #self._networkQueueIn.put(NetworkProcessMessage(NET_PROCESS_CLOSE_CLIENT_TRANSPORT,
-        #                                               NetworkUpdateTransport("udp", None, None)))
+        self._networkProcessSocket.send_pyobj(NetworkProcessMessage(NET_PROCESS_CLOSE_CLIENT_TRANSPORT,
+                                                                    NetworkUpdateTransport("tcp", None, None)))
 
         if NetworkState.identity | NET_CLIENT:
             NetworkState.identity -= NET_CLIENT
@@ -337,8 +339,7 @@ class Engine:
 
         if networkEvent.eventId == NET_EVENT_SNAPSHOT_PARTIAL or networkEvent.eventId == NET_EVENT_SNAPSHOT_FULL:
             snapshot = NetworkSnapshot.SnapshotFromBytes(networkEvent.data)
-            #if networkEvent.sender:
-            #    print(f"Handling snapshot from client={self.connectionsReference[networkEvent.sender].clientID}, entcount={len(snapshot.entities)}")
+
             self.NetworkHandleSnapshot(snapshot)
             # todo creating entities via snapshot
             # todo destroying entities via snapshot
@@ -347,6 +348,7 @@ class Engine:
     def NetworkHandleSnapshot(self, snapshot : NetworkSnapshot):
         netEntitySnapshot : NetworkEntitySnapshot
         for netEntitySnapshot in snapshot.entities:
+            # Can only replicate prefabs at the moment
             if netEntitySnapshot.prefabName == '' or netEntitySnapshot.ownerId == NetworkState.clientId:
                 continue
             #todo check if entity marked for deletion
@@ -354,7 +356,6 @@ class Engine:
             # If entity doesnt exist create it
             if netEntitySnapshot.networkId not in self._currentScene.networkedEntities:
                 ent = assets.NetInstantiate(netEntitySnapshot.prefabName, self._currentScene, netEntitySnapshot.networkId, netEntitySnapshot.ownerId, [0,0])
-                #print(f"Replicating over network: {netEntitySnapshot.prefabName}, id: {netEntitySnapshot.networkId}, vars: {netEntitySnapshot.variables}")
             else:
                 ent = self._currentScene.networkedEntities[netEntitySnapshot.networkId]
 
@@ -363,12 +364,12 @@ class Engine:
                 for foundVar in entVars:
                     if foundVar[0] == variable[0]:
                         foundVar[1].SetFromBytes(variable[1], modified=False)
-                        #print(f"Updated var entityId={netEntitySnapshot.networkId}, varname={variable[0]}, val={foundVar[1].Get()}")
                         break
     # If target is None, it will send all
     def NetworkServerSend(self, message, transport, target):
-        self._networkQueueIn.put(NetworkProcessMessage(NET_PROCESS_SERVER_SEND_MESSAGE,
-                                                       NetworkSendMessage(transport, target,
-                                                                          message)))
+        self._networkProcessSocket.send_pyobj(NetworkProcessMessage(NET_PROCESS_SERVER_SEND_MESSAGE,
+                                                                    NetworkSendMessage(transport, target,
+                                                                          message, NetworkState.clientId if NetworkState.clientId != -1 else None)))
+
     def NetworkClientSend(self, message, transport):
-        self._networkQueueIn.put(NetworkProcessMessage(NET_PROCESS_CLIENT_SEND_MESSAGE, NetworkSendMessage(transport, None, message)))
+        self._networkProcessSocket.send_pyobj(NetworkProcessMessage(NET_PROCESS_CLIENT_SEND_MESSAGE, NetworkSendMessage(transport, None, message, None)))
