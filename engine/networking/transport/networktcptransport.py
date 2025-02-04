@@ -74,7 +74,7 @@ class NetworkTCPTransport(NetworkTransportBase):
                     return
                 else:
                     raise e
-            clientConnection = ClientConnectionSocket()
+            clientConnection = ClientConnectionSocket(*addr)
             clientConnection.tcpConnection = c
             self.clientConnections.append(clientConnection)
             self.CallHook(self.onClientConnect, (clientConnection,))

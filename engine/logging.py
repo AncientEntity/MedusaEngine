@@ -14,6 +14,7 @@ LOG_INFO = 3
 LOG_ALL = 4
 
 LOG_NETWORKING = 2.1
+LOG_NETWORKPROCESS = 3.1
 
 # Log Settings
 LOG_LEVEL = LOG_INFO
@@ -32,8 +33,10 @@ def LogPrefix(level):
         return "[Warning]"
     elif(level == LOG_ERRORS):
         return "[ERROR]"
-    elif(level == LOG_NETWORKING):
+    elif (level == LOG_NETWORKING):
         return "[NET]"
+    elif(level == LOG_NETWORKPROCESS):
+        return "[NETPROCESS]"
 
 def CreateErrorBox(message):
     stacktrace = "\nTrace\n"

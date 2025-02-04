@@ -208,10 +208,21 @@ class Engine:
                 break
             if nextMessage.id == NET_PROCESS_RECEIVE_MESSAGE:
                 self._queuedNetworkEvents.append(nextMessage.data)
+            elif nextMessage.id == NET_PROCESS_CLIENT_CONNECT:
+                NetworkState.TriggerHook(NetworkState.onClientConnect, (nextMessage.data.referenceId,))
+                Log(f"New Client Connected: {nextMessage.data.referenceId}, {nextMessage.data.nickname}")
+            elif nextMessage.id == NET_PROCESS_CLIENT_DISCONNECT:
+                NetworkState.TriggerHook(NetworkState.onClientDisconnect, (nextMessage.data.referenceId,))
+                Log(f"New Client Disconnected: {nextMessage.data.referenceId}, {nextMessage.data.nickname}")
+            else:
+                Log(f"Engine Unknown message type received: {nextMessage}", LOG_NETWORKING)
 
         # Handle new queued network events
         for i in range(len(self._queuedNetworkEvents)):
             self.NetworkHandleEvent(self._queuedNetworkEvents.pop(0))
+
+        if not self.clientInitialized:
+            return
 
         # Snapshots
         curTime = time.time()
@@ -342,12 +353,16 @@ class Engine:
         netEntitySnapshot : NetworkEntitySnapshot
         for netEntitySnapshot in snapshot.entities:
             # Can only replicate prefabs at the moment
-            if netEntitySnapshot.prefabName == '' or netEntitySnapshot.ownerId == NetworkState.clientId:
+            if netEntitySnapshot.prefabName == '':
                 continue
+            entityFound = netEntitySnapshot.networkId in self._currentScene.networkedEntities
+            if entityFound and netEntitySnapshot.ownerId == NetworkState.clientId:
+                continue # This allows the server to create entities for clients.
+
             #todo check if entity marked for deletion
 
             # If entity doesnt exist create it
-            if netEntitySnapshot.networkId not in self._currentScene.networkedEntities:
+            if not entityFound:
                 ent = assets.NetInstantiate(netEntitySnapshot.prefabName, self._currentScene, netEntitySnapshot.networkId, netEntitySnapshot.ownerId, [0,0])
             else:
                 ent = self._currentScene.networkedEntities[netEntitySnapshot.networkId]
