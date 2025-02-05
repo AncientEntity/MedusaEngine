@@ -48,7 +48,6 @@ def RPC(serverOnly=False):
     def decorator(func):
         def wrapper(*args, **kwargs):
             isCaller = kwargs['isCaller'] if 'isCaller' in kwargs else True
-            #print(f"Rpc Called: {type(args[0]).__name__}.{func.__name__}, Args: {args}, isCaller: {isCaller}")
 
             if isCaller and NetworkState.identity:
                 parentComponent = args[0]
