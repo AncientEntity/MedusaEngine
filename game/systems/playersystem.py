@@ -26,7 +26,7 @@ class PlayerSystem(EntitySystem):
     def Update(self, currentScene: Scene):
         player : PlayerComponent
         for player in currentScene.components[PlayerComponent]:
-            if player.parentEntity.ownerId == NetworkState.clientId:
+            if player.parentEntity.ownerId == NetworkState.clientId or not NetworkState.identity:
                 self.PlayerMovement(player)
                 RenderingSystem.instance.cameraPosition = player.parentEntity.position
 
