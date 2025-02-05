@@ -2,7 +2,7 @@ from collections import namedtuple
 
 from engine.ecs import EntitySystem
 from engine.networking.networkstate import NetworkState
-import pickle
+import json
 
 class RPCNotInEntitySystemError(Exception):
     pass
@@ -56,12 +56,13 @@ def RPC(serverOnly=False):
 
                 NetworkState.rpcQueue.append(RPCAction(type(args[0]).__name__,
                                                        func.__name__,
-                                                       pickle.dumps(args[1:])))
+                                                       json.dumps(args[1:]).encode('utf-8')))
+                                                       #pickle.dumps(args[1:])))
 
                 func(*args)
             else:
                 if NetworkState.identity:
-                    args = pickle.loads(kwargs['argBytes'])
+                    args = json.loads(kwargs['argBytes'].decode('utf-8')) #pickle.loads(kwargs['argBytes'])
                     func(kwargs['self'], *args)
                 else:
                     func(*args)
