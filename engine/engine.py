@@ -24,6 +24,7 @@ from engine.networking.networkevent import NetworkEvent, NetworkEventToBytes
 from engine.networking.networkserverbase import NetworkServerBase
 from engine.networking.networksnapshot import NetworkSnapshot, NetworkEntitySnapshot
 from engine.networking.networkstate import NetworkState
+from engine.networking.rpc import RPCAction
 from engine.networking.transport.networktcptransport import NetworkTCPTransport
 from engine.scenes import splashscene
 from engine.tools.platform import IsBuilt, IsDebug, currentPlatform, IsPlatformWeb
@@ -240,6 +241,7 @@ class Engine:
             elif NetworkState.identity & NET_CLIENT:
                 snapshot = NetworkSnapshot.GenerateSnapshotPartial(self._currentScene)
                 bytesToSend = NetworkEventToBytes(NetworkEvent(NET_EVENT_SNAPSHOT_PARTIAL, snapshot.SnapshotToBytes()))
+            NetworkState.rpcQueue.clear()
 
             if NetworkState.identity & NET_HOST:
                 self.NetworkServerSend(bytesToSend, "tcp", None)
@@ -252,7 +254,6 @@ class Engine:
 
             self._networkProcessSocket = self._netContext.socket(zmq.DEALER)
             portUsed = self._networkProcessSocket.bind_to_random_port('tcp://localhost', min_port=30000)
-            NetworkState.processSocket = self._networkProcessSocket
 
             self._networkProcess = multiprocessing.Process(target=NetworkProcessMain, args=(portUsed,))
             self._networkProcess.name = NET_SUBPROCESS_NAME
@@ -349,14 +350,14 @@ class Engine:
             return
 
         if networkEvent.eventId == NET_EVENT_SNAPSHOT_PARTIAL or networkEvent.eventId == NET_EVENT_SNAPSHOT_FULL:
-            snapshot = NetworkSnapshot.SnapshotFromBytes(networkEvent.data)
-
-            self.NetworkHandleSnapshot(snapshot)
+            self.NetworkHandleSnapshot(networkEvent)
             # todo creating entities via snapshot
             # todo destroying entities via snapshot
             # todo updating variables over snapshot
 
-    def NetworkHandleSnapshot(self, snapshot : NetworkSnapshot):
+    def NetworkHandleSnapshot(self, networkEvent : NetworkEvent):
+        snapshot : NetworkSnapshot = NetworkSnapshot.SnapshotFromBytes(networkEvent.data)
+
         netEntitySnapshot : NetworkEntitySnapshot
         for netEntitySnapshot in snapshot.entities:
             # Can only replicate prefabs at the moment
@@ -380,6 +381,26 @@ class Engine:
                     if foundVar[0] == variable[0]:
                         foundVar[1].SetFromBytes(variable[1], modified=False)
                         break
+
+        if networkEvent.sender == NetworkState.clientId:
+            return
+
+        rpc : RPCAction
+        for rpc in snapshot.rpcCalls:
+
+            system = self._currentScene.GetSystemByName(rpc.systemType)
+            funcToCall = getattr(system, rpc.funcName)
+            if not hasattr(funcToCall, "__rpc__"):
+                Log(f"ClientId: {networkEvent.sender} has tried to run non RPC function: {rpc.systemType}.{rpc.funcName}", LOG_WARNINGS)
+                continue
+            if NetworkState.identity & NET_HOST:
+                if funcToCall.__rpc__['serverOnly'] and NetworkState.clientId != networkEvent.sender:
+                    Log(f"ClientId: {networkEvent.sender} tried to run a RPC function that is serverOnly: {rpc.systemType}.{rpc.funcName}", LOG_WARNINGS)
+                    continue
+                NetworkState.rpcQueue.append(rpc)
+
+            funcToCall(self=system, argBytes=rpc.args, isCaller=False)
+
     # If target is None, it will send all
     def NetworkServerSend(self, message, transport, target):
         self._networkProcessSocket.send_pyobj(NetworkProcessMessage(NET_PROCESS_SERVER_SEND_MESSAGE,

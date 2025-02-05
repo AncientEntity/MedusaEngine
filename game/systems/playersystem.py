@@ -5,6 +5,7 @@ from engine.datatypes.timedevents import TimedEvent
 from engine.ecs import EntitySystem, Scene
 from engine.engine import Input
 from engine.networking.networkstate import NetworkState
+from engine.networking.rpc import RPC
 from engine.systems import physics
 from engine.systems.renderer import SpriteRenderer, RenderingSystem
 from engine.tools.math import Magnitude
@@ -31,7 +32,7 @@ class PlayerSystem(EntitySystem):
 
                 if Input.KeyDown(pygame.K_q):
                     if player.tintEvent == None:
-                        player.tintEvent = TimedEvent(self.DoTint, args=(player,), startDelay=0.25, repeatDelay=0.25,
+                        player.tintEvent = TimedEvent(self.WrappedDoTint, args=(), startDelay=0.25, repeatDelay=0.25,
                                                       repeatCount=None)
                         self.StartTimedEvent(player.tintEvent)
                     else:
@@ -68,8 +69,16 @@ class PlayerSystem(EntitySystem):
         if(moved):
             RenderingSystem.instance.cameraPosition = player.parentEntity.position
 
-    def DoTint(self, player):
+    def WrappedDoTint(self):
         import random
         r = (random.randint(0, 255), random.randint(0, 255), random.randint(0, 255), random.randint(0, 255))
-        player.idleAnim.SetTint(r)
-        player.runAnim.SetTint(r)
+        self.DoTint(NetworkState.clientId, r)
+
+    @RPC(serverOnly=False)
+    def DoTint(self, playerIndex, color):
+        for player in self.game.GetCurrentScene().components[PlayerComponent]:
+            if player.parentEntity.ownerId == playerIndex:
+                break
+
+        player.idleAnim.SetTint(color)
+        player.runAnim.SetTint(color)
