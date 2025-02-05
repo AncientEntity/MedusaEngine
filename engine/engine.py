@@ -329,6 +329,7 @@ class Engine:
                 Log(f"Received Init Event, Client Id: {NetworkState.clientId}", LOG_NETWORKING)
                 assets.NetInstantiate("player",self._currentScene, position=self._currentScene.GetRandomTiledObjectByName("SPAWN")["position"][:])
                 # todo save client info to list somewhere and mark client as initialized and dont reply to NET_EVENT_INIT from the client anymore.
+                # todo dont create player here, use onConnectSuccess in main scene or something
             elif networkEvent.processAs & NET_HOST:
                 if networkEvent.sender in self.connectionsReference:
                     return # Already initialized the client.
