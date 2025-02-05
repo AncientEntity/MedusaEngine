@@ -398,7 +398,7 @@ class Engine:
                 Log(f"ClientId: {networkEvent.sender} has tried to run non RPC function: {rpc.systemType}.{rpc.funcName}", LOG_WARNINGS)
                 continue
             if NetworkState.identity & NET_HOST:
-                if funcToCall.__rpc__['serverOnly'] and NetworkState.clientId != networkEvent.sender:
+                if funcToCall.__rpc__['serverAuthorityRequired'] and NetworkState.clientId != networkEvent.sender:
                     Log(f"ClientId: {networkEvent.sender} tried to run a RPC function that is serverOnly: {rpc.systemType}.{rpc.funcName}", LOG_WARNINGS)
                     continue
                 NetworkState.rpcQueue.append(rpc)

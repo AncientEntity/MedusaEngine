@@ -44,7 +44,7 @@ class RPCAction:
         argBytes = rpcBytes[currentByte:currentByte+argLength]
         return RPCAction(systemType, funcName, argBytes)
 
-def RPC(serverOnly=False):
+def RPC(serverAuthorityRequired=False): #todo implement serverRunOnly
     def decorator(func):
         def wrapper(*args, **kwargs):
             isCaller = kwargs['isCaller'] if 'isCaller' in kwargs else True
@@ -67,7 +67,7 @@ def RPC(serverOnly=False):
                 else:
                     func(*args)
 
-        wrapper.__rpc__ = {'serverOnly': serverOnly}
+        wrapper.__rpc__ = {'serverAuthorityRequired': serverAuthorityRequired}
 
         return wrapper
 
