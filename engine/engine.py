@@ -190,9 +190,9 @@ class Engine:
     def NetworkTick(self):
         # debug testing remove eventually
         if Input.KeyDown(pygame.K_LEFTBRACKET):
-            self.NetworkHostStart('192.168.0.135', 25565)
+            self.NetworkHostStart('127.0.0.1', 25565)
         elif Input.KeyDown(pygame.K_RIGHTBRACKET):
-            self.NetworkClientConnect('192.168.0.135', 25565)
+            self.NetworkClientConnect('127.0.0.1', 25565)
         elif Input.KeyDown(pygame.K_n):
             for thread in threading.enumerate():
                 print(thread.name)
@@ -292,6 +292,9 @@ class Engine:
 
         Log(f"Network Host Stop, Identity: {NetworkState.identity}", LOG_NETWORKING)
 
+    def NetworkServerKick(self, clientId : int, reason):
+        pass # todo implement kicking.
+
     def NetworkClientConnect(self, ip : str, port : int):
         Log(f"Network Client Connect ({ip},{port})", LOG_NETWORKING)
         if self._networkClient:
@@ -389,7 +392,7 @@ class Engine:
         rpc : RPCAction
         for rpc in snapshot.rpcCalls:
 
-            system = self._currentScene.GetSystemByName(rpc.systemType)
+            system = self._currentScene.GetSystemByName(rpc.systemType) #todo GetSystemByName is slow. Use dict instead.
             funcToCall = getattr(system, rpc.funcName)
             if not hasattr(funcToCall, "__rpc__"):
                 Log(f"ClientId: {networkEvent.sender} has tried to run non RPC function: {rpc.systemType}.{rpc.funcName}", LOG_WARNINGS)
