@@ -252,6 +252,7 @@ class Engine:
 
             self._networkProcessSocket = self._netContext.socket(zmq.DEALER)
             portUsed = self._networkProcessSocket.bind_to_random_port('tcp://localhost', min_port=30000)
+            NetworkState.processSocket = self._networkProcessSocket
 
             self._networkProcess = multiprocessing.Process(target=NetworkProcessMain, args=(portUsed,))
             self._networkProcess.name = NET_SUBPROCESS_NAME

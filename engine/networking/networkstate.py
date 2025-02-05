@@ -5,6 +5,8 @@ class NetworkState:
     identity = NET_NONE
     clientId = -1
 
+    processSocket = None
+
     # Server Events
     onClientConnect = [] #func(clientId)
     onClientDisconnect = [] #func(clientId)
@@ -12,7 +14,6 @@ class NetworkState:
     # Client Events
     onConnectSuccess = [] #func()
     onConnectFail = [] # func()
-
 
     @staticmethod
     def TriggerHook(hookList, args):

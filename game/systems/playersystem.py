@@ -28,6 +28,16 @@ class PlayerSystem(EntitySystem):
             if player.parentEntity.ownerId == NetworkState.clientId:
                 self.PlayerMovement(player)
                 RenderingSystem.instance.cameraPosition = player.parentEntity.position
+
+                if Input.KeyDown(pygame.K_q):
+                    if player.tintEvent == None:
+                        player.tintEvent = TimedEvent(self.DoTint, args=(player,), startDelay=0.25, repeatDelay=0.25,
+                                                      repeatCount=None)
+                        self.StartTimedEvent(player.tintEvent)
+                    else:
+                        player.tintEvent.repeatCount = 0
+                        player.tintEvent = None
+
             velocity = player.parentEntity.GetComponent(physics.PhysicsComponent).velocity
             if Magnitude(velocity) >= 10:
                 player.parentEntity.GetComponent(SpriteRenderer).sprite = player.runAnim
@@ -39,13 +49,7 @@ class PlayerSystem(EntitySystem):
         if Input.KeyPressed(pygame.K_g):
             newSkeleton = assets.NetInstantiate("skeleton",currentScene)
             newSkeleton.position = [player.parentEntity.position[0],player.parentEntity.position[1]-100]
-        if Input.KeyDown(pygame.K_q):
-            if player.tintEvent == None:
-                player.tintEvent = TimedEvent(self.DoTint,args=(player,),startDelay=0.25,repeatDelay=0.25,repeatCount=None)
-                self.StartTimedEvent(player.tintEvent)
-            else:
-                player.tintEvent.repeatCount = 0
-                player.tintEvent = None
+
         if(Input.KeyDown(pygame.K_r)):
             self.game.LoadScene(sidescrollingscene.SideScrollingScene)
         if (Input.KeyDown(pygame.K_t)):
