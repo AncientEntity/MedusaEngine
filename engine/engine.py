@@ -228,7 +228,7 @@ class Engine:
         for i in range(len(self._queuedNetworkEvents)):
             self.NetworkHandleEvent(self._queuedNetworkEvents.pop(0))
 
-        if not self.clientInitialized:
+        if not self.clientInitialized and not NetworkState.identity & NET_HOST:
             return
 
         # Snapshots
@@ -287,7 +287,7 @@ class Engine:
         self._networkProcessSocket.send_pyobj(NetworkProcessMessage(NET_PROCESS_CLOSE_SERVER_TRANSPORT,
                                                                     NetworkUpdateTransport("tcp", None, None)))
 
-        if NetworkState.identity | NET_HOST:
+        if NetworkState.identity & NET_HOST:
             NetworkState.identity -= NET_HOST
 
         Log(f"Network Host Stop, Identity: {NetworkState.identity}", LOG_NETWORKING)
@@ -319,7 +319,7 @@ class Engine:
         self._networkProcessSocket.send_pyobj(NetworkProcessMessage(NET_PROCESS_CLOSE_CLIENT_TRANSPORT,
                                                                     NetworkUpdateTransport("tcp", None, None)))
 
-        if NetworkState.identity | NET_CLIENT:
+        if NetworkState.identity & NET_CLIENT:
             NetworkState.identity -= NET_CLIENT
 
         Log(f"Network Client Disconnect, Identity: {NetworkState.identity}", LOG_NETWORKING)
@@ -349,7 +349,6 @@ class Engine:
                 bytesToSend = NetworkEventToBytes(NetworkEvent(NET_EVENT_SNAPSHOT_FULL, snapshot.SnapshotToBytes()))
                 self.NetworkServerSend(bytesToSend, "tcp", networkEvent.sender)
 
-                #self._networkServer.Send(networkEventBytes, networkEvent.sender, "tcp")
         if not self.clientInitialized and NetworkState.identity != NET_HOST:
             return
 
