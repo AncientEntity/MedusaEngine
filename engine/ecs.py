@@ -193,6 +193,7 @@ class Entity:
 class NetworkEntity(Entity):
     def __init__(self, ownerId, forcedId=None):
         self._position = NetworkVarVector()#NetworkVarVectorInterpolate()
+        self._position.prioritizeOwner = True
 
         # Entity ID for networked object is always negative.
         if forcedId is not None:

@@ -368,10 +368,6 @@ class Engine:
             if netEntitySnapshot.prefabName == '':
                 continue
             entityFound = netEntitySnapshot.networkId in self._currentScene.networkedEntities
-            if entityFound and netEntitySnapshot.ownerId == NetworkState.clientId:
-                continue # This allows the server to create entities for clients.
-
-            #todo check if entity marked for deletion
 
             # If entity doesnt exist create it
             if not entityFound:
@@ -382,9 +378,14 @@ class Engine:
             entVars = ent.GetNetworkVariables()
             for variable in netEntitySnapshot.variables:
                 for foundVar in entVars:
-                    if foundVar[0] == variable[0]:
+                    if foundVar[1].prioritizeOwner and netEntitySnapshot.ownerId == NetworkState.clientId:
+                        continue #todo test prioritize owner properly
+
+                    if foundVar[0] == variable[0] and not foundVar[1].AreBytesEqual(variable[1]):
                         foundVar[1].SetFromBytes(variable[1], modified=False)
                         break
+
+            #todo check if entity marked for deletion
 
         if networkEvent.sender == NetworkState.clientId:
             return

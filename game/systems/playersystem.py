@@ -1,5 +1,6 @@
 import pygame
 
+from engine.constants import NET_HOST, NET_CALLER
 from engine.datatypes.assetmanager import assets
 from engine.datatypes.timedevents import TimedEvent
 from engine.ecs import EntitySystem, Scene
@@ -23,6 +24,7 @@ class PlayerSystem(EntitySystem):
             player.parentEntity.GetComponent(SpriteRenderer).sprite = player.idleAnim
     def OnNewComponent(self,component : PlayerComponent):
         component.parentEntity.GetComponent(SpriteRenderer).sprite = component.idleAnim
+        component.tintColor.AddHook(self.TintHook(component), True)
     def Update(self, currentScene: Scene):
         player : PlayerComponent
         for player in currentScene.components[PlayerComponent]:
@@ -70,15 +72,25 @@ class PlayerSystem(EntitySystem):
             RenderingSystem.instance.cameraPosition = player.parentEntity.position
 
     def WrappedDoTint(self):
-        import random
-        r = (random.randint(0, 255), random.randint(0, 255), random.randint(0, 255), random.randint(0, 255))
-        self.DoTint(NetworkState.clientId, r)
+        self.DoTint(NetworkState.clientId)
 
-    @RPC(serverOnly=False)
-    def DoTint(self, playerIndex, color):
+    @RPC(serverAuthorityRequired=False, targetCallers=NET_HOST)
+    def DoTint(self, playerIndex):
         for player in self.game.GetCurrentScene().components[PlayerComponent]:
             if player.parentEntity.ownerId == playerIndex:
                 break
 
+        import random
+        color = (random.randint(0, 255), random.randint(0, 255), random.randint(0, 255), random.randint(0, 255))
+
+        player.tintColor.Set(color)
+        print(f"Tint Updated: {playerIndex}")
+
         player.idleAnim.SetTint(color)
         player.runAnim.SetTint(color)
+
+    def TintHook(self, player):
+        def _DoTint(color):
+            player.idleAnim.SetTint(color.Get())
+            player.runAnim.SetTint(color.Get())
+        return _DoTint

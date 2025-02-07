@@ -1,5 +1,6 @@
 from collections import namedtuple
 
+from engine.constants import NET_HOST, NET_ALL, NET_CALLER
 from engine.ecs import EntitySystem
 from engine.networking.networkstate import NetworkState
 import json
@@ -44,7 +45,7 @@ class RPCAction:
         argBytes = rpcBytes[currentByte:currentByte+argLength]
         return RPCAction(systemType, funcName, argBytes)
 
-def RPC(serverAuthorityRequired=False): #todo implement serverRunOnly
+def RPC(serverAuthorityRequired=True, targetCallers=NET_ALL): #todo targetCallers doesnt work properly
     def decorator(func):
         def wrapper(*args, **kwargs):
             isCaller = kwargs['isCaller'] if 'isCaller' in kwargs else True
@@ -54,17 +55,20 @@ def RPC(serverAuthorityRequired=False): #todo implement serverRunOnly
                 if not isinstance(parentComponent, EntitySystem):
                     raise RPCNotInEntitySystemError()  # RPC Must be in a entity system.
 
-                NetworkState.rpcQueue.append(RPCAction(type(args[0]).__name__,
-                                                       func.__name__,
-                                                       json.dumps(args[1:]).encode('utf-8')))
-                                                       #pickle.dumps(args[1:])))
+                callerOnly = targetCallers == NET_CALLER # If targetCallers is NET_CALLER, it's not really an RPC now is it.
 
-                func(*args)
+                if not callerOnly:
+                    NetworkState.rpcQueue.append(RPCAction(type(args[0]).__name__,
+                                                           func.__name__,
+                                                           json.dumps(args[1:]).encode('utf-8')))
+
+                if targetCallers & NetworkState.identity or targetCallers & NET_CALLER: # This is inside a isCaller check so we dont need to check if its' caller again
+                    func(*args)
             else:
-                if NetworkState.identity:
-                    args = json.loads(kwargs['argBytes'].decode('utf-8')) #pickle.loads(kwargs['argBytes'])
+                if targetCallers & NetworkState.identity:
+                    args = json.loads(kwargs['argBytes'].decode('utf-8'))
                     func(kwargs['self'], *args)
-                else:
+                elif not NetworkState.identity:
                     func(*args)
 
         wrapper.__rpc__ = {'serverAuthorityRequired': serverAuthorityRequired}

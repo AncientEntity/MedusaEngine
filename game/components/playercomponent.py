@@ -2,6 +2,7 @@ from engine.datatypes.sprites import AnimatedSprite
 from engine.ecs import Component
 import pygame
 
+from engine.networking.variables.networkvarvector import NetworkVarVector
 from game import assets
 
 
@@ -12,6 +13,7 @@ class PlayerComponent(Component):
         self.speed = 500
 
         self.tintEvent = None
+        self.tintColor = NetworkVarVector([0,0,0])
 
         self.idleAnim = AnimatedSprite(
             [assets.dungeonTileSet["knight_f_idle_anim_f0"], assets.dungeonTileSet["knight_f_idle_anim_f1"],

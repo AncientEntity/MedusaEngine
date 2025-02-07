@@ -22,6 +22,7 @@ class PhysicsComponent(Component):
         self.static = False #If static it wont be checked in the physics loop as the main body only as other body.
         self.gravity : tuple(float) = gravity #either None or a tuple like: (0,9.84)
         self._velocity = NetworkVarVector([0,0])
+        self._velocity.prioritizeOwner = True
 
         self._moveRequest = None #Move() adds to this so the physics calculations know what the object wants.
         self._thisStepTriggeredWith = [] #List of other physics components that this collided with this frame.
