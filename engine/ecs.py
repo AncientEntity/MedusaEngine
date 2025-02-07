@@ -162,7 +162,7 @@ class Entity:
         if not forcedId:
             Entity.idIncrementor+=1
             import random
-            self.entityId = random.randint(0,1000000)#Entity.idIncrementor #todo proper solution to this
+            self.entityId = random.randint(0,1000000)#Entity.idIncrementor #todo net proper solution to this
         else:
             self.entityId = forcedId
 
@@ -225,7 +225,7 @@ class NetworkEntity(Entity):
         return self._networkVariables
 
     def get_position(self):
-        self._position._modified = True # todo fix this god dammit use WrappedList from Vector/VectorInterpolate to simply set _modified if the list is changed...
+        self._position._modified = True # todo net fix this god dammit use WrappedList from Vector/VectorInterpolate to simply set _modified if the list is changed...
         return self._position.Get()
     def set_position(self, value):
         self._position.Set(value, True)

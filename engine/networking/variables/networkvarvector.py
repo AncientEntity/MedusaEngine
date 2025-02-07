@@ -17,7 +17,7 @@ class NetworkVarVector(NetworkVarBase):
             self.value[i] += value[i]
         super().Add(value, modified)
     def Get(self):
-        return self.value  # todo fix this god dammit use WrappedList from Vector/VectorInterpolate to simply set _modified if the list is changed... See networkentity.get_position
+        return self.value  # todo net fix this god dammit use WrappedList from Vector/VectorInterpolate to simply set _modified if the list is changed... See networkentity.get_position
 
     def SetFromBytes(self, byteValue : bytes, modified=True):
         self.value = []

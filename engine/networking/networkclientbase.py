@@ -52,7 +52,7 @@ class NetworkClientBase:
         self._messageQueueLock.release()
         return message
 
-if __name__ == '__main__': # todo remove before putting into master
+if __name__ == '__main__': # todo net remove before putting into master
     t = NetworkClientBase()
     t.Connect("tcp", NetworkTCPTransport(), ("127.0.0.1", 25238))
     while True:

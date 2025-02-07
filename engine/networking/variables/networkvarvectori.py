@@ -17,7 +17,7 @@ class WrappedList:
         self.list[key] = value
         self.interp[key] = value
         if self.netVar.hasAuthority:
-            self.netVar._modified = True #todo temp
+            self.netVar._modified = True #todo net temp
 
 class NetworkVarVectorInterpolate(NetworkVarVector):
     def __init__(self, defaultValue=[0,0]):

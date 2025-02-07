@@ -4,7 +4,6 @@
 # The current implementation just has things like datatypes.sprites.Sprite holding the surface itself.
 # A asset manager instance should be created on start and loaded into the engine instance.
 from engine.ecs import Scene
-from engine.networking.networkevent import NetworkEvent, NetworkEventCreateEntity
 from engine.networking.networkstate import NetworkState
 
 

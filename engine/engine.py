@@ -293,7 +293,7 @@ class Engine:
         Log(f"Network Host Stop, Identity: {NetworkState.identity}", LOG_NETWORKING)
 
     def NetworkServerKick(self, clientId : int, reason):
-        pass # todo implement kicking.
+        pass # todo net implement kicking.
 
     def NetworkClientConnect(self, ip : str, port : int):
         Log(f"Network Client Connect ({ip},{port})", LOG_NETWORKING)
@@ -331,8 +331,8 @@ class Engine:
                 self.clientInitialized = True
                 Log(f"Received Init Event, Client Id: {NetworkState.clientId}", LOG_NETWORKING)
                 assets.NetInstantiate("player",self._currentScene, position=self._currentScene.GetRandomTiledObjectByName("SPAWN")["position"][:])
-                # todo save client info to list somewhere and mark client as initialized and dont reply to NET_EVENT_INIT from the client anymore.
-                # todo dont create player here, use onConnectSuccess in main scene or something
+                # todo net save client info to list somewhere and mark client as initialized and dont reply to NET_EVENT_INIT from the client anymore.
+                # todo net dont create player here, use onConnectSuccess in main scene or something
             elif networkEvent.processAs & NET_HOST:
                 if networkEvent.sender in self.connectionsReference:
                     return # Already initialized the client.
@@ -340,12 +340,12 @@ class Engine:
                 # send new connection it's client ID and such
                 networkEventBytes = NetworkEventToBytes(NetworkEvent(NET_EVENT_INIT, networkEvent.sender.to_bytes(4,"big")))
                 connectionInfo = ConnectionInfo(networkEvent.sender)
-                self.connections.append(connectionInfo) # todo handle removing (disconnecting) from the list
+                self.connections.append(connectionInfo) # todo net handle removing (disconnecting) from the list
                 self.connectionsReference[networkEvent.sender] = connectionInfo
                 self.NetworkServerSend(networkEventBytes, "tcp", networkEvent.sender)
 
                 # send new connection full snapshot
-                snapshot = NetworkSnapshot.GenerateSnapshotFull(self._currentScene) # todo sometimes just do partial snapshots
+                snapshot = NetworkSnapshot.GenerateSnapshotFull(self._currentScene) # todo net sometimes just do partial snapshots
                 bytesToSend = NetworkEventToBytes(NetworkEvent(NET_EVENT_SNAPSHOT_FULL, snapshot.SnapshotToBytes()))
                 self.NetworkServerSend(bytesToSend, "tcp", networkEvent.sender)
 
@@ -354,9 +354,9 @@ class Engine:
 
         if networkEvent.eventId == NET_EVENT_SNAPSHOT_PARTIAL or networkEvent.eventId == NET_EVENT_SNAPSHOT_FULL:
             self.NetworkHandleSnapshot(networkEvent)
-            # todo creating entities via snapshot
-            # todo destroying entities via snapshot
-            # todo updating variables over snapshot
+            # todo net creating entities via snapshot
+            # todo net destroying entities via snapshot
+            # todo net updating variables over snapshot
 
     def NetworkHandleSnapshot(self, networkEvent : NetworkEvent):
         snapshot : NetworkSnapshot = NetworkSnapshot.SnapshotFromBytes(networkEvent.data)
@@ -378,13 +378,13 @@ class Engine:
             for variable in netEntitySnapshot.variables:
                 for foundVar in entVars:
                     if foundVar[1].prioritizeOwner and netEntitySnapshot.ownerId == NetworkState.clientId:
-                        continue #todo test prioritize owner properly
+                        continue #todo net test prioritize owner properly
 
                     if foundVar[0] == variable[0] and not foundVar[1].AreBytesEqual(variable[1]):
                         foundVar[1].SetFromBytes(variable[1], modified=False)
                         break
 
-            #todo check if entity marked for deletion
+            #todo net check if entity marked for deletion
 
         if networkEvent.sender == NetworkState.clientId:
             return
@@ -392,7 +392,7 @@ class Engine:
         rpc : RPCAction
         for rpc in snapshot.rpcCalls:
 
-            system = self._currentScene.GetSystemByName(rpc.systemType) #todo GetSystemByName is slow. Use dict instead.
+            system = self._currentScene.GetSystemByName(rpc.systemType) #todo net GetSystemByName is slow. Use dict instead.
             funcToCall = getattr(system, rpc.funcName)
             if not hasattr(funcToCall, "__rpc__"):
                 Log(f"ClientId: {networkEvent.sender} has tried to run non RPC function: {rpc.systemType}.{rpc.funcName}", LOG_WARNINGS)

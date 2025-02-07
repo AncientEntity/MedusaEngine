@@ -20,3 +20,5 @@ class NetworkState:
     def TriggerHook(hookList, args):
         for hook in hookList:
             hook(*args)
+
+    # todo net headless/dedicated servers without rendering
