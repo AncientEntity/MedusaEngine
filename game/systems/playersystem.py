@@ -19,9 +19,12 @@ class PlayerSystem(EntitySystem):
     def __init__(self):
         super().__init__([PlayerComponent])
         self.tintTest = -1
+
+        self.currentScene = None
     def OnEnable(self, currentScene : Scene):
         for player in self.game.GetCurrentScene().components[PlayerComponent]:
             player.parentEntity.GetComponent(SpriteRenderer).sprite = player.idleAnim
+        self.currentScene = currentScene
     def OnNewComponent(self,component : PlayerComponent):
         component.parentEntity.GetComponent(SpriteRenderer).sprite = component.idleAnim
         component.tintColor.AddHook(self.TintHook(component), True)
@@ -50,8 +53,7 @@ class PlayerSystem(EntitySystem):
                 player.parentEntity.GetComponent(SpriteRenderer).sprite = player.idleAnim
 
         if Input.KeyPressed(pygame.K_g):
-            newSkeleton = assets.NetInstantiate("skeleton",currentScene)
-            newSkeleton.position = [player.parentEntity.position[0],player.parentEntity.position[1]-100]
+            self.SpawnSkeleton(NetworkState.clientId)
 
         if(Input.KeyDown(pygame.K_r)):
             self.game.LoadScene(sidescrollingscene.SideScrollingScene)
@@ -73,6 +75,14 @@ class PlayerSystem(EntitySystem):
 
     def WrappedDoTint(self):
         self.DoTint(NetworkState.clientId)
+
+    @RPC(serverAuthorityRequired=False, targetCallers=NET_HOST)
+    def SpawnSkeleton(self, ownerId):
+        newSkeleton = assets.NetInstantiate("skeleton", self.currentScene)
+        for player in self.game.GetCurrentScene().components[PlayerComponent]:
+            if player.parentEntity.ownerId == ownerId:
+                break
+        newSkeleton.position = [player.parentEntity.position[0], player.parentEntity.position[1] - 100]
 
     @RPC(serverAuthorityRequired=False, targetCallers=NET_HOST)
     def DoTint(self, playerIndex):
