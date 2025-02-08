@@ -62,7 +62,7 @@ class Engine:
         if not IsPlatformWeb():
             self.snapshotDelay = 1.0 / 25.0
             self.connections = []
-            self.connectionsReference : dict[ClientConnectionBase, ConnectionInfo] = {} # key=ClientConnectionBase, value=ConnectionInfo
+            self.connectionsReference : dict[int, ConnectionInfo] = {} # key=ClientConnectionBase, value=ConnectionInfo
 
             self.clientInitialized = False
             self._queuedNetworkEvents = []
@@ -207,14 +207,20 @@ class Engine:
             except zmq.error.ZMQError:
                 messageWaiting = False
                 break
+
+            processDelay = time.time() - nextMessage.requestMade
+            if processDelay > NET_SAFE_PROCESS_DELAY:
+                Log(f"Warning engine process delay above safe constant. Process Delay: {processDelay}", LOG_NETWORKING)
+
             if nextMessage.id == NET_PROCESS_RECEIVE_MESSAGE:
                 self._queuedNetworkEvents.append(nextMessage.data)
             elif nextMessage.id == NET_PROCESS_CLIENT_CONNECT:
                 NetworkState.TriggerHook(NetworkState.onClientConnect, (nextMessage.data.referenceId,))
                 Log(f"New Client Connected: {nextMessage.data.referenceId}, {nextMessage.data.nickname}", LOG_NETWORKING)
             elif nextMessage.id == NET_PROCESS_CLIENT_DISCONNECT:
+                self.RemoveConnection(nextMessage.data.referenceId)
                 NetworkState.TriggerHook(NetworkState.onClientDisconnect, (nextMessage.data.referenceId,))
-                Log(f"New Client Disconnected: {nextMessage.data.referenceId}, {nextMessage.data.nickname}", LOG_NETWORKING)
+                Log(f"Client Disconnected: {nextMessage.data.referenceId}, {nextMessage.data.nickname}", LOG_NETWORKING)
             elif nextMessage.id == NET_PROCESS_CONNECT_SUCCESS:
                 NetworkState.TriggerHook(NetworkState.onConnectSuccess, (nextMessage.data,))
                 Log(f"Connected to {nextMessage.data.ipandport}", LOG_NETWORKING)
@@ -225,7 +231,7 @@ class Engine:
                 Log(f"Engine Unknown message type received: {nextMessage}", LOG_NETWORKING)
 
         # Handle new queued network events
-        for i in range(len(self._queuedNetworkEvents)):
+        while len(self._queuedNetworkEvents) > 0:
             self.NetworkHandleEvent(self._queuedNetworkEvents.pop(0))
 
         if not self.clientInitialized and not NetworkState.identity & NET_HOST:
@@ -268,7 +274,6 @@ class Engine:
     def NetworkShutdownProcess(self):
         Log("Shutting down network process", LOG_NETWORKING)
         self._networkProcessSocket.send_pyobj(NetworkProcessMessage(NET_PROCESS_SHUTDOWN, None))
-        #self._networkQueueIn.put(NetworkProcessMessage(NET_PROCESS_SHUTDOWN, None))
         self._networkProcessSocket.close()
         self._networkProcess = None
 
@@ -339,9 +344,7 @@ class Engine:
 
                 # send new connection it's client ID and such
                 networkEventBytes = NetworkEventToBytes(NetworkEvent(NET_EVENT_INIT, networkEvent.sender.to_bytes(4,"big")))
-                connectionInfo = ConnectionInfo(networkEvent.sender)
-                self.connections.append(connectionInfo) # todo net handle removing (disconnecting) from the list
-                self.connectionsReference[networkEvent.sender] = connectionInfo
+                self.AddConnection(networkEvent.sender)
                 self.NetworkServerSend(networkEventBytes, "tcp", networkEvent.sender)
 
                 # send new connection full snapshot
@@ -350,6 +353,8 @@ class Engine:
                 self.NetworkServerSend(bytesToSend, "tcp", networkEvent.sender)
 
         if not self.clientInitialized and NetworkState.identity != NET_HOST:
+            return
+        if NetworkState.identity & NET_HOST and networkEvent.sender not in self.connectionsReference:
             return
 
         if networkEvent.eventId == NET_EVENT_SNAPSHOT_PARTIAL or networkEvent.eventId == NET_EVENT_SNAPSHOT_FULL:
@@ -404,6 +409,21 @@ class Engine:
                 NetworkState.rpcQueue.append(rpc)
 
             funcToCall(self=system, argBytes=rpc.args, isCaller=False)
+
+
+
+    def AddConnection(self, sender):
+        connectionInfo = ConnectionInfo(sender)
+        self.connections.append(connectionInfo)  # todo net handle removing (disconnecting) from the list
+        self.connectionsReference[sender] = connectionInfo
+    def RemoveConnection(self, sender):
+        conn : ConnectionInfo
+        for conn in self.connections:
+            if conn.connectionReferenceId == sender:
+                break
+        if conn:
+            self.connections.remove(conn)
+        self.connectionsReference.pop(sender)
 
     # If target is None, it will send all
     def NetworkServerSend(self, message, transport, target):

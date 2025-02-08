@@ -6,7 +6,8 @@ import zmq
 from engine.constants import NET_PROCESS_SHUTDOWN, NET_PROCESS_OPEN_SERVER_TRANSPORT, \
     NET_PROCESS_CLOSE_SERVER_TRANSPORT, NET_PROCESS_CONNECT_CLIENT_TRANSPORT, NET_PROCESS_CLOSE_CLIENT_TRANSPORT, \
     NET_PROCESS_CLIENT_SEND_MESSAGE, NET_PROCESS_SERVER_SEND_MESSAGE, NET_CLIENT, NET_PROCESS_RECEIVE_MESSAGE, NET_HOST, \
-    NET_SAFE_PROCESS_DELAY, NET_PROCESS_CLIENT_CONNECT, NET_PROCESS_CONNECT_SUCCESS, NET_PROCESS_CONNECT_FAIL
+    NET_SAFE_PROCESS_DELAY, NET_PROCESS_CLIENT_CONNECT, NET_PROCESS_CONNECT_SUCCESS, NET_PROCESS_CONNECT_FAIL, \
+    NET_PROCESS_CLIENT_DISCONNECT
 from engine.logging import Log, LOG_NETWORKING, LOG_NETWORKPROCESS
 from engine.networking.connections.clientconnectionbase import ClientConnectionBase
 from engine.networking.networkclientbase import NetworkClientBase
@@ -139,7 +140,7 @@ def NetworkClientConnect(connection : ClientConnectionBase):
 def NetworkClientDisconnect(connection : ClientConnectionBase):
     global connections
     connections.pop(connection.referenceId)
-    processSocket.send_pyobj(NetworkProcessMessage(NET_PROCESS_CLIENT_CONNECT,
+    processSocket.send_pyobj(NetworkProcessMessage(NET_PROCESS_CLIENT_DISCONNECT,
                                                    NetworkConnectionStatus(connection.referenceId,
                                                                            False, connection.nickname)))
     Log(f"Client disconnected: {connection.referenceId}", LOG_NETWORKPROCESS)

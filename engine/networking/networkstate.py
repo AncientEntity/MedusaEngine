@@ -6,18 +6,20 @@ class NetworkState:
     clientId = -1
 
     # Server Events
-    onClientConnect = [] #func(clientId)
-    onClientDisconnect = [] #func(clientId)
+    onClientConnect = {} #func(clientId)
+    onClientDisconnect = {} #func(clientId)
 
     # Client Events
-    onConnectSuccess = [] #func()
-    onConnectFail = [] # func()
+    onConnectSuccess = {} #func()
+    onConnectFail = {} # func()
 
     # RPCs
     rpcQueue = []
 
     @staticmethod
     def TriggerHook(hookList, args):
+        if isinstance(hookList, dict):
+            hookList = list(hookList.values())
         for hook in hookList:
             hook(*args)
 

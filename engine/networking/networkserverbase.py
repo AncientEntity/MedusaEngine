@@ -1,5 +1,6 @@
 import threading
 
+from engine.logging import LOG_NETWORKPROCESS, Log
 from engine.networking.connections.clientconnectionbase import ClientConnectionBase
 from engine.networking.connections.clientconnectionsocket import ClientConnectionSocket
 from engine.networking.transport.networktcptransport import NetworkTCPTransport
@@ -36,7 +37,7 @@ class NetworkServerBase:
                 self.transportHandlers[transportName].Send(message, clientConnection)
             except Exception as e:
                 self.transportHandlers[transportName].clientConnections.remove(clientConnection)
-                print(f"Error sending to client, possibly disconnected? {e}")
+                Log(f"Error sending to client, possibly disconnected? {e}", LOG_NETWORKPROCESS)
 
     def ThreadReceive(self, transporter : NetworkTransportBase):
         while transporter.active:

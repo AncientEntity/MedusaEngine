@@ -11,7 +11,6 @@ from engine.scenes.levelscene import LevelScene
 from engine.systems.physics import PhysicsSystem
 from engine.systems.ui import UISystem
 from engine.tools.platform import IsPlatformWeb
-from game import prefabs
 from game.assets import worldTileset
 from game.systems import playersystem
 from game.systems.NPCSystem import NPCSystem

@@ -25,6 +25,9 @@ class PlayerSystem(EntitySystem):
         for player in self.game.GetCurrentScene().components[PlayerComponent]:
             player.parentEntity.GetComponent(SpriteRenderer).sprite = player.idleAnim
         self.currentScene = currentScene
+
+        NetworkState.onClientDisconnect["deleteplayer"] = self.DeletePlayer
+
     def OnNewComponent(self,component : PlayerComponent):
         component.parentEntity.GetComponent(SpriteRenderer).sprite = component.idleAnim
         component.tintColor.AddHook(self.TintHook(component), True)
@@ -103,3 +106,12 @@ class PlayerSystem(EntitySystem):
             player.idleAnim.SetTint(color.Get())
             player.runAnim.SetTint(color.Get())
         return _DoTint
+
+    def DeletePlayer(self, clientId):
+        if not NetworkState.identity & NET_HOST:
+            return
+
+        for player in self.currentScene.components[PlayerComponent]:
+            if player.parentEntity.ownerId == clientId:
+                break
+        self.currentScene.DeleteEntity(player.parentEntity)

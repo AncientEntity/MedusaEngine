@@ -89,10 +89,11 @@ class NetworkTCPTransport(NetworkTransportBase):
                 message = connection.tcpConnection.recv(messageSize)
             except Exception:
                 Log(f"Error receiving from client: {connection.referenceId}, assuming disconnect.")
+                if connection.active:
+                    self.CallHook(self.onClientDisconnect, (connection,))
                 connection.Close()
                 if connection in self.clientConnections:
                     self.clientConnections.remove(connection)
-                self.CallHook(self.onClientDisconnect, (connection,))
             self._queueLock.acquire()
             self._messageQueue.append((message, connection))
             self._queueLock.release()
