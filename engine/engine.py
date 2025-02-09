@@ -138,9 +138,10 @@ class Engine:
             self.NetworkCreateProcess()
 
         pygame.init()
-        pygame.mixer.init()
-        pygame.joystick.init()
-        pygame._sdl2.controller.init()
+        if not engine.tools.platform.headless:
+            pygame.mixer.init()
+            pygame.joystick.init()
+            pygame._sdl2.controller.init()
 
         Input.Init()
 
