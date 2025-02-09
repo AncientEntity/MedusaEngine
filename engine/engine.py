@@ -138,14 +138,15 @@ class Engine:
         if not IsPlatformWeb():
             self.NetworkCreateProcess()
 
+        if engine.tools.platform.headless:
+            os.environ["SDL_VIDEODRIVER"] = "dummy"
+            os.environ["SDL_AUDIODRIVER"] = "disk"
+
         pygame.init()
         if not engine.tools.platform.headless:
             pygame.mixer.init()
             pygame.joystick.init()
             pygame._sdl2.controller.init()
-        else:
-            os.environ["SDL_VIDEODRIVER"] = "dummy"
-            os.environ["SDL_AUDIODRIVER"] = "disk"
 
         Input.Init()
 
