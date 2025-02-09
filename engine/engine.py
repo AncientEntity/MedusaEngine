@@ -274,7 +274,7 @@ class Engine:
         if not self._networkProcess:
             Log("Creating network process", LOG_NETWORKING)
 
-            self._networkProcessSocket = self._netContext.socket(zmq.PAIR)
+            self._networkProcessSocket = self._netContext.socket(zmq.DEALER)
             portUsed = self._networkProcessSocket.bind_to_random_port('tcp://localhost', min_port=30000)
 
             self._networkProcess = multiprocessing.Process(target=NetworkProcessMain, args=(portUsed,))

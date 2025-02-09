@@ -40,7 +40,7 @@ def NetworkProcessMain(portUsed : int):
     #todo log files should have a different prefix set like log-net-* right now 2 files are generated.
     Log("Network Process Main Started", LOG_NETWORKPROCESS)
 
-    processSocket = context.socket(zmq.PAIR)
+    processSocket = context.socket(zmq.DEALER)
     processSocket.connect(f"tcp://localhost:{portUsed}")
     processSocket.send(b"ack")
 
