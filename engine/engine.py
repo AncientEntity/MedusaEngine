@@ -13,6 +13,7 @@ from engine.game import Game
 import time
 from sys import exit
 import sys
+import os
 import platform
 import engine.tools.platform
 
@@ -142,6 +143,8 @@ class Engine:
             pygame.mixer.init()
             pygame.joystick.init()
             pygame._sdl2.controller.init()
+        else:
+            os.environ["SDL_VIDEODRIVER"] = "dummy"
 
         Input.Init()
 
