@@ -8,6 +8,7 @@ from engine.logging import Log
 class AudioSystem(EntitySystem):
     def __init__(self):
         super().__init__([AudioPlayer])
+        self.removeOnHeadless = True
         self.audioPlayers = []
     def Update(self,currentScene : Scene):
         player : AudioPlayer

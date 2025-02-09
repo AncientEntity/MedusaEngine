@@ -14,6 +14,7 @@ import time
 from sys import exit
 import sys
 import platform
+import engine.tools.platform
 
 from engine.input import Input
 from engine.logging import Log, LOG_ERRORS, LOG_INFO, LOG_WARNINGS, LOG_NETWORKING
@@ -43,6 +44,9 @@ class Engine:
 
         self._currentScene : ecs.Scene = None
         self.running = False
+
+        self.headless = "headless" in sys.argv
+        engine.tools.platform.headless = self.headless
 
         # Display
         self.display : pygame.Surface = None
@@ -79,7 +83,7 @@ class Engine:
 
         self.LoadGame() #Loads self._game into the engine
     def LoadGame(self):
-        Log("Loading game into engine",LOG_INFO)
+        Log(f"Loading game into engine (headless={self.headless})",LOG_INFO)
         self.gameName = self._game.name
         if(self._game.startingScene == None):
             Log("Game has no starting scene",LOG_ERRORS)
@@ -90,8 +94,8 @@ class Engine:
                 platform.window.canvas.style.imageRendering = "pixelated"
 
         #Load splash screen if enabled otherwise load starting scene, if we load splash screen scene the splash screen scene swaps to the self._game.startingScene for us.
-        if(self._game.startingSplashMode == SPLASH_ALWAYS or (IsBuilt() and
-                                                              self._game.startingSplashMode == SPLASH_BUILDONLY)):
+        if(not engine.tools.platform.headless and (self._game.startingSplashMode == SPLASH_ALWAYS or (IsBuilt() and
+                                                              self._game.startingSplashMode == SPLASH_BUILDONLY))):
             self._currentScene = splashscene.engineSplashScreenScene
         else:
             self._currentScene = self._game.startingScene
@@ -140,14 +144,8 @@ class Engine:
 
         Input.Init()
 
-        self.displayFlags = pygame.FULLSCREEN if self._game.startFullScreen else 0
-        self.displayFlags |= pygame.RESIZABLE if self._game.resizableWindow and not IsPlatformWeb() else 0
-        self.display = pygame.display.set_mode(self._game.windowSize, self.displayFlags)
-        pygame.display.set_caption(f"{self.gameName}{'' if not IsDebug() else f' (Debug Environment, Platform: {currentPlatform})'}")
-        if(self._game.icon == None):
-            self._game.icon = pygame.image.load("engine/art/logo-dark.png")
-        pygame.display.set_icon(self._game.icon)
-        Log(f"Display Created: {pygame.display.Info()}", LOG_INFO)
+        if not self.headless:
+            self.CreateDisplay()
 
         self.LoadScene(self._currentScene)
 
@@ -186,6 +184,17 @@ class Engine:
             self.NetworkShutdownProcess()
 
         exit(0)
+
+    def CreateDisplay(self):
+        self.displayFlags = pygame.FULLSCREEN if self._game.startFullScreen else 0
+        self.displayFlags |= pygame.RESIZABLE if self._game.resizableWindow and not IsPlatformWeb() else 0
+        self.display = pygame.display.set_mode(self._game.windowSize, self.displayFlags)
+        pygame.display.set_caption(
+            f"{self.gameName}{'' if not IsDebug() else f' (Debug Environment, Platform: {currentPlatform})'}")
+        if (self._game.icon == None):
+            self._game.icon = pygame.image.load("engine/art/logo-dark.png")
+        pygame.display.set_icon(self._game.icon)
+        Log(f"Display Created: {pygame.display.Info()}", LOG_INFO)
 
     def NetworkTick(self):
         # debug testing remove eventually

@@ -1,5 +1,6 @@
 import pygame
 
+import engine.tools.platform
 from engine.constants import NET_HOST, NET_CALLER
 from engine.datatypes.assetmanager import assets
 from engine.datatypes.timedevents import TimedEvent
@@ -27,6 +28,8 @@ class PlayerSystem(EntitySystem):
         self.currentScene = currentScene
 
         NetworkState.onClientDisconnect["deleteplayer"] = self.DeletePlayer
+        if engine.tools.platform.headless:
+            self.game.NetworkHostStart('127.0.0.1', 25565)
 
     def OnNewComponent(self,component : PlayerComponent):
         component.parentEntity.GetComponent(SpriteRenderer).sprite = component.idleAnim

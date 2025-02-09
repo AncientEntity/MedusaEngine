@@ -16,6 +16,7 @@ from engine.tools.math import Clamp, Magnitude
 class LightingSystem(EntitySystem):
     def __init__(self):
         super().__init__([LightComponent])
+        self.removeOnHeadless = True
 
         self.worldBrightness = 200 # The default alpha of the world's light surface. (0 - 255)
         self.drawOrder = 1000

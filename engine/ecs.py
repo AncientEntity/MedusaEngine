@@ -5,6 +5,7 @@ from engine.networking.networkstate import NetworkState
 from engine.networking.variables.networkvarbase import NetworkVarBase
 from engine.networking.variables.networkvarvector import NetworkVarVector
 from engine.networking.variables.networkvarvectori import NetworkVarVectorInterpolate
+from engine.tools.platform import IsHeadless
 
 
 class Component:
@@ -112,7 +113,11 @@ class Scene:
             system.TickTimedEvents()
 
     def Init(self):
-        for system in self.systems:
+        for system in self.systems[:]:
+            if system.removeOnHeadless and IsHeadless():
+                self.systems.remove(system)
+                continue
+
             system.game = self.game
             for targetComponent in system.targetComponents:
                 if (targetComponent not in self.components):
@@ -241,6 +246,8 @@ class EntitySystem:
     def __init__(self, targetComponents=[]):
         self.targetComponents = targetComponents
         self.game = None
+
+        self.removeOnHeadless = False
 
         self._activeTimedEvents : list[TimedEvent] = []
 

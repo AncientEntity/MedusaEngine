@@ -7,6 +7,11 @@ currentPlatform = platform
 
 # These functions aren't fully tested on every platform and aren't guaranteed to work.
 
+headless = False
+
+def IsHeadless():
+    return headless
+
 def IsPlatformWindows():
     return currentPlatform in ("win32" or "cygwin")
 def IsPlatformLinux():

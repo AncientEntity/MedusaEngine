@@ -1,5 +1,6 @@
 import pygame.display
 
+import engine.tools.platform
 from engine.components.rendering.particlecomponent import ParticleEmitterComponent, Particle
 from engine.components.rendering.renderercomponent import RendererComponent
 from engine.components.rendering.spriterenderer import SpriteRenderer
@@ -18,6 +19,8 @@ class RenderingSystem(EntitySystem):
     instance = None
     def __init__(self):
         super().__init__([SpriteRenderer,TilemapRenderer,ParticleEmitterComponent,TextRenderer])
+        self.removeOnHeadless = False # todo net, setting this to True messes with physics, find out why and make it so we can fully remove it.
+
         self.cameraPosition = [0,0]
         self.worldPixelsToScreenPixels = (3.0 / 800.0)
         self.overrideRenderScale = None
@@ -45,8 +48,9 @@ class RenderingSystem(EntitySystem):
 
     def OnEnable(self, currentScene : Scene):
         RenderingSystem.instance = self
-        Input.onWindowResized[self] = self.InitializeScreenData
-        self.InitializeScreenData()
+        if not engine.tools.platform.headless:
+            Input.onWindowResized[self] = self.InitializeScreenData
+            self.InitializeScreenData()
 
     def OnNewComponent(self,component : RendererComponent):
         self.InsertIntoSortedRenderOrder(component)
@@ -103,6 +107,9 @@ class RenderingSystem(EntitySystem):
         self._sortedDrawOrder.insert(i, component)
 
     def Update(self,currentScene : Scene):
+        if engine.tools.platform.headless:
+            return
+
         self._renderTarget.fill(self.backgroundColor)
 
         self.rawMousePosition = pygame.mouse.get_pos()
