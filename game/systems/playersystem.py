@@ -29,7 +29,7 @@ class PlayerSystem(EntitySystem):
 
         NetworkState.onClientDisconnect["deleteplayer"] = self.DeletePlayer
         if engine.tools.platform.headless:
-            self.game.NetworkHostStart('127.0.0.1', 25565)
+            self.game.NetworkHostStart('0.0.0.0', 25565)
 
     def OnNewComponent(self,component : PlayerComponent):
         component.parentEntity.GetComponent(SpriteRenderer).sprite = component.idleAnim

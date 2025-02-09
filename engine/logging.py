@@ -4,6 +4,7 @@ from pygame import display
 import traceback
 import os
 
+import engine.tools.platform
 from engine.tools.platform import IsPlatformWeb, IsDebug
 
 # Log Constants
@@ -39,6 +40,9 @@ def LogPrefix(level):
         return "[NETPROCESS]"
 
 def CreateErrorBox(message):
+    if engine.tools.platform.headless:
+        return
+
     stacktrace = "\nTrace\n"
     foundEngine = False
     stack = traceback.format_stack()
