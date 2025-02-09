@@ -36,7 +36,8 @@ class NetworkServerBase:
             try:
                 self.transportHandlers[transportName].Send(message, clientConnection)
             except Exception as e:
-                self.transportHandlers[transportName].clientConnections.remove(clientConnection)
+                if clientConnection in self.transportHandlers[transportName].clientConnections:
+                    self.transportHandlers[transportName].clientConnections.remove(clientConnection)
                 Log(f"Error sending to client, possibly disconnected? {e}", LOG_NETWORKPROCESS)
 
     def ThreadReceive(self, transporter : NetworkTransportBase):

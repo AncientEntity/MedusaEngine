@@ -29,6 +29,7 @@ class Scene:
         self._newComponentQueue = [] #Contains the list of components just added into the scene. For running EntitySystem.OnNewComponent on them.
 
         self.networkedEntities = {} # List of just the network entities (they are also in self.entities)
+        self.networkDeletedQueue = []
 
     def CreateEntity(self,name,position,components):
         #import random
@@ -59,7 +60,7 @@ class Scene:
             self.AddComponent(component, entity)
         entity._alive = True
 
-    def DeleteEntity(self,entity):
+    def DeleteEntity(self,entity, appendDeletionQueue=True):
         if(not entity._alive):
             return
 
@@ -69,6 +70,8 @@ class Scene:
         self.entities.remove(entity)
         if isinstance(entity, NetworkEntity):
             self.networkedEntities.pop(entity.entityId)
+            if appendDeletionQueue:
+                self.networkDeletedQueue.append(entity)
         entity._alive = False
 
     def AddComponent(self, component : Component, parentEntity):

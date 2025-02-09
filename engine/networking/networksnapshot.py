@@ -13,6 +13,7 @@ class NetworkEntitySnapshot:
         self.ownerId = ownerId
         self.prefabName = ""
         self.variables = variables
+        self.markDeletion : bool = False
 
     # SERIALIZATION IMPORTANT
     # technically ToBytes and FromBytes doesnt give back a perfect conversion
@@ -35,6 +36,7 @@ class NetworkEntitySnapshot:
             data = variable[1].GetAsBytes()
             snapshotBytes.extend(len(data).to_bytes(4, byteorder='big'))
             snapshotBytes.extend(data)
+        snapshotBytes.append(0b1 if self.markDeletion else 0b0)
 
         return snapshotBytes
 
@@ -58,6 +60,8 @@ class NetworkEntitySnapshot:
             currentByte += 4
             entitySnapshot.variables.append((variableName, bytes[currentByte:currentByte+dataSize]))
             currentByte += dataSize
+        entitySnapshot.markDeletion = True if int.from_bytes(bytes[currentByte:currentByte+1], byteorder='big') == 1 else False
+        currentByte += 1
 
         return entitySnapshot
 
@@ -77,6 +81,12 @@ class NetworkSnapshot:
         for netEntity in currentScene.networkedEntities.values():
             entitySnapshot = NetworkEntitySnapshot(netEntity.entityId, netEntity.ownerId, netEntity.GetNetworkVariables())
             entitySnapshot.prefabName = netEntity.prefabName
+            snapshot.entities.append(entitySnapshot)
+
+        for netEntity in currentScene.networkDeletedQueue:
+            entitySnapshot = NetworkEntitySnapshot(netEntity.entityId, netEntity.ownerId, [])
+            entitySnapshot.prefabName = netEntity.prefabName
+            entitySnapshot.markDeletion = True
             snapshot.entities.append(entitySnapshot)
 
         snapshot.rpcCalls = NetworkState.rpcQueue
@@ -103,6 +113,12 @@ class NetworkSnapshot:
 
             entitySnapshot = NetworkEntitySnapshot(netEntity.entityId, netEntity.ownerId, variablesToUpdate)
             entitySnapshot.prefabName = netEntity.prefabName
+            snapshot.entities.append(entitySnapshot)
+
+        for netEntity in currentScene.networkDeletedQueue:
+            entitySnapshot = NetworkEntitySnapshot(netEntity.entityId, netEntity.ownerId, [])
+            entitySnapshot.prefabName = netEntity.prefabName
+            entitySnapshot.markDeletion = True
             snapshot.entities.append(entitySnapshot)
 
         snapshot.rpcCalls = NetworkState.rpcQueue
@@ -154,6 +170,7 @@ if __name__ == '__main__':
     variables.append(("test", NetworkVarInt(100001)))
 
     t = NetworkEntitySnapshot(12, 69, variables)
+    t.markDeletion = False
     t.prefabName = "test_prefab_null"
 
     t2 = NetworkSnapshot(0)
@@ -167,5 +184,6 @@ if __name__ == '__main__':
     snapBytes = t2.SnapshotToBytes()
     backSnap = NetworkSnapshot.SnapshotFromBytes(snapBytes)
     print(backSnap.entities[0].prefabName)
+    print(backSnap.entities[0].markDeletion)
     for i in range(len(backSnap.rpcCalls)):
         print(backSnap.rpcCalls[i])

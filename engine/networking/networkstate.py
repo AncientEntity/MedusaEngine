@@ -12,6 +12,7 @@ class NetworkState:
     # Client Events
     onConnectSuccess = {} #func()
     onConnectFail = {} # func()
+    onDisconnect = {} # func() # todo net implement
 
     # RPCs
     rpcQueue = []

@@ -248,6 +248,7 @@ class Engine:
                 snapshot = NetworkSnapshot.GenerateSnapshotPartial(self._currentScene)
                 bytesToSend = NetworkEventToBytes(NetworkEvent(NET_EVENT_SNAPSHOT_PARTIAL, snapshot.SnapshotToBytes()))
             NetworkState.rpcQueue.clear()
+            self._currentScene.networkDeletedQueue.clear()
 
             if NetworkState.identity & NET_HOST:
                 self.NetworkServerSend(bytesToSend, "tcp", None)
@@ -359,9 +360,7 @@ class Engine:
 
         if networkEvent.eventId == NET_EVENT_SNAPSHOT_PARTIAL or networkEvent.eventId == NET_EVENT_SNAPSHOT_FULL:
             self.NetworkHandleSnapshot(networkEvent)
-            # todo net creating entities via snapshot
             # todo net destroying entities via snapshot
-            # todo net updating variables over snapshot
 
     def NetworkHandleSnapshot(self, networkEvent : NetworkEvent):
         snapshot : NetworkSnapshot = NetworkSnapshot.SnapshotFromBytes(networkEvent.data)
@@ -374,10 +373,17 @@ class Engine:
             entityFound = netEntitySnapshot.networkId in self._currentScene.networkedEntities
 
             # If entity doesnt exist create it
+            ent = None
             if not entityFound:
-                ent = assets.NetInstantiate(netEntitySnapshot.prefabName, self._currentScene, netEntitySnapshot.networkId, netEntitySnapshot.ownerId, [0,0])
+                if not netEntitySnapshot.markDeletion:
+                    ent = assets.NetInstantiate(netEntitySnapshot.prefabName, self._currentScene, netEntitySnapshot.networkId, netEntitySnapshot.ownerId, [0,0])
             else:
                 ent = self._currentScene.networkedEntities[netEntitySnapshot.networkId]
+            if netEntitySnapshot.markDeletion:
+                if ent:
+                    self._currentScene.DeleteEntity(ent, False if not NetworkState.identity & NET_HOST else True)
+                continue
+
 
             entVars = ent.GetNetworkVariables()
             for variable in netEntitySnapshot.variables:
