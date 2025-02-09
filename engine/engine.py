@@ -140,7 +140,7 @@ class Engine:
 
         if engine.tools.platform.headless:
             os.environ["SDL_VIDEODRIVER"] = "dummy"
-            os.environ["SDL_AUDIODRIVER"] = "disk"
+            os.environ["SDL_AUDIODRIVER"] = "dummy"
 
         pygame.init()
         if not engine.tools.platform.headless:
