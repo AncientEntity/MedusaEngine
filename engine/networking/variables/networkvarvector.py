@@ -6,11 +6,15 @@ class NetworkVarVector(NetworkVarBase):
         super().__init__()
         self.value : list = defaultValue
 
+        self.minSize = 2
+
         self.byteType = 'd' # either 'f' or 'd' to select float or double for byte serialization.
         self._dataSize = 8 if self.byteType == 'd' else 4
 
     def Set(self, value : list, modified=True):
         self.value = value
+        while len(self.value) < self.minSize:
+            self.value.append(0.0)
         super().Set(value, modified)
     def Add(self, value, modified=True):
         for i in range(len(self.value)):
@@ -26,6 +30,8 @@ class NetworkVarVector(NetworkVarBase):
             if len(floatBytes) == 0:
                 continue
             self.value.append(struct.unpack(self.byteType, floatBytes)[0])
+        while len(self.value) < self.minSize:
+            self.value.append(0.0)
         super().SetFromBytes(byteValue, modified)
     def GetAsBytes(self):
         byteArray = bytearray()
