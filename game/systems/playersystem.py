@@ -113,7 +113,7 @@ class PlayerSystem(EntitySystem):
     def DeletePlayer(self, clientId):
         if not NetworkState.identity & NET_HOST:
             return
-
+        player = None
         for player in self.currentScene.components[PlayerComponent]:
             if player.parentEntity.ownerId == clientId:
                 break
