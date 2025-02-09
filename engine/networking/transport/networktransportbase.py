@@ -9,8 +9,11 @@ class NetworkTransportBase:
         self.receiveThread = None
         self.receiveProcess = None
 
+        # When server has connections/disconnects
         self.onClientConnect = [] # func(ClientConnectionBase)
         self.onClientDisconnect = [] # func(ClientConnectionBase)
+
+        self.onDisconnect = [] # func() # When client disconnects
 
     def Connect(self):
         pass

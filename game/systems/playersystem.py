@@ -35,6 +35,11 @@ class PlayerSystem(EntitySystem):
         component.parentEntity.GetComponent(SpriteRenderer).sprite = component.idleAnim
         component.tintColor.AddHook(self.TintHook(component), True)
     def Update(self, currentScene: Scene):
+        if Input.KeyDown(pygame.K_LEFTBRACKET):
+            self.game.NetworkHostStart('127.0.0.1', 25565)
+        elif Input.KeyDown(pygame.K_RIGHTBRACKET):
+            self.game.NetworkClientConnect('127.0.0.1', 25565) #'107.174.246.137'
+
         player : PlayerComponent
         for player in currentScene.components[PlayerComponent]:
             if player.parentEntity.ownerId == NetworkState.clientId or not NetworkState.identity:

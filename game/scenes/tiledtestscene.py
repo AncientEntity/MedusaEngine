@@ -6,6 +6,7 @@ from engine.components.recttransformcomponent import RectTransformComponent
 from engine.components.rendering.textrenderer import TextRenderer
 from engine.constants import ALIGN_TOPLEFT, NET_HOST
 from engine.datatypes.assetmanager import assets
+from engine.logging import Log
 from engine.networking.networkstate import NetworkState
 from engine.scenes.levelscene import LevelScene
 from engine.systems.physics import PhysicsSystem
@@ -25,6 +26,9 @@ class TiledTestScene(LevelScene):
         self.systems.append(PhysicsSystem())
         self.systems.append(UISystem())
         self.player = None
+
+        NetworkState.onDisconnect["ondisconnect"] = self.OnDisconnect
+
         
     def LevelStart(self):
         if IsPlatformWeb():
@@ -48,3 +52,7 @@ class TiledTestScene(LevelScene):
 
         if(self.GetTriggerByName("TEST TRIGGER") != None):
             self.GetTriggerByName("TEST TRIGGER").onTriggerStart.append(SpawnEnemyAbovePlayer)
+
+    def OnDisconnect(self, reason, transportName):
+        self.game.LoadScene(self.game._game.startingScene)
+        Log(f"Disconnected from server for reason={reason}, transportName={transportName}")

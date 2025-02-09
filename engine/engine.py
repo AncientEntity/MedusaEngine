@@ -33,7 +33,8 @@ from engine.tools.platform import IsBuilt, IsDebug, currentPlatform, IsPlatformW
 if not IsPlatformWeb():
     import zmq
     from engine.networking.networkprocess import NetworkProcessMain, NetworkProcessMessage, NetworkUpdateTransport, \
-        NetworkSendMessage
+    NetworkSendMessage, NetworkDisconnect
+
 
 class Engine:
     _instance = None
@@ -203,15 +204,6 @@ class Engine:
         Log(f"Display Created: {pygame.display.Info()}", LOG_INFO)
 
     def NetworkTick(self):
-        # debug testing remove eventually
-        if Input.KeyDown(pygame.K_LEFTBRACKET):
-            self.NetworkHostStart('127.0.0.1', 25565)
-        elif Input.KeyDown(pygame.K_RIGHTBRACKET):
-            self.NetworkClientConnect('127.0.0.1', 25565)
-        elif Input.KeyDown(pygame.K_n):
-            for thread in threading.enumerate():
-                print(thread.name)
-
         if NetworkState.identity == NET_NONE:
             return
 
@@ -242,6 +234,10 @@ class Engine:
             elif nextMessage.id == NET_PROCESS_CONNECT_FAIL:
                 NetworkState.TriggerHook(NetworkState.onConnectFail, (nextMessage.data,))
                 Log(f"Failed to connect to {nextMessage.data.ipandport}", LOG_NETWORKING)
+            elif nextMessage.id == NET_PROCESS_DISCONNECT:
+                networkDisconnect : NetworkDisconnect = nextMessage.data
+                NetworkState.TriggerHook(NetworkState.onDisconnect, (networkDisconnect.reason,networkDisconnect.transportName))
+                Log(f"Client Disconnected from server {networkDisconnect.transportName}")
             else:
                 Log(f"Engine Unknown message type received: {nextMessage}", LOG_NETWORKING)
 

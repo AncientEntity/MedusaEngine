@@ -100,8 +100,14 @@ class NetworkTCPTransport(NetworkTransportBase):
 
     def ThreadReceiveClient(self):
         while self._socket:
-            messageSize = int.from_bytes(self._socket.recv(4),byteorder='big')
-            message = self._socket.recv(messageSize)
+            try:
+                messageSize = int.from_bytes(self._socket.recv(4),byteorder='big')
+                message = self._socket.recv(messageSize)
+            except Exception:
+                Log(f"Error receiving from server, assuming connection lost.")
+                if self._socket:
+                    self.CallHook(self.onDisconnect, ())
+                return
             self._queueLock.acquire()
             self._messageQueue.append((message, None))
             self._queueLock.release()

@@ -7,7 +7,7 @@ from engine.constants import NET_PROCESS_SHUTDOWN, NET_PROCESS_OPEN_SERVER_TRANS
     NET_PROCESS_CLOSE_SERVER_TRANSPORT, NET_PROCESS_CONNECT_CLIENT_TRANSPORT, NET_PROCESS_CLOSE_CLIENT_TRANSPORT, \
     NET_PROCESS_CLIENT_SEND_MESSAGE, NET_PROCESS_SERVER_SEND_MESSAGE, NET_CLIENT, NET_PROCESS_RECEIVE_MESSAGE, NET_HOST, \
     NET_SAFE_PROCESS_DELAY, NET_PROCESS_CLIENT_CONNECT, NET_PROCESS_CONNECT_SUCCESS, NET_PROCESS_CONNECT_FAIL, \
-    NET_PROCESS_CLIENT_DISCONNECT
+    NET_PROCESS_CLIENT_DISCONNECT, NET_USER_DISCONNECTED, NET_PROCESS_DISCONNECT, NET_CONNECTION_LOST
 from engine.logging import Log, LOG_NETWORKING, LOG_NETWORKPROCESS
 from engine.networking.connections.clientconnectionbase import ClientConnectionBase
 from engine.networking.networkclientbase import NetworkClientBase
@@ -27,6 +27,8 @@ NetworkUpdateTransport = namedtuple('NetworkUpdateTransport', ['name', 'transpor
 NetworkSendMessage = namedtuple('NetworkSendMessage', ['transportName', 'target', 'msgBytes', 'ignoreTarget'])
 
 NetworkConnectionStatus = namedtuple('NetworkConnectionStatus', ['referenceId', 'isConnected', 'nickname'])
+
+NetworkDisconnect = namedtuple('NetworkDisconnect', ['reason', 'transportName'])
 
 active = True
 networkServer: NetworkServerBase = None
@@ -71,53 +73,35 @@ def NetworkProcessMain(portUsed : int):
 
         # open close server transport
         elif nextMessage.id == NET_PROCESS_OPEN_SERVER_TRANSPORT:
-            openTransportInfo : NetworkUpdateTransport = nextMessage.data
-            if not networkServer:
-                networkServer = NetworkServerBase()
-            networkServer.Open(openTransportInfo.name, openTransportInfo.transport(), openTransportInfo.ipandport)
-            networkServer.transportHandlers[openTransportInfo.name].onClientConnect.append(NetworkClientConnect)
-            networkServer.transportHandlers[openTransportInfo.name].onClientDisconnect.append(NetworkClientDisconnect)
-            Log(f"Transport Opened {openTransportInfo.name} on ipandport={openTransportInfo.ipandport}", LOG_NETWORKPROCESS)
+            OpenServerTransport(nextMessage)
+            continue
         elif nextMessage.id == NET_PROCESS_CLOSE_SERVER_TRANSPORT:
-            if not networkServer:
-                Log(f"Network Server doesnt exist while trying to close server transport {nextMessage.data}", LOG_NETWORKPROCESS)
-                continue
-            closeTransportInfo : NetworkUpdateTransport = nextMessage.data
-            if closeTransportInfo.name not in networkServer.transportHandlers:
-                Log(f"STransport doesnt exist while trying to close transport {nextMessage.data}", LOG_NETWORKPROCESS)
-                continue
-            networkServer.Close(closeTransportInfo.name)
-            Log(f"STransport Closed {openTransportInfo.name} on ipandport={openTransportInfo.ipandport}", LOG_NETWORKPROCESS)
+            CloseServerTransport(nextMessage)
+            continue
 
         # connect / close client transport
         elif nextMessage.id == NET_PROCESS_CONNECT_CLIENT_TRANSPORT:
-            openTransportInfo : NetworkUpdateTransport = nextMessage.data
-            if not networkClient:
-                networkClient = NetworkClientBase()
-            try:
-                networkClient.Connect(openTransportInfo.name, openTransportInfo.transport(), openTransportInfo.ipandport)
-            except Exception:
-                Log(f"Failed to open transport {openTransportInfo.name} on ipandport={openTransportInfo.ipandport}", LOG_NETWORKPROCESS)
-                processSocket.send_pyobj(NetworkProcessMessage(NET_PROCESS_CONNECT_FAIL, nextMessage.data))
-                networkClient.Close(openTransportInfo.name)
-                continue
-
-            processSocket.send_pyobj(NetworkProcessMessage(NET_PROCESS_CONNECT_SUCCESS, nextMessage.data))
-            Log(f"Transport Opened {openTransportInfo.name} on ipandport={openTransportInfo.ipandport}", LOG_NETWORKPROCESS)
+            ConnectClientTransport(nextMessage)
+            continue
         elif nextMessage.id == NET_PROCESS_CLOSE_CLIENT_TRANSPORT:
-            if not networkClient:
-                Log(f"CNetwork Server doesnt exist while trying to close server transport {nextMessage.data}", LOG_NETWORKPROCESS)
-                continue
-            closeTransportInfo : NetworkUpdateTransport = nextMessage.data
-            if closeTransportInfo.name not in networkClient.transportHandlers:
-                Log(f"CTransport doesnt exist while trying to close transport {nextMessage.data}", LOG_NETWORKPROCESS)
-                continue
-            networkClient.Close(closeTransportInfo.name)
+            CloseClientTransport(nextMessage)
+            continue
 
         # send messages
         elif nextMessage.id == NET_PROCESS_CLIENT_SEND_MESSAGE:
             sendMessageInfo : NetworkSendMessage = nextMessage.data
-            networkClient.Send(sendMessageInfo.msgBytes, sendMessageInfo.transportName)
+            if sendMessageInfo.transportName not in networkClient.transportHandlers:
+                Log(f"No transport handler called {sendMessageInfo.transportName} for client", LOG_NETWORKPROCESS)
+                continue
+
+            try:
+                networkClient.Send(sendMessageInfo.msgBytes, sendMessageInfo.transportName)
+            except Exception as e:
+                Log(f"Networking connection lost: {e}", LOG_NETWORKPROCESS)
+                CloseClientTransport(NetworkProcessMessage(NET_PROCESS_CLOSE_CLIENT_TRANSPORT,
+                                                           NetworkUpdateTransport(sendMessageInfo.transportName, None, None)), e)
+                #CloseClientTransport(sendMessageInfo.transportName, e)
+            continue
 
         elif nextMessage.id == NET_PROCESS_SERVER_SEND_MESSAGE:
             sendMessageInfo : NetworkSendMessage = nextMessage.data
@@ -125,10 +109,63 @@ def NetworkProcessMain(portUsed : int):
                 networkServer.SendAll(sendMessageInfo.msgBytes, sendMessageInfo.transportName, [sendMessageInfo.ignoreTarget])
             else:
                 networkServer.Send(sendMessageInfo.msgBytes, connections[sendMessageInfo.target], sendMessageInfo.transportName)
+            continue
         else:
             Log(f"Networking Unknown message type received: {nextMessage}", LOG_NETWORKPROCESS)
 
     processSocket.close()
+
+def OpenServerTransport(nextMessage : NetworkProcessMessage):
+    global networkServer
+    openTransportInfo: NetworkUpdateTransport = nextMessage.data
+    if not networkServer:
+        networkServer = NetworkServerBase()
+    networkServer.Open(openTransportInfo.name, openTransportInfo.transport(), openTransportInfo.ipandport)
+    networkServer.transportHandlers[openTransportInfo.name].onClientConnect.append(NetworkClientConnect)
+    networkServer.transportHandlers[openTransportInfo.name].onClientDisconnect.append(NetworkClientDisconnect)
+    Log(f"Transport Opened {openTransportInfo.name} on ipandport={openTransportInfo.ipandport}", LOG_NETWORKPROCESS)
+def CloseServerTransport(nextMessage : NetworkProcessMessage):
+    global networkServer
+    if not networkServer:
+        Log(f"Network Server doesnt exist while trying to close server transport {nextMessage.data}",
+            LOG_NETWORKPROCESS)
+        return
+    closeTransportInfo: NetworkUpdateTransport = nextMessage.data
+    if closeTransportInfo.name not in networkServer.transportHandlers:
+        Log(f"STransport doesnt exist while trying to close transport {nextMessage.data}", LOG_NETWORKPROCESS)
+        return
+    networkServer.Close(closeTransportInfo.name)
+    Log(f"STransport Closed {closeTransportInfo.name} on ipandport={closeTransportInfo.ipandport}", LOG_NETWORKPROCESS)
+
+def ConnectClientTransport(nextMessage : NetworkProcessMessage):
+    global networkClient
+    openTransportInfo: NetworkUpdateTransport = nextMessage.data
+    if not networkClient:
+        networkClient = NetworkClientBase()
+    try:
+        networkClient.Connect(openTransportInfo.name, openTransportInfo.transport(), openTransportInfo.ipandport)
+    except Exception:
+        Log(f"Failed to open transport {openTransportInfo.name} on ipandport={openTransportInfo.ipandport}",
+            LOG_NETWORKPROCESS)
+        processSocket.send_pyobj(NetworkProcessMessage(NET_PROCESS_CONNECT_FAIL, nextMessage.data))
+        networkClient.Close(openTransportInfo.name)
+        return
+
+    networkClient.transportHandlers[openTransportInfo.name].onDisconnect.append(NetworkConnectionLost(openTransportInfo.name))
+    processSocket.send_pyobj(NetworkProcessMessage(NET_PROCESS_CONNECT_SUCCESS, nextMessage.data))
+    Log(f"Transport Opened {openTransportInfo.name} on ipandport={openTransportInfo.ipandport}", LOG_NETWORKPROCESS)
+def CloseClientTransport(nextMessage : NetworkProcessMessage, disconnectReason=NET_USER_DISCONNECTED):
+    if not networkClient:
+        Log(f"CNetwork Server doesnt exist while trying to close server transport {nextMessage.data}",
+            LOG_NETWORKPROCESS)
+        return
+    closeTransportInfo: NetworkUpdateTransport = nextMessage.data
+    if closeTransportInfo.name not in networkClient.transportHandlers:
+        Log(f"CTransport doesnt exist while trying to close transport {nextMessage.data}", LOG_NETWORKPROCESS)
+        return
+    networkClient.Close(closeTransportInfo.name)
+    processSocket.send_pyobj(NetworkProcessMessage(NET_PROCESS_DISCONNECT, NetworkDisconnect(disconnectReason,
+                                                                                                    closeTransportInfo.name)))
 
 def NetworkClientConnect(connection : ClientConnectionBase):
     global connections
@@ -144,6 +181,16 @@ def NetworkClientDisconnect(connection : ClientConnectionBase):
                                                    NetworkConnectionStatus(connection.referenceId,
                                                                            False, connection.nickname)))
     Log(f"Client disconnected: {connection.referenceId}", LOG_NETWORKPROCESS)
+
+def NetworkConnectionLost(transportName : str):
+    def _ConnectionLost():
+        CloseClientTransport(NetworkProcessMessage(NET_PROCESS_CLOSE_CLIENT_TRANSPORT,
+                                                   NetworkUpdateTransport(transportName, None, None)),
+                             NET_CONNECTION_LOST)
+        processSocket.send_pyobj(NetworkProcessMessage(NET_PROCESS_DISCONNECT, NetworkDisconnect(NET_CONNECTION_LOST,
+                                                                                                 transportName)))
+
+    return _ConnectionLost
 
 def NetworkProcessReceiveThread():
     global networkServer, networkClient, active, processSocket

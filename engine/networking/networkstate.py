@@ -6,13 +6,13 @@ class NetworkState:
     clientId = -1
 
     # Server Events
-    onClientConnect = {} #func(clientId)
-    onClientDisconnect = {} #func(clientId)
+    onClientConnect = {} #func(clientId : int)
+    onClientDisconnect = {} #func(clientId : int)
 
     # Client Events
     onConnectSuccess = {} #func()
     onConnectFail = {} # func()
-    onDisconnect = {} # func() # todo net implement
+    onDisconnect = {} # func(reason : str, transportName : str)
 
     # RPCs
     rpcQueue = []
