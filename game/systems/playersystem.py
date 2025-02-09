@@ -117,4 +117,5 @@ class PlayerSystem(EntitySystem):
         for player in self.currentScene.components[PlayerComponent]:
             if player.parentEntity.ownerId == clientId:
                 break
-        self.currentScene.DeleteEntity(player.parentEntity)
+        if player:
+            self.currentScene.DeleteEntity(player.parentEntity)
