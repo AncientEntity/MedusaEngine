@@ -380,7 +380,10 @@ class Engine:
 
         # Prevent input tampering of other clients
         if NetworkState.identity & NET_HOST:
-            snapshot.actionStates = {networkEvent.sender : snapshot.actionStates[networkEvent.sender]}
+            if networkEvent.sender in snapshot.actionStates:
+                snapshot.actionStates = {networkEvent.sender : snapshot.actionStates[networkEvent.sender]}
+            else:
+                snapshot.actionStates = {}
 
         Input.UpdateNetworkActionState(snapshot.actionStates)
 
