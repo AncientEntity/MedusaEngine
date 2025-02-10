@@ -1,6 +1,21 @@
 from engine.networking.variables.networkvarbase import NetworkVarBase
 import struct
 
+class WrappedList(list):
+    def __init__(self, iterable, interp, netVar):
+        super().__init__(iterable)
+        self.interp = interp
+        self.netVar = netVar
+    def __getitem__(self, item):
+        if not self.netVar._modified:
+            return self.interp[item]
+        return super().__getitem__(item)
+    def __setitem__(self, key, value):
+        super().__setitem__(key, value)
+        self.interp[key] = value
+        if self.netVar.hasAuthority:
+            self.netVar._modified = True
+
 class NetworkVarVector(NetworkVarBase):
     def __init__(self, defaultValue=[0,0]):
         super().__init__()
@@ -12,7 +27,7 @@ class NetworkVarVector(NetworkVarBase):
         self._dataSize = 8 if self.byteType == 'd' else 4
 
     def Set(self, value : list, modified=True):
-        self.value = value
+        self.value = list(value) if isinstance(value, tuple) else value
         while len(self.value) < self.minSize:
             self.value.append(0.0)
         super().Set(value, modified)
@@ -21,8 +36,7 @@ class NetworkVarVector(NetworkVarBase):
             self.value[i] += value[i]
         super().Add(value, modified)
     def Get(self):
-        return self.value  # todo net fix this god dammit use WrappedList from Vector/VectorInterpolate to simply set _modified if the list is changed... See networkentity.get_position
-
+        return WrappedList(self.value, self.value, self)
     def SetFromBytes(self, byteValue : bytes, modified=True):
         self.value = []
         for i in range(len(byteValue) // self._dataSize):

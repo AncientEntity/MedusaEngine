@@ -5,9 +5,15 @@ from engine.datatypes.inputaction import InputAction
 from engine.logging import Log, LOG_INFO, LOG_ALL, LOG_ERRORS, LOG_WARNINGS
 from pathlib import Path
 
+from engine.networking.networkstate import NetworkState
+
+
 class Input:
     _inputStates = {}
+
     _actions : dict[str,InputAction] = {}
+    _actionList : list[InputAction] = []
+    _networkActionState : dict[int, bytearray] = {} # clientId, input state bytes
 
     scroll = 0
     quitPressed = False
@@ -17,7 +23,7 @@ class Input:
     @staticmethod
     def Init(inputActions):
         Input._actions = inputActions
-        Input.ValidateActions()
+        Input._InitActions()
         Input.LoadBinds()
 
         # todo implement joysticks
@@ -48,14 +54,17 @@ class Input:
         bindFile.close()
 
     @staticmethod
-    def ValidateActions():
+    def _InitActions():
+        i = 0
         for name, action in Input._actions.items():
             if "=" in action.name:
                 Log(f"Action name {action.name} is invalid, '=' cannot be in the bind name", LOG_ERRORS)
                 return
             if name != action.name:
                 Log(f"Action key does not match action name", LOG_ERRORS)
-
+            action._id = i
+            i += 1
+            Input._actionList.append(action)
 
 
     @staticmethod
@@ -65,6 +74,15 @@ class Input:
             output = f"{output}{action.name}={action.activeBind}\n"
         return output
 
+    @staticmethod
+    def ActionStateToBytes():
+        actionBytes = bytearray()
+        for action in Input._actionList:
+            isPressed = KEYPRESSED if Input.ActionPressed(action.name) else KEYINACTIVE
+            isDown = KEYDOWN if Input.ActionDown(action.name) else KEYINACTIVE
+            isUp = KEYUP if Input.ActionUp(action.name) else KEYINACTIVE
+            actionBytes.append(isPressed | isDown | isUp)
+        return actionBytes
 
 
     @staticmethod
@@ -96,6 +114,9 @@ class Input:
                 for func in Input.onWindowResized.values():
                     func()
 
+        if NetworkState.clientId != -1:
+            Input._networkActionState[NetworkState.clientId] = Input.ActionStateToBytes()
+
     @staticmethod
     def IsKeyState(key : int, targetState : int) -> bool:
         if(key in Input._inputStates):
@@ -116,16 +137,43 @@ class Input:
         return Input.IsKeyState(key,KEYUP)
 
     @staticmethod
-    def ActionPressed(actionName : str) -> bool:
-        return Input.KeyPressed(Input._actions[actionName].activeBind)
+    def ActionPressed(actionName : str, clientId=None) -> bool:
+        if not clientId:
+            return Input.KeyPressed(Input._actions[actionName].activeBind)
+        if clientId not in Input._networkActionState:
+            return False
+        return Input._networkActionState[clientId][Input._actions[actionName]._id] & KEYPRESSED
     @staticmethod
-    def ActionDown(actionName : str) -> bool:
-        return Input.KeyDown(Input._actions[actionName].activeBind)
+    def ActionDown(actionName : str, clientId=None) -> bool:
+        if not clientId:
+            return Input.KeyDown(Input._actions[actionName].activeBind)
+        if clientId not in Input._networkActionState:
+            return False
+        return Input._networkActionState[clientId][Input._actions[actionName]._id] & KEYDOWN
     @staticmethod
-    def ActionUp(actionName : str) -> bool:
-        return Input.KeyUp(Input._actions[actionName].activeBind)
+    def ActionUp(actionName : str, clientId=None) -> bool:
+        if not clientId:
+            return Input.KeyUp(Input._actions[actionName].activeBind)
+        if clientId not in Input._networkActionState:
+            return False
+        return Input._networkActionState[clientId][Input._actions[actionName]._id] & KEYUP
 
     #todo proper mouse inputs (mouse up/down)
     @staticmethod
     def MouseButtonPressed(index):
         return pygame.mouse.get_pressed()[index]
+
+    @staticmethod
+    def UpdateNetworkActionState(networkActionState : dict[int, bytearray]):
+        for clientId, actionBytes in networkActionState.items():
+            if len(actionBytes) == 0: # If no action bytes provided, client disconnected.
+                if clientId in Input._networkActionState:
+                    Input._networkActionState.pop(clientId)
+                continue
+
+            Input._networkActionState[clientId] = actionBytes
+        print (Input._networkActionState)
+
+    @staticmethod
+    def GetNetworkActionState():
+        return Input._networkActionState

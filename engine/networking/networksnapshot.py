@@ -1,5 +1,6 @@
 from engine.constants import NET_SNAPSHOT_FULL, NET_SNAPSHOT_PARTIAL, NET_HOST
 from engine.ecs import Scene, NetworkEntity
+from engine.input import Input
 from engine.networking.networkstate import NetworkState
 from engine.networking.rpc import RPCAction
 from engine.networking.variables.networkvarbase import NetworkVarBase
@@ -71,6 +72,7 @@ class NetworkSnapshot:
         self.snapshotType = snapshotType # NET_SNAPSHOT_PARTIAL or NET_SNAPSHOT_FULL
         self.entities = []
         self.rpcCalls = []
+        self.actionStates : dict[int,bytearray] = {} # clientID/Bytearray of input actions
     def __str__(self):
         return f"NetworkSnapshot({self.snapshotType}), len(entities)={len(self.entities)}"
 
@@ -90,6 +92,10 @@ class NetworkSnapshot:
             snapshot.entities.append(entitySnapshot)
 
         snapshot.rpcCalls = NetworkState.rpcQueue
+
+        currentNetworkState = Input.GetNetworkActionState()
+        for clientId in currentNetworkState.keys():
+            snapshot.actionStates[clientId] = currentNetworkState[clientId]
 
         return snapshot
 
@@ -122,6 +128,7 @@ class NetworkSnapshot:
             snapshot.entities.append(entitySnapshot)
 
         snapshot.rpcCalls = NetworkState.rpcQueue
+        snapshot.actionStates[NetworkState.clientId] = Input.ActionStateToBytes()
 
         return snapshot
 
@@ -140,6 +147,13 @@ class NetworkSnapshot:
             rpcBytes = rpc.ToBytes()
             snapshotBytes.extend(len(rpcBytes).to_bytes(4, byteorder='big'))
             snapshotBytes.extend(rpcBytes)
+        snapshotBytes.extend(len(self.actionStates.items()).to_bytes(4, byteorder='big'))
+        clientId : int
+        actionState : bytearray
+        for clientId, actionState in self.actionStates.items():
+            snapshotBytes.extend(clientId.to_bytes(4, byteorder='big'))
+            snapshotBytes.extend(len(actionState).to_bytes(4, byteorder='big'))
+            snapshotBytes.extend(actionState)
 
         return snapshotBytes
 
@@ -161,6 +175,16 @@ class NetworkSnapshot:
             currentByte += 4
             snapshot.rpcCalls.append(RPCAction.FromBytes(snapshotBytes[currentByte:currentByte+rpcLength]))
             currentByte += rpcLength
+        actionStateCount = int.from_bytes(snapshotBytes[currentByte:currentByte+4], byteorder='big')
+        currentByte += 4
+        for i in range(actionStateCount):
+            clientId = int.from_bytes(snapshotBytes[currentByte:currentByte+4], byteorder='big')
+            currentByte += 4
+            actionStateLength = int.from_bytes(snapshotBytes[currentByte:currentByte+4], byteorder='big')
+            currentByte += 4
+            actionStateBytes = snapshotBytes[currentByte:currentByte+actionStateLength]
+            currentByte += actionStateLength
+            snapshot.actionStates[clientId] = actionStateBytes
 
         return snapshot
 
@@ -176,6 +200,9 @@ if __name__ == '__main__':
     t2 = NetworkSnapshot(0)
     t2.entities.append(t)
 
+    t2.actionStates[54] = b"023423423432"
+    t2.actionStates[123223] = b"1"
+
     t2.rpcCalls.append(RPCAction('FakeSystem', 'FakeFunc', b"testing"))
     t2.rpcCalls.append(RPCAction('FakeS23423ystem', 'Fak234eFunc', b"tes234ting"))
     t2.rpcCalls.append(RPCAction('Fak3eSystem', 'FakeFu2332nc', b"test2222ing"))
@@ -185,5 +212,6 @@ if __name__ == '__main__':
     backSnap = NetworkSnapshot.SnapshotFromBytes(snapBytes)
     print(backSnap.entities[0].prefabName)
     print(backSnap.entities[0].markDeletion)
+    print(t2.actionStates)
     for i in range(len(backSnap.rpcCalls)):
         print(backSnap.rpcCalls[i])

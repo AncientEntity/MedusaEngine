@@ -123,11 +123,13 @@ class Engine:
             if(self._queuedScene != None):
                 self._LoadQueuedScene()
 
+            # Input Tick
+            Input.InputTick()
+
             # Network Tick
             self.NetworkTick()
 
             #Game Loop
-            Input.InputTick()
             if Input.quitPressed:
                 self.Quit()
             self._currentScene.Update()
@@ -376,6 +378,12 @@ class Engine:
     def NetworkHandleSnapshot(self, networkEvent : NetworkEvent):
         snapshot : NetworkSnapshot = NetworkSnapshot.SnapshotFromBytes(networkEvent.data)
 
+        # Prevent input tampering of other clients
+        if NetworkState.identity & NET_HOST:
+            snapshot.actionStates = {networkEvent.sender : snapshot.actionStates[networkEvent.sender]}
+
+        Input.UpdateNetworkActionState(snapshot.actionStates)
+
         netEntitySnapshot : NetworkEntitySnapshot
         for netEntitySnapshot in snapshot.entities:
             # Can only replicate prefabs at the moment
@@ -431,7 +439,7 @@ class Engine:
 
     def AddConnection(self, sender):
         connectionInfo = ConnectionInfo(sender)
-        self.connections.append(connectionInfo)  # todo net handle removing (disconnecting) from the list
+        self.connections.append(connectionInfo)
         self.connectionsReference[sender] = connectionInfo
     def RemoveConnection(self, sender):
         conn : ConnectionInfo = None
@@ -440,7 +448,12 @@ class Engine:
                 break
         if conn:
             self.connections.remove(conn)
-        self.connectionsReference.pop(sender)
+            self.connectionsReference.pop(sender)
+
+            #Remove sender from input network state
+            currentNetworkState = Input.GetNetworkActionState()
+            if sender in currentNetworkState:
+                currentNetworkState.pop(sender)
 
     # If target is None, it will send all
     def NetworkServerSend(self, message, transport, target):

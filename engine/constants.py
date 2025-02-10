@@ -3,10 +3,10 @@
 # ----------------------------------------
 # INPUT CONSTANTS
 # ----------------------------------------
-KEYINACTIVE = 0  # When input/key has no state
-KEYPRESSED = 1  # When input/key is actively being pressed
-KEYDOWN = 2  # When input/key is pressed down (for 1 frame)
-KEYUP = 3  # When input/key is released (for 1 frame)
+KEYINACTIVE = 0b000  # When input/key has no state
+KEYPRESSED = 0b100  # When input/key is actively being pressed
+KEYDOWN = 0b010  # When input/key is pressed down (for 1 frame)
+KEYUP = 0b001  # When input/key is released (for 1 frame)
 
 INPUT_BIND_FILE = "config/binds.cfg"
 

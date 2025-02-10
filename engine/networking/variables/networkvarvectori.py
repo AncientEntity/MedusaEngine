@@ -1,23 +1,8 @@
 import struct
 import time
 
-from engine.networking.variables.networkvarvector import NetworkVarVector
+from engine.networking.variables.networkvarvector import NetworkVarVector, WrappedList
 from engine.tools.math import Distance, MoveTowards
-
-class WrappedList:
-    def __init__(self, list, interp, netVar):
-        self.list = list
-        self.interp = interp
-        self.netVar = netVar
-    def __getitem__(self, item):
-        if not self.netVar._modified:
-            return self.interp[item]
-        return self.list[item]
-    def __setitem__(self, key, value):
-        self.list[key] = value
-        self.interp[key] = value
-        if self.netVar.hasAuthority:
-            self.netVar._modified = True #todo net temp
 
 class NetworkVarVectorInterpolate(NetworkVarVector):
     def __init__(self, defaultValue=[0,0]):
@@ -36,7 +21,7 @@ class NetworkVarVectorInterpolate(NetworkVarVector):
 
     def Get(self):
         if self.hasAuthority:
-            return self.value
+            return WrappedList(self.value,self.value, self)
         else:
             distance = Distance(self._interpolatePosition, self.value)
             if distance > self.interpolateMaxDistance:

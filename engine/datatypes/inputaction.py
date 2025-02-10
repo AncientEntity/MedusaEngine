@@ -7,3 +7,6 @@ class InputAction:
         self.defaultBind = defaultBind
         self.activeBind = self.defaultBind #110
 
+        self.networked = networked
+
+        self._id = -1
