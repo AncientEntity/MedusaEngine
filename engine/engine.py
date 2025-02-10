@@ -434,7 +434,7 @@ class Engine:
         self.connections.append(connectionInfo)  # todo net handle removing (disconnecting) from the list
         self.connectionsReference[sender] = connectionInfo
     def RemoveConnection(self, sender):
-        conn : ConnectionInfo
+        conn : ConnectionInfo = None
         for conn in self.connections:
             if conn.connectionReferenceId == sender:
                 break
