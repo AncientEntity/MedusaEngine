@@ -172,7 +172,6 @@ class Input:
                 continue
 
             Input._networkActionState[clientId] = actionBytes
-        print (Input._networkActionState)
 
     @staticmethod
     def GetNetworkActionState():
