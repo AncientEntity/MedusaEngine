@@ -149,7 +149,7 @@ class Engine:
             pygame.joystick.init()
             pygame._sdl2.controller.init()
 
-        Input.Init()
+        Input.Init(self._game.inputActions)
 
         if not self.headless:
             self.CreateDisplay()

@@ -38,7 +38,7 @@ class PlayerSystem(EntitySystem):
         if Input.KeyDown(pygame.K_LEFTBRACKET):
             self.game.NetworkHostStart('127.0.0.1', 25565)
         elif Input.KeyDown(pygame.K_RIGHTBRACKET):
-            self.game.NetworkClientConnect('127.0.0.1', 25565) #'107.174.246.137'
+            self.game.NetworkClientConnect('107.174.246.137', 25565) #'107.174.246.137'
 
         player : PlayerComponent
         for player in currentScene.components[PlayerComponent]:
@@ -72,13 +72,13 @@ class PlayerSystem(EntitySystem):
             self.game.LoadScene(TiledTestScene)
     def PlayerMovement(self,player : PlayerComponent):
         moved = False
-        if (Input.KeyPressed(player.controls["up"]) and player.parentEntity.GetComponent(physics.PhysicsComponent).touchingDirections['bottom']):
+        if (Input.ActionPressed("up") and player.parentEntity.GetComponent(physics.PhysicsComponent).touchingDirections['bottom']):
             player.parentEntity.GetComponent(physics.PhysicsComponent).velocity[1] -= 200
             moved = True
-        if (Input.KeyPressed(player.controls["left"])):
+        if (Input.ActionPressed("left")):
             player.parentEntity.GetComponent(physics.PhysicsComponent).AddVelocity((-self.game.deltaTime * player.speed,0))
             moved = True
-        elif(Input.KeyPressed(player.controls["right"])):
+        elif(Input.ActionPressed("right")):
             player.parentEntity.GetComponent(physics.PhysicsComponent).AddVelocity((self.game.deltaTime * player.speed,0))
             moved = True
         if(moved):

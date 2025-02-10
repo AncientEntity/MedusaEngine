@@ -9,7 +9,6 @@ from game import assets
 class PlayerComponent(Component):
     def __init__(self):
         super().__init__()
-        self.controls = {'up' : pygame.K_w, 'down' : pygame.K_s, 'left' : pygame.K_a, 'right' : pygame.K_d}
         self.speed = 500
 
         self.tintEvent = None
