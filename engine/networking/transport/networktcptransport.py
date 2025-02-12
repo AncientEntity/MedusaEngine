@@ -94,6 +94,7 @@ class NetworkTCPTransport(NetworkTransportBase):
                 connection.Close()
                 if connection in self.clientConnections:
                     self.clientConnections.remove(connection)
+                return
             self._queueLock.acquire()
             self._messageQueue.append((message, connection))
             self._queueLock.release()

@@ -13,8 +13,7 @@ class WrappedList(list):
     def __setitem__(self, key, value):
         super().__setitem__(key, value)
         self.interp[key] = value
-        if self.netVar.hasAuthority:
-            self.netVar._modified = True
+        self.netVar._modified = True
 
 class NetworkVarVector(NetworkVarBase):
     def __init__(self, defaultValue=[0,0]):
