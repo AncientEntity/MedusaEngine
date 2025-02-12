@@ -237,6 +237,9 @@ class NetworkEntity(Entity):
     def set_position(self, value):
         self._position.Set(value, True)
 
+    def get_exact_position(self):
+        return self._position.GetExact()
+
     position = property(get_position,
                                  set_position)
 

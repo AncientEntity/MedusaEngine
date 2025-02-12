@@ -36,6 +36,9 @@ class NetworkVarVector(NetworkVarBase):
         super().Add(value, modified)
     def Get(self):
         return WrappedList(self.value, self.value, self)
+    def GetExact(self):
+        return tuple(self.value) # Return immutable tuple to prevent issues with it not being a WrappedList.
+
     def SetFromBytes(self, byteValue : bytes, modified=True):
         self.value = []
         for i in range(len(byteValue) // self._dataSize):

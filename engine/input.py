@@ -138,21 +138,21 @@ class Input:
 
     @staticmethod
     def ActionPressed(actionName : str, clientId=None) -> bool:
-        if not clientId:
+        if clientId is None:
             return Input.KeyPressed(Input._actions[actionName].activeBind)
         if clientId not in Input._networkActionState:
             return False
         return Input._networkActionState[clientId][Input._actions[actionName]._id] & KEYPRESSED
     @staticmethod
     def ActionDown(actionName : str, clientId=None) -> bool:
-        if not clientId:
+        if clientId is None:
             return Input.KeyDown(Input._actions[actionName].activeBind)
         if clientId not in Input._networkActionState:
             return False
         return Input._networkActionState[clientId][Input._actions[actionName]._id] & KEYDOWN
     @staticmethod
     def ActionUp(actionName : str, clientId=None) -> bool:
-        if not clientId:
+        if clientId is None:
             return Input.KeyUp(Input._actions[actionName].activeBind)
         if clientId not in Input._networkActionState:
             return False
@@ -171,7 +171,7 @@ class Input:
                     Input._networkActionState.pop(clientId)
                 continue
 
-            Input._networkActionState[clientId] = actionBytes
+            Input._networkActionState[clientId] = bytearray(actionBytes)
 
     @staticmethod
     def GetNetworkActionState():
