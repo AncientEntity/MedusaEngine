@@ -13,6 +13,8 @@ class NetworkVarVectorInterpolate(NetworkVarVector):
         self._interpolatePosition = defaultValue[:]
         self._lastInterpolateTime = time.time()
 
+        self.minByteChangeDifference = 100
+
     def Set(self, value : list, modified=True):
         super().Set(value, modified)
         distance = Distance(self._interpolatePosition, self.value)

@@ -1,6 +1,9 @@
 from engine.networking.variables.networkvarbase import NetworkVarBase
 import struct
 
+from engine.tools.math import Distance
+
+
 class WrappedList(list):
     def __init__(self, iterable, interp, netVar):
         super().__init__(iterable)
@@ -21,6 +24,7 @@ class NetworkVarVector(NetworkVarBase):
         self.value : list = defaultValue
 
         self.minSize = 2
+        self.minByteChangeDifference = None
 
         self.byteType = 'd' # either 'f' or 'd' to select float or double for byte serialization.
         self._dataSize = 8 if self.byteType == 'd' else 4
@@ -40,14 +44,19 @@ class NetworkVarVector(NetworkVarBase):
         return tuple(self.value) # Return immutable tuple to prevent issues with it not being a WrappedList.
 
     def SetFromBytes(self, byteValue : bytes, modified=True):
-        self.value = []
+        newValue = []
         for i in range(len(byteValue) // self._dataSize):
             floatBytes = byteValue[i*self._dataSize:i*self._dataSize+self._dataSize]
             if len(floatBytes) == 0:
                 continue
-            self.value.append(struct.unpack(self.byteType, floatBytes)[0])
-        while len(self.value) < self.minSize:
-            self.value.append(0.0)
+            newValue.append(struct.unpack(self.byteType, floatBytes)[0])
+        while len(newValue) < self.minSize:
+            newValue.append(0.0)
+
+        if self.minByteChangeDifference != None and Distance(self.value, newValue) < self.minByteChangeDifference:
+            return
+
+        self.value = newValue
         super().SetFromBytes(byteValue, modified)
     def GetAsBytes(self):
         byteArray = bytearray()
