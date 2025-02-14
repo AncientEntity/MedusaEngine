@@ -53,7 +53,7 @@ class NetworkVarVector(NetworkVarBase):
         while len(newValue) < self.minSize:
             newValue.append(0.0)
 
-        if self.minByteChangeDifference != None and Distance(self.value, newValue) < self.minByteChangeDifference:
+        if self.minByteChangeDifference and Distance(self.value, newValue) < self.minByteChangeDifference:
             return
 
         self.value = newValue
