@@ -8,7 +8,7 @@ class NetworkVarVectorInterpolate(NetworkVarVector):
     def __init__(self, defaultValue=[0,0]):
         super().__init__(defaultValue)
 
-        self.interpolateSpeed = 5
+        self.interpolateSpeed = 1
         self.interpolateMaxDistance = 500
         self._interpolatePosition = defaultValue[:]
         self._lastInterpolateTime = time.time()
