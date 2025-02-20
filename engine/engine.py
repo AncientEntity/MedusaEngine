@@ -411,13 +411,12 @@ class Engine:
             for variable in netEntitySnapshot.variables:
                 for foundVar in entVars:
                     if foundVar[1].prioritizeOwner and netEntitySnapshot.ownerId == NetworkState.clientId:
-                        continue #todo net test prioritize owner properly
+                        continue
 
                     if foundVar[0] == variable[0] and not foundVar[1].AreBytesEqual(variable[1]):
                         foundVar[1].SetFromBytes(variable[1], modified=False)
                         break
 
-            #todo net check if entity marked for deletion
 
         if networkEvent.sender == NetworkState.clientId:
             return
