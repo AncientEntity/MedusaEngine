@@ -19,7 +19,7 @@ class RenderingSystem(EntitySystem):
     instance = None
     def __init__(self):
         super().__init__([SpriteRenderer,TilemapRenderer,ParticleEmitterComponent,TextRenderer])
-        self.removeOnHeadless = True # todo net, setting this to True messes with physics, find out why and make it so we can fully remove it.
+        self.removeOnHeadless = True
 
         self.cameraPosition = [0,0]
         self.worldPixelsToScreenPixels = (3.0 / 800.0)
