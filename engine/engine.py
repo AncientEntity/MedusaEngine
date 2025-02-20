@@ -380,6 +380,9 @@ class Engine:
                 snapshot.actionStates = {networkEvent.sender : snapshot.actionStates[networkEvent.sender]}
             else:
                 snapshot.actionStates = {}
+        if NetworkState.identity & NET_CLIENT:
+            if NetworkState.clientId in snapshot.actionStates:
+                snapshot.actionStates.pop(NetworkState.clientId) # Prevents server from modifying local inputs
 
         Input.UpdateNetworkActionState(snapshot.actionStates)
 
