@@ -34,9 +34,6 @@ class Scene:
         self.networkDeletedQueue = []
 
     def CreateEntity(self,name,position,components):
-        #import random
-        #return self.CreateNetworkEntity(name,position,components,0,random.randint(-10000,-1))
-
         newEnt = Entity()
         newEnt.name = name
         newEnt.position = position

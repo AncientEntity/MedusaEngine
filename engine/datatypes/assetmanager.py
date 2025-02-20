@@ -3,6 +3,8 @@
 # to an asset here, that gets grabbed whenever it needs to be rendered.
 # The current implementation just has things like datatypes.sprites.Sprite holding the surface itself.
 # A asset manager instance should be created on start and loaded into the engine instance.
+# Basically anything that cant be serialized should be in here (pygame.Surfaces) as then we can implement
+# a way to fully serialize any entity into bytes and back for saving/loading easily.
 from engine.constants import NET_HOST
 from engine.ecs import Scene
 from engine.networking.networkstate import NetworkState
