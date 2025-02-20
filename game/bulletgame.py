@@ -1,6 +1,5 @@
 from engine.constants import SPLASH_ALWAYS
 from engine.game import Game
-from engine.networking.networkstate import NetworkState
 from game.scenes.sidescrollingscene import SideScrollingScene
 from game.scenes.tiledtestscene import TiledTestScene
 
