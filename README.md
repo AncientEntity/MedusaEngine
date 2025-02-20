@@ -13,11 +13,13 @@ cx_Freeze==7.0.0
 cx_Logging==3.2.0
 lief==0.14.1
 pygame-ce==2.4.1
-pygbag==0.9.1  
+pygbag==0.9.1
+pyzmq==26.2.1
 ```
 - Make sure to double check the individual licenses for each requirement to know what you can and cannot do with them.
 - Cx_freeze, cx_logging, and lief is only required if you use build/buildwindows.py
 - pygbag is only required if you use build/buildweb.py
+- Currently multiplayer is not supported on a web build
 
 # Project Setup
 - Setup instructions are intended for PyCharm. Setup for other IDEs may vary.

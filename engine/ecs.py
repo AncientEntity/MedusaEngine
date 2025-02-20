@@ -1,5 +1,12 @@
 from engine.datatypes.timedevents import TimedEvent
 import time
+import random
+
+from engine.networking.networkstate import NetworkState
+from engine.networking.variables.networkvarbase import NetworkVarBase
+from engine.networking.variables.networkvarvector import NetworkVarVector
+from engine.networking.variables.networkvarvectori import NetworkVarVectorInterpolate
+from engine.tools.platform import IsHeadless
 
 
 class Component:
@@ -23,8 +30,19 @@ class Scene:
 
         self._newComponentQueue = [] #Contains the list of components just added into the scene. For running EntitySystem.OnNewComponent on them.
 
+        self.networkedEntities = {} # List of just the network entities (they are also in self.entities)
+        self.networkDeletedQueue = []
+
     def CreateEntity(self,name,position,components):
         newEnt = Entity()
+        newEnt.name = name
+        newEnt.position = position
+        newEnt.components = components
+        self.AddEntity(newEnt)
+        return newEnt
+
+    def CreateNetworkEntity(self, name, position, components, ownerId, netentityId=None):
+        newEnt = NetworkEntity(ownerId, netentityId)
         newEnt.name = name
         newEnt.position = position
         newEnt.components = components
@@ -35,11 +53,13 @@ class Scene:
         if(entity._alive):
             return
         self.entities.append(entity)
+        if isinstance(entity, NetworkEntity):
+            self.networkedEntities[entity.entityId] = entity
         for component in entity.components:
             self.AddComponent(component, entity)
         entity._alive = True
 
-    def DeleteEntity(self,entity):
+    def DeleteEntity(self,entity, appendDeletionQueue=True):
         if(not entity._alive):
             return
 
@@ -47,6 +67,10 @@ class Scene:
         for component in entity.components:
             self.RemoveComponent(component)
         self.entities.remove(entity)
+        if isinstance(entity, NetworkEntity):
+            self.networkedEntities.pop(entity.entityId)
+            if appendDeletionQueue:
+                self.networkDeletedQueue.append(entity)
         entity._alive = False
 
     def AddComponent(self, component : Component, parentEntity):
@@ -60,6 +84,10 @@ class Scene:
         if (componentType in self.components):
             self.HandleDeleteComponent(component)
             self.components[componentType].remove(component)
+
+    def AddComponents(self, components : list[Component], parentEntity):
+        for component in components:
+            self.AddComponent(component, parentEntity)
 
     def GetSystemByClass(self,systemType : type):
         for system in self.systems:
@@ -83,7 +111,11 @@ class Scene:
             system.TickTimedEvents()
 
     def Init(self):
-        for system in self.systems:
+        for system in self.systems[:]:
+            if system.removeOnHeadless and IsHeadless():
+                self.systems.remove(system)
+                continue
+
             system.game = self.game
             for targetComponent in system.targetComponents:
                 if (targetComponent not in self.components):
@@ -130,14 +162,25 @@ class Scene:
         self.components = {}
         self.entities = []
 
-
 class Entity:
-    def __init__(self):
+    takenIds = set()
+    def __init__(self, forcedId=None):
+        if not forcedId:
+            self.entityId = Entity.GenerateEntityId()
+        else:
+            self.entityId = forcedId
+
+        Entity.takenIds.add(self.entityId)
+
         self.name = "Unnamed Entity"
         self.position = (0, 0)
         self.components = []
+        self.ownerId = None # Used for multiplayer (see NetworkEntity)
+
+        self.prefabName = None
 
         self._alive = False
+
     def GetComponent(self, t):
         for component in self.components:
             if(isinstance(component,t)):
@@ -153,10 +196,68 @@ class Entity:
     def IsAlive(self):
         return self._alive
 
+    @staticmethod
+    def GenerateEntityId():
+        found = False
+        while not found:
+            potentialId = random.randint(0,2**30)
+            if potentialId not in Entity.takenIds:
+                found = True
+        return potentialId
+
+
+class NetworkEntity(Entity):
+    def __init__(self, ownerId, forcedId=None):
+        self._position = NetworkVarVector()
+        self._position.prioritizeOwner = True
+
+        # Entity ID for networked object is always negative.
+        if forcedId is not None:
+            super().__init__(-abs(forcedId))
+        else:
+            super().__init__()
+            self.entityId = -abs(self.entityId)
+
+        self._networkVariables = None
+
+        self.ownerId = ownerId
+
+    def GetNetworkVariables(self):
+        if self._networkVariables:
+            return self._networkVariables
+        hasAuthority = NetworkState.clientId == self.ownerId
+
+
+        self._networkVariables = []
+        self._networkVariables.append(("_position", self._position))
+        if hasAuthority:
+            self._position.hasAuthority = hasAuthority
+        for component in self.components:
+            for attr in dir(component):
+                attrValue = getattr(component, attr)
+                if isinstance(attrValue, NetworkVarBase):
+                    self._networkVariables.append((attr, attrValue))
+                    attrValue.hasAuthority = hasAuthority
+        return self._networkVariables
+
+    def get_position(self):
+        return self._position.Get()
+    def set_position(self, value):
+        self._position.Set(value, True)
+
+    def get_exact_position(self):
+        return self._position.GetExact()
+
+    position = property(get_position,
+                                 set_position)
+
+
 class EntitySystem:
     def __init__(self, targetComponents=[]):
         self.targetComponents = targetComponents
         self.game = None
+
+        self.removeOnHeadless = False
 
         self._activeTimedEvents : list[TimedEvent] = []
 

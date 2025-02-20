@@ -2,6 +2,8 @@ import copy
 
 import pygame, time
 
+import engine.tools.platform
+
 
 #Get Sprite
 # getTailSprite determines if it will stop at the pygame.Surface, if True it will stop at the last 'Sprite' object before a surface.
@@ -48,7 +50,8 @@ class Sprite:
             self.sprite = self._unmodifiedSprite.copy()
 
         # Optimizations (can only do it if pygame is inited)
-        self.sprite = self.sprite.convert_alpha() # Converts it to the proper 'format' for python.
+        if not engine.tools.platform.headless:
+            self.sprite = self.sprite.convert_alpha() # Converts it to the proper 'format' for python.
                                                   # This will throw an error if pygame.display hasn't been initialized.
 
         #todo render offset (where you can have an offset and it repeats). ex: if you have a conveyor belt sprite you can 'repeat' it with an offset.

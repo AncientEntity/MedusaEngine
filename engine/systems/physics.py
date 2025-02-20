@@ -70,7 +70,7 @@ class PhysicsSystem(EntitySystem):
                     continue
 
                 bodyPos = [body.parentEntity.position[0]+body.offset[0],body.parentEntity.position[1]+body.offset[1]]
-                otherPos = other.parentEntity.position
+                otherPos = other.parentEntity.position # todo investigate, i believe we should be adding other.offset here
                 bodyBounds = pygame.FRect(bodyPos[0]-body.bounds[0]/2,bodyPos[1]-body.bounds[1]/2,body.bounds[0],body.bounds[1])
                 otherBounds = pygame.FRect(otherPos[0]-other.bounds[0]/2,otherPos[1]-other.bounds[1]/2,other.bounds[0],other.bounds[1])
                 self.HandlePhysicsCollision(body,bodyPos,bodyBounds,other,otherBounds.center,otherBounds,False)
