@@ -1,6 +1,7 @@
 import pygame
 
 import engine.tools.platform
+from engine.components.physicscomponent import PhysicsComponent
 from engine.constants import NET_HOST, NET_CALLER
 from engine.datatypes.assetmanager import assets
 from engine.datatypes.timedevents import TimedEvent
@@ -28,8 +29,12 @@ class PlayerSystem(EntitySystem):
         self.currentScene = currentScene
 
         NetworkState.onClientDisconnect["deleteplayer"] = self.DeletePlayer
+        NetworkState.onConnectSuccess["createplayer"] = self.CreatePlayer
         if engine.tools.platform.headless:
             self.game.NetworkHostStart('0.0.0.0', 25565)
+        if engine.tools.platform.IsPlatformWeb():
+            assets.Instantiate("player", self.currentScene,
+                                  position=self.currentScene.GetRandomTiledObjectByName("SPAWN")["position"][:])
 
     def OnNewComponent(self,component : PlayerComponent):
         component.parentEntity.GetComponent(SpriteRenderer).sprite = component.idleAnim
@@ -54,6 +59,10 @@ class PlayerSystem(EntitySystem):
                     else:
                         player.tintEvent.repeatCount = 0
                         player.tintEvent = None
+
+                if player.parentEntity.position[1] >= 200:
+                    player.parentEntity.position[1] = -100
+                    player.parentEntity.GetComponent(PhysicsComponent).velocity = [0,0]
 
             velocity = player.parentEntity.GetComponent(physics.PhysicsComponent).velocity
             if Magnitude(velocity) >= 10:
@@ -126,3 +135,7 @@ class PlayerSystem(EntitySystem):
                 break
         if player:
             self.currentScene.DeleteEntity(player.parentEntity)
+
+    def CreatePlayer(self):
+        assets.NetInstantiate("player", self.currentScene,
+                              position=self.currentScene.GetRandomTiledObjectByName("SPAWN")["position"][:])

@@ -231,7 +231,6 @@ class Engine:
                 NetworkState.TriggerHook(NetworkState.onClientDisconnect, (nextMessage.data.referenceId,))
                 Log(f"Client Disconnected: {nextMessage.data.referenceId}, {nextMessage.data.nickname}", LOG_NETWORKING)
             elif nextMessage.id == NET_PROCESS_CONNECT_SUCCESS:
-                NetworkState.TriggerHook(NetworkState.onConnectSuccess, (nextMessage.data,))
                 Log(f"Connected to {nextMessage.data.ipandport}", LOG_NETWORKING)
             elif nextMessage.id == NET_PROCESS_CONNECT_FAIL:
                 NetworkState.TriggerHook(NetworkState.onConnectFail, (nextMessage.data,))
@@ -348,10 +347,8 @@ class Engine:
             if networkEvent.processAs & NET_CLIENT:
                 NetworkState.clientId = int.from_bytes(networkEvent.data,"big")
                 self.clientInitialized = True
+                NetworkState.TriggerHook(NetworkState.onConnectSuccess, ())
                 Log(f"Received Init Event, Client Id: {NetworkState.clientId}", LOG_NETWORKING)
-                assets.NetInstantiate("player",self._currentScene, position=self._currentScene.GetRandomTiledObjectByName("SPAWN")["position"][:])
-                # todo net save client info to list somewhere and mark client as initialized and dont reply to NET_EVENT_INIT from the client anymore.
-                # todo net dont create player here, use onConnectSuccess in main scene or something
             elif networkEvent.processAs & NET_HOST:
                 if networkEvent.sender in self.connectionsReference:
                     return # Already initialized the client.
@@ -373,7 +370,6 @@ class Engine:
 
         if networkEvent.eventId == NET_EVENT_SNAPSHOT_PARTIAL or networkEvent.eventId == NET_EVENT_SNAPSHOT_FULL:
             self.NetworkHandleSnapshot(networkEvent)
-            # todo net destroying entities via snapshot
 
     def NetworkHandleSnapshot(self, networkEvent : NetworkEvent):
         snapshot : NetworkSnapshot = NetworkSnapshot.SnapshotFromBytes(networkEvent.data)
