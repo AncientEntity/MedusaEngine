@@ -16,6 +16,7 @@ from engine.systems.renderer import RenderingSystem
 class UISystem(EntitySystem):
     def __init__(self):
         super().__init__([UIComponent, RectTransformComponent])
+        self.removeOnHeadless = True
 
         self.allUIElements = []
         self.rectTransforms = []

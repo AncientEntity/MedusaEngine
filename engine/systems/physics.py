@@ -70,7 +70,7 @@ class PhysicsSystem(EntitySystem):
                     continue
 
                 bodyPos = [body.parentEntity.position[0]+body.offset[0],body.parentEntity.position[1]+body.offset[1]]
-                otherPos = other.parentEntity.position
+                otherPos = other.parentEntity.position # todo investigate, i believe we should be adding other.offset here
                 bodyBounds = pygame.FRect(bodyPos[0]-body.bounds[0]/2,bodyPos[1]-body.bounds[1]/2,body.bounds[0],body.bounds[1])
                 otherBounds = pygame.FRect(otherPos[0]-other.bounds[0]/2,otherPos[1]-other.bounds[1]/2,other.bounds[0],other.bounds[1])
                 self.HandlePhysicsCollision(body,bodyPos,bodyBounds,other,otherBounds.center,otherBounds,False)
@@ -114,22 +114,35 @@ class PhysicsSystem(EntitySystem):
                 if (body._moveRequest[0] > 0 and bodyPos[0] < otherPos[0] and abs(
                         bodyBounds.top - otherBounds.bottom) > 1 and abs(bodyBounds.bottom - otherBounds.top) > 1):
                     bodyBounds.right = otherBounds.left
-                    body.velocity[0] = 0
-                    body.parentEntity.position[0] = bodyBounds.centerx - body.offset[0]
 
                     body.touchingDirections['right'] = True
-                    if(other != None):
+                    body.parentEntity.position[0] = bodyBounds.centerx - body.offset[0]
+                    if(other != None and other.static == False and body.velocity[1] != 0):
                         other.touchingDirections['left'] = True
+
+                        finalVelocity = (body.mass * body.velocity[0] + other.mass * other.velocity[0]) / (
+                                    body.mass + other.mass)
+                        body.velocity[0] = finalVelocity
+                        other.velocity[0] = finalVelocity
+                    else:
+                        body.velocity[0] = 0
+
                 # Left
                 elif (body._moveRequest[0] < 0 and bodyPos[0] > otherPos[0] and abs(
                         bodyBounds.top - otherBounds.bottom) > 1 and abs(bodyBounds.bottom - otherBounds.top) > 1):
                     bodyBounds.left = otherBounds.right
-                    body.velocity[0] = 0
-                    body.parentEntity.position[0] = bodyBounds.centerx - body.offset[0]
 
                     body.touchingDirections['left'] = True
-                    if(other != None):
+                    body.parentEntity.position[0] = bodyBounds.centerx - body.offset[0]
+                    if(other != None and other.static == False and body.velocity[1] != 0):
                         other.touchingDirections['right'] = True
+
+                        finalVelocity = (body.mass * body.velocity[0] + other.mass * other.velocity[0]) / (
+                                    body.mass + other.mass)
+                        body.velocity[0] = finalVelocity
+                        other.velocity[0] = finalVelocity
+                    else:
+                        body.velocity[0] = 0
 
                 # Bottom
                 if (body._moveRequest[1] > 0 and bodyPos[1] < otherPos[1] and abs(
@@ -137,13 +150,16 @@ class PhysicsSystem(EntitySystem):
                     bodyBounds.bottom = otherBounds.top
 
                     body.touchingDirections['bottom'] = True
+                    body.parentEntity.position[1] = bodyBounds.centery - body.offset[1]
                     if(other != None and other.static == False and body.velocity[1] != 0):
                         other.touchingDirections['top'] = True
-                        body.velocity[1] = ((body.mass-other.mass)/(body.mass+other.mass))*body.velocity[1] + ((2*other.mass)/(body.mass+other.mass))*other.velocity[1]
-                        other.velocity[1] = ((2*body.mass)/(body.mass+other.mass))*body.velocity[1] - ((body.mass-other.mass)/(body.mass+other.mass))*other.velocity[1]
+
+                        finalVelocity = (body.mass * body.velocity[1] + other.mass * other.velocity[1]) / (
+                                    body.mass + other.mass)
+                        body.velocity[1] = finalVelocity
+                        other.velocity[1] = finalVelocity
                     else:
                         body.velocity[1] = 0
-                        body.parentEntity.position[1] = bodyBounds.centery - body.offset[1]
 
                 # Top
                 elif (body._moveRequest[1] < 0 and bodyPos[1] > otherPos[1] and abs(
@@ -151,14 +167,16 @@ class PhysicsSystem(EntitySystem):
                     bodyBounds.top = otherBounds.bottom
 
                     body.touchingDirections['top'] = True
+                    body.parentEntity.position[1] = bodyBounds.centery - body.offset[1]
                     if(other != None and other.static == False and body.velocity[1] != 0):
                         other.touchingDirections['bottom'] = True
-                        body.velocity[1] = ((body.mass-other.mass)/(body.mass+other.mass))*body.velocity[1] + ((2*other.mass)/(body.mass+other.mass))*other.velocity[1]
-                        other.velocity[1] = ((2 * body.mass) / (body.mass + other.mass)) * body.velocity[1] - (
-                                    (body.mass - other.mass) / (body.mass + other.mass)) * other.velocity[1]
+
+                        finalVelocity = (body.mass * body.velocity[1] + other.mass * other.velocity[1]) / (
+                                    body.mass + other.mass)
+                        body.velocity[1] = finalVelocity
+                        other.velocity[1] = finalVelocity
                     else:
                         body.velocity[1] = 0
-                        body.parentEntity.position[1] = bodyBounds.centery - body.offset[1]
 
         else:
             if (bodyBounds.left == otherBounds.right and round(bodyBounds.bottom) >= round(otherBounds.bottom) and round(bodyBounds.top) <= round(otherBounds.top)):
@@ -209,3 +227,12 @@ class PhysicsSystem(EntitySystem):
             renderer.DebugDrawWorldRect((255,0,0),quad.bounds)
         for c in quad._quadrantChildren:
             self.DebugDrawQuads(renderer,c)
+
+    def DebugDrawCollisionBounds(self, renderer, currentScene : Scene):
+        physics : PhysicsComponent
+        for body in currentScene.components[PhysicsComponent]:
+            bodyPos = [body.parentEntity.position[0] + body.offset[0], body.parentEntity.position[1] + body.offset[1]]
+            bodyBounds = pygame.FRect(bodyPos[0] - body.bounds[0] / 2, bodyPos[1] - body.bounds[1] / 2, body.bounds[0],
+                                      body.bounds[1])
+
+            renderer.DebugDrawWorldRect((0,255,0), bodyBounds)

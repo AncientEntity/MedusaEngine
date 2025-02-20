@@ -2,9 +2,13 @@ from engine.components.audioplayer import AudioPlayer
 from engine.ecs import EntitySystem, Scene, Component
 import time
 
+from engine.logging import Log
+
+
 class AudioSystem(EntitySystem):
     def __init__(self):
         super().__init__([AudioPlayer])
+        self.removeOnHeadless = True
         self.audioPlayers = []
     def Update(self,currentScene : Scene):
         player : AudioPlayer
@@ -25,6 +29,13 @@ class AudioSystem(EntitySystem):
             elif(player._triggerStop and isSoundPlaying):
                 player.GetSound().stop()
                 player._playStartTime = 0
+
+    def OnDisable(self, currentScene : Scene):
+        Log(f"AudioSystem({self}) cleaning up")
+        for player in self.audioPlayers:
+            player.GetSound().stop()
+        self.audioPlayers = []
+
     def OnNewComponent(self,component : Component):
         if(isinstance(component, AudioPlayer)):
             self.audioPlayers.append(component)
