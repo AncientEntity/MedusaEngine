@@ -1,5 +1,6 @@
 from engine.datatypes.timedevents import TimedEvent
 import time
+import random
 
 from engine.networking.networkstate import NetworkState
 from engine.networking.variables.networkvarbase import NetworkVarBase
@@ -165,14 +166,14 @@ class Scene:
         self.entities = []
 
 class Entity:
-    idIncrementor = -1 # Network Entity's always have negative IDs. Non networked entities are positive.
+    takenIds = set()
     def __init__(self, forcedId=None):
         if not forcedId:
-            Entity.idIncrementor+=1
-            import random
-            self.entityId = random.randint(0,1000000)#Entity.idIncrementor #todo net proper solution to this
+            self.entityId = Entity.GenerateEntityId()
         else:
             self.entityId = forcedId
+
+        Entity.takenIds.add(self.entityId)
 
         self.name = "Unnamed Entity"
         self.position = (0, 0)
@@ -197,6 +198,16 @@ class Entity:
 
     def IsAlive(self):
         return self._alive
+
+    @staticmethod
+    def GenerateEntityId():
+        found = False
+        while not found:
+            potentialId = random.randint(0,2**30)
+            if potentialId not in Entity.takenIds:
+                found = True
+        return potentialId
+
 
 class NetworkEntity(Entity):
     def __init__(self, ownerId, forcedId=None):
