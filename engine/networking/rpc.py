@@ -45,7 +45,7 @@ class RPCAction:
         argBytes = rpcBytes[currentByte:currentByte+argLength]
         return RPCAction(systemType, funcName, argBytes)
 
-def RPC(serverAuthorityRequired=True, targetCallers=NET_ALL): #todo net targetCallers doesnt work properly
+def RPC(serverAuthorityRequired=True, targetCallers=NET_ALL):
     def decorator(func):
         def wrapper(*args, **kwargs):
             isCaller = kwargs['isCaller'] if 'isCaller' in kwargs else True

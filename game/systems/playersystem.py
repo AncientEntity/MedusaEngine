@@ -79,6 +79,7 @@ class PlayerSystem(EntitySystem):
             self.game.LoadScene(sidescrollingscene.SideScrollingScene)
         if (Input.KeyDown(pygame.K_t)):
             self.game.LoadScene(TiledTestScene)
+
     def PlayerMovement(self,player : PlayerComponent):
         moved = False
         if (Input.ActionPressed("up", player.parentEntity.ownerId) and player.parentEntity.GetComponent(physics.PhysicsComponent).touchingDirections['bottom']):

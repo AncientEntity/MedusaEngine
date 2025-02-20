@@ -113,7 +113,7 @@ class NetworkSnapshot:
                 for variable in netEntity.GetNetworkVariables():
                     if variable[1]._modified:
                         variablesToUpdate.append(variable)
-                    variable[1]._modified = False #todo net not sure if this needs to be here or not
+                    variable[1]._modified = False
                 if len(variablesToUpdate) == 0:
                     continue # no need to include in snapshot
 

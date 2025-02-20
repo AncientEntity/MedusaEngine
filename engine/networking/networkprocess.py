@@ -7,7 +7,8 @@ from engine.constants import NET_PROCESS_SHUTDOWN, NET_PROCESS_OPEN_SERVER_TRANS
     NET_PROCESS_CLOSE_SERVER_TRANSPORT, NET_PROCESS_CONNECT_CLIENT_TRANSPORT, NET_PROCESS_CLOSE_CLIENT_TRANSPORT, \
     NET_PROCESS_CLIENT_SEND_MESSAGE, NET_PROCESS_SERVER_SEND_MESSAGE, NET_CLIENT, NET_PROCESS_RECEIVE_MESSAGE, NET_HOST, \
     NET_SAFE_PROCESS_DELAY, NET_PROCESS_CLIENT_CONNECT, NET_PROCESS_CONNECT_SUCCESS, NET_PROCESS_CONNECT_FAIL, \
-    NET_PROCESS_CLIENT_DISCONNECT, NET_USER_DISCONNECTED, NET_PROCESS_DISCONNECT, NET_CONNECTION_LOST
+    NET_PROCESS_CLIENT_DISCONNECT, NET_USER_DISCONNECTED, NET_PROCESS_DISCONNECT, NET_CONNECTION_LOST, \
+    NET_PROCESS_KICK_CLIENT
 from engine.logging import Log, LOG_NETWORKING, LOG_NETWORKPROCESS
 from engine.networking.connections.clientconnectionbase import ClientConnectionBase
 from engine.networking.networkclientbase import NetworkClientBase
@@ -86,6 +87,17 @@ def NetworkProcessMain(portUsed : int):
         elif nextMessage.id == NET_PROCESS_CLOSE_CLIENT_TRANSPORT:
             CloseClientTransport(nextMessage)
             continue
+
+        # server kick user
+        elif nextMessage.id == NET_PROCESS_KICK_CLIENT:
+            if nextMessage.data not in connections:
+                continue
+
+            for layer in list(networkServer.transportHandlers.values()):
+                layer.Kick(connections[nextMessage.data])
+                NetworkClientDisconnect(connections[nextMessage.data])
+                Log(f"Client {nextMessage.data} kicked on layer {type(layer)}")
+
 
         # send messages
         elif nextMessage.id == NET_PROCESS_CLIENT_SEND_MESSAGE:

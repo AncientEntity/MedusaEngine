@@ -23,5 +23,3 @@ class NetworkState:
             hookList = list(hookList.values())
         for hook in hookList:
             hook(*args)
-
-    # todo net headless/dedicated servers without rendering

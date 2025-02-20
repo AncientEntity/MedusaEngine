@@ -21,6 +21,8 @@ class NetworkTransportBase:
         pass
     def Close(self):
         pass
+    def Kick(self, clientConnection : ClientConnectionBase):
+        pass
 
     def Send(self, message, clientConnection : ClientConnectionBase):
         pass

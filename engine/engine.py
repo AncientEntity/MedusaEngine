@@ -310,8 +310,9 @@ class Engine:
 
         Log(f"Network Host Stop, Identity: {NetworkState.identity}", LOG_NETWORKING)
 
-    def NetworkServerKick(self, clientId : int, reason):
-        pass # todo net implement kicking.
+    def NetworkServerKick(self, clientId : int):
+        self._networkProcessSocket.send_pyobj(NetworkProcessMessage(NET_PROCESS_KICK_CLIENT,
+                                                                    clientId))
 
     def NetworkClientConnect(self, ip : str, port : int):
         Log(f"Network Client Connect ({ip},{port})", LOG_NETWORKING)

@@ -3,6 +3,7 @@ import threading
 import time
 
 from engine.logging import Log, LOG_WARNINGS, LOG_ERRORS
+from engine.networking.connections.clientconnectionbase import ClientConnectionBase
 from engine.networking.connections.clientconnectionsocket import ClientConnectionSocket
 from engine.networking.transport.networktransportbase import NetworkTransportBase
 
@@ -56,6 +57,10 @@ class NetworkTCPTransport(NetworkTransportBase):
         connection : ClientConnectionSocket
         for connection in self.clientConnections:
             connection.Close()
+
+    def Kick(self, clientConnection : ClientConnectionBase):
+        if clientConnection in self.clientConnections:
+            clientConnection.Close()
 
     def Send(self, message, clientConnection : ClientConnectionSocket) -> None:
         if clientConnection:
