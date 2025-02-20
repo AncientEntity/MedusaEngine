@@ -19,7 +19,7 @@ from game.systems.NPCSystem import NPCSystem
 
 class TiledTestScene(LevelScene):
     def __init__(self):
-        super().__init__(random.choice(["game/art/tiled/testmap2.tmj"]),worldTileset, {"SKELETON" : assets.FactoryInstantiate("skeleton")})
+        super().__init__(random.choice(["game/art/tiled/testmap1.tmj"]),worldTileset, {"SKELETON" : assets.FactoryInstantiate("skeleton")})
         self.name = "Tiled Test Scene"
         self.systems.append(playersystem.PlayerSystem())
         self.systems.append(NPCSystem())
