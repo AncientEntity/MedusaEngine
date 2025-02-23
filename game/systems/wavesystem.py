@@ -23,7 +23,7 @@ class WaveSystem(EntitySystem):
     def Update(self,currentScene : Scene):
         pass
     def OnEnable(self, currentScene : Scene):
-        self.waveEvent = TimedEvent(self.SpawnWave,(currentScene,),0,12,None)
+        self.waveEvent = TimedEvent(self.SpawnWave,(currentScene,),0,17,None)
         self.StartTimedEvent(self.waveEvent)
 
         self.CreateScoreEntity(currentScene)
