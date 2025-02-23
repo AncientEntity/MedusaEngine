@@ -17,6 +17,8 @@ from game.components.playercomponent import PlayerComponent
 from game.components.projectilecomponent import ProjectileComponent
 from game.drivers.playerdriver import PlayerDriver
 from game.drivers.testaidriver import TestAIDriver
+from game.systems.wavesystem import WaveSystem
+
 
 class ActorSystem(EntitySystem):
     def __init__(self):
@@ -238,6 +240,7 @@ class ActorSystem(EntitySystem):
             # Give target's XP to attacker
             attacker.xp += target.xp
             target.xp = 0
+            self.currentScene.GetSystemByClass(WaveSystem).AddScore(5)
 
             # Delete heldItem if actor.destroyItemOnDeath
             if target.heldItem:

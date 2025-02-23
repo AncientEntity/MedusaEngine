@@ -9,6 +9,7 @@ from engine.ecs import EntitySystem, Scene, Component
 from engine.engine import Input
 from engine.systems.renderer import RenderingSystem
 from engine.tools.math import MoveTowards, Distance, NormalizeVec, LookAt, Magnitude
+from engine.tools.platform import IsPlatformWeb
 from game.components.actorcomponent import ActorComponent
 from game.components.guncomponent import GunComponent
 from game.components.playercomponent import PlayerComponent
@@ -29,17 +30,19 @@ class PlayerSystem(EntitySystem):
         currentScene.GetSystemByClass(ActorSystem).RegisterAction("dash",self.ActionPlayerDash)
 
     def Update(self,currentScene : Scene):
-        if Input.KeyDown(pygame.K_k):
-            if not pygame.display.is_fullscreen():
-                RenderingSystem.instance.SetResolution(None, True)
-            else:
-                RenderingSystem.instance.SetResolution((1280,800), False)
+        if not IsPlatformWeb():
+            if Input.KeyDown(pygame.K_k):
+                if not pygame.display.is_fullscreen():
+                    RenderingSystem.instance.SetResolution(None, True)
+                else:
+                    RenderingSystem.instance.SetResolution((1280,800), False)
+            if Input.KeyPressed(pygame.K_g):
+                self.game.LoadScene(self.game._game.startingScene)
 
         player : PlayerComponent
         for player in currentScene.components[PlayerComponent]:
             self.Animate(player, currentScene)
-        if Input.KeyPressed(pygame.K_g):
-            self.game.LoadScene(self.game._game.startingScene)
+
 
     def Animate(self, player : PlayerComponent, currentScene : Scene):
 

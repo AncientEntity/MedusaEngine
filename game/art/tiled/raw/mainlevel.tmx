@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<map version="1.10" tiledversion="1.11.0" orientation="orthogonal" renderorder="right-down" width="25" height="25" tilewidth="16" tileheight="16" infinite="0" nextlayerid="6" nextobjectid="22">
+<map version="1.10" tiledversion="1.10.2" orientation="orthogonal" renderorder="right-down" width="25" height="25" tilewidth="16" tileheight="16" infinite="0" nextlayerid="7" nextobjectid="33">
  <editorsettings>
   <export target="../mainlevel.tmj" format="json"/>
  </editorsettings>
@@ -106,14 +106,6 @@
    </properties>
    <point/>
   </object>
-  <object id="12" name="light" x="264.5" y="29">
-   <properties>
-    <property name="brightness" type="float" value="0.5"/>
-    <property name="color" type="color" value="#ff640000"/>
-    <property name="radius" type="int" value="42"/>
-   </properties>
-   <point/>
-  </object>
   <object id="13" name="light" x="56.5" y="269">
    <properties>
     <property name="brightness" type="float" value="0.5"/>
@@ -168,6 +160,39 @@
     <property name="color" type="color" value="#ff00ff00"/>
     <property name="radius" type="int" value="80"/>
    </properties>
+   <point/>
+  </object>
+  <object id="22" name="enemySpawn" x="48" y="48">
+   <point/>
+  </object>
+  <object id="23" name="enemySpawn" x="154.667" y="62.6667">
+   <point/>
+  </object>
+  <object id="24" name="enemySpawn" x="327.333" y="54">
+   <point/>
+  </object>
+  <object id="25" name="enemySpawn" x="261.333" y="161.333">
+   <point/>
+  </object>
+  <object id="26" name="enemySpawn" x="353.333" y="174">
+   <point/>
+  </object>
+  <object id="27" name="enemySpawn" x="302.667" y="259.333">
+   <point/>
+  </object>
+  <object id="28" name="enemySpawn" x="352.667" y="349.333">
+   <point/>
+  </object>
+  <object id="29" name="enemySpawn" x="190" y="355.333">
+   <point/>
+  </object>
+  <object id="30" name="enemySpawn" x="46.6667" y="356">
+   <point/>
+  </object>
+  <object id="31" name="enemySpawn" x="102.667" y="205.333">
+   <point/>
+  </object>
+  <object id="32" name="enemySpawn" x="145.333" y="288.667">
    <point/>
   </object>
  </objectgroup>

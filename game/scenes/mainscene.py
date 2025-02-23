@@ -15,6 +15,7 @@ from game.systems.actorsystem import ActorSystem
 from game.systems.playersystem import PlayerSystem
 import random
 
+from game.systems.wavesystem import WaveSystem
 from game.systems.weaponsystem import WeaponSystem
 
 
@@ -28,6 +29,7 @@ class MainScene(LevelScene):
         self.systems.append(PhysicsSystem())
         self.systems.append(WeaponSystem())
         self.systems.append(UISystem())
+        self.systems.append(WaveSystem())
         #self.systems.append(GroundSystem())
         self.GetSystemByClass(RenderingSystem).backgroundColor = (40,25,40)
         self.GetSystemByClass(RenderingSystem).worldPixelsToScreenPixels = 4.0 / 1280
@@ -49,15 +51,6 @@ class MainScene(LevelScene):
         #    eP = CreatePlayer(self)
         #    eP.GetComponent(ActorComponent).driver = TestAIDriver()
         #    eP.position = [random.randint(-200,200),random.randint(-200,200)]
-        for i in range(5):
-            r = random.randint(0,100)
-            if r <= 50:
-                g = CreateGoblinPrefab(self)
-            elif r <= 80:
-                g = CreateFloatingSwordPrefab(self)
-            else:
-                g = CreateLichEyePrefab(self)
-            g.position = [random.randint(-200, 200), random.randint(-200, 200)]
 
     def CreateFire(self, currentScene : LevelScene):
         light = LightComponent(0.5,42,(100,0,0))

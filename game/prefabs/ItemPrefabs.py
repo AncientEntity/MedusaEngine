@@ -58,7 +58,7 @@ def CreateWoodenBowPrefab(currentScene : LevelScene, friendly=True):
 
     gunComponent.bulletPrefabFunc = SpawnProjectileFactory(gunComponent, spriteRenderer)
 
-    return currentScene.CreateEntity("WoodenBow",[0,40],components=[gunComponent,spriteRenderer,physics])
+    return currentScene.CreateEntity("WoodenBow",[0,0],components=[gunComponent,spriteRenderer,physics])
 
 def CreateSlingshotPrefab(currentScene : LevelScene, friendly=True):
     gunComponent = GunComponent()
