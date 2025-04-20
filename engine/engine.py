@@ -92,8 +92,9 @@ class Engine:
             exit(0)
 
         if(self._game.webCanvasPixelated):
-            if sys.platform == 'emscripten':
+            if IsPlatformWeb():
                 platform.window.canvas.style.imageRendering = "pixelated"
+                Log("Setting canvas to pixelated", LOG_INFO)
 
         #Load splash screen if enabled otherwise load starting scene, if we load splash screen scene the splash screen scene swaps to the self._game.startingScene for us.
         if(not engine.tools.platform.headless and (self._game.startingSplashMode == SPLASH_ALWAYS or (IsBuilt() and
