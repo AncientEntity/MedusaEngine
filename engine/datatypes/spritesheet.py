@@ -16,6 +16,7 @@ class SpriteSheet:
         print("[SpriteSheet] Loaded full: " + spriteFile)
         self.fullSize = self.full.get_size()
         self.sprites = {}
+        self.spriteList = []
 
         if(mapFile == None):
             self.SplitFramesBasedOnSize()
@@ -31,11 +32,14 @@ class SpriteSheet:
         mapFile = open(self.mapFilePath,"r")
         for line in mapFile.read().split("\n"):
             splitLine = line.split(" ")
+            if len(splitLine) <= 1:
+                continue # Either empty line or just a new line
             if(len(splitLine)< 5):
                 Log("Invalid line in "+self.mapFilePath+", line: "+line,LOG_WARNINGS)
                 continue
             subSprite = self.full.subsurface(pygame.Rect(int(splitLine[1]), int(splitLine[2]), int(splitLine[3]), int(splitLine[4])))
             self.sprites[splitLine[0]] = subSprite
+            self.spriteList.append(subSprite)
             Log("Created "+splitLine[0] + " sprite frame",LOG_ALL)
 
         mapFile.close()
@@ -48,14 +52,16 @@ class SpriteSheet:
             for x in range(self.xCount):
                 subSprite = self.full.subsurface(pygame.Rect(x * self.spriteSize, y * self.spriteSize, self.spriteSize, self.spriteSize))
                 self.sprites[str(x) + ":" + str(y)] = subSprite # Add it to the hashtable as a tuple (x,y)
-                self.sprites[i] = subSprite                     # But also add it as the ID. This can be helpful as 2 methods of looking up
+                self.spriteList.append(subSprite)               # Also add to list for index based lookup (see __getitem__)
                 i += 1                                          # And the memory usage shouldn't be a concern
                 print("[SpriteSheet] Loaded sprite from spritesheet(" + self.spriteFile + "): " + str(x) + ", " + str(y))
-    def __getitem__(self,item : tuple or str) -> pygame.Surface:
+    def __getitem__(self,item : tuple or str or int) -> pygame.Surface:
         if(type(item) == tuple):
             return self.sprites[str(item[0])+":"+str(item[1])]
-        else:
+        elif(type(item) == str):
             return self.sprites[item]
+        else:
+            return self.spriteList[item]
     def __setitem__(self, item, value): # todo test this, untested currently.
         if(type(item) == tuple):
             self.sprites[str(item[0])+":"+str(item[1])] = value

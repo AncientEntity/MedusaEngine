@@ -27,11 +27,11 @@ class TimedEvent:
                 return False
 
         return True
-    def TimeUntilNextTrigger(self):
+    def TimeUntilNextTrigger(self, curTime):
         if(self.repeatCount == 0):
             return -1
-        cTime = self.startDelay - (time.time() - self.creationTime)
+        cTime = self.startDelay - (curTime - self.creationTime)
         if(cTime > 0):
             return cTime
-        rTime = self.repeatDelay - (time.time() - self.lastRepeatTime)
+        rTime = self.repeatDelay - (curTime - self.lastRepeatTime)
         return rTime

@@ -140,6 +140,8 @@ class LevelScene(Scene):
                     return prop["value"]
         return None
 
+    GetPropertyOfObject = GetPropertyOfLayer
+
     #Returns the first found tiled object.
     def GetTiledObjectByName(self,objName):
         if(objName in self.layerObjectsDict):
@@ -156,6 +158,13 @@ class LevelScene(Scene):
         if(obj != None and "trigger" in obj):
             return obj["trigger"]
         return None
+
+    def GetTriggersByName(self, triggerName):
+        found = []
+        for obj in self.GetTiledObjectsByName(triggerName):
+            if obj and "trigger" in obj:
+                found.append(obj["trigger"])
+        return found
 
     def GetRandomTiledObjectByName(self,objName):
         if(objName in self.layerObjectsDict):
@@ -184,3 +193,17 @@ class LevelScene(Scene):
 
         layerObj: Entity = self.tileMapLayersObjectsByName[layerName]
         layerObj.GetComponent(TilemapRenderer).tileMap.Clear()   # todo cache TileMapRenderers instead as GetComponent is slow.
+
+    def GetTileAtWorldPosition(self,worldPos,layerName=None):
+        layer : TilemapRenderer = None
+        if layerName:
+            layer = self.tileMapLayersObjectsByName[layerName].GetComponent(TilemapRenderer)
+        else:
+            layer = self.tileMapLayers[0].GetComponent(TilemapRenderer)
+
+        tileIndex = layer.WorldPositionToTileIndex(worldPos)
+
+        if tileIndex[0] >= 0 and tileIndex[1] >= 0 and tileIndex[0] < len(layer.tileMap.map) and tileIndex[1] < len(layer.tileMap.map[0]):
+            return layer.tileMap.GetTileID(tileIndex[0],tileIndex[1])
+        else:
+            return None
