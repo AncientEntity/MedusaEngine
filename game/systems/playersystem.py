@@ -39,11 +39,15 @@ class PlayerSystem(EntitySystem):
             moved = True
         if (Input.KeyPressed(player.controls["left"])):
             player.parentEntity.GetComponent(physics.PhysicsComponent).AddVelocity((-self.game.deltaTime * player.speed,0))
-            player.parentEntity.GetComponent(SpriteRenderer).sprite.SetFlipX(True)
+            playerSprite = player.parentEntity.GetComponent(SpriteRenderer).sprite
+            if playerSprite:
+                playerSprite.SetFlipX(True)
             moved = True
         elif(Input.KeyPressed(player.controls["right"])):
             player.parentEntity.GetComponent(physics.PhysicsComponent).AddVelocity((self.game.deltaTime * player.speed,0))
-            player.parentEntity.GetComponent(SpriteRenderer).sprite.SetFlipX(False)
+            playerSprite = player.parentEntity.GetComponent(SpriteRenderer).sprite
+            if playerSprite:
+                playerSprite.SetFlipX(False)
             moved = True
         if(moved):
             RenderingSystem.instance.cameraPosition = player.parentEntity.position
