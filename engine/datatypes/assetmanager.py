@@ -7,6 +7,7 @@
 # a way to fully serialize any entity into bytes and back for saving/loading easily.
 from engine.constants import NET_HOST
 from engine.ecs import Scene
+from engine.logging import Log, LOG_ERRORS
 from engine.networking.networkstate import NetworkState
 
 
@@ -39,7 +40,15 @@ class AssetManager:
 
         return self.prefabs[prefab_name](entity, currentScene)
 
+def DefinePrefab(prefabName):
+    def decorator(func):
+        if prefabName in assets.prefabs:
+            Log(f"Trying to define already existing prefab: {prefabName}", LOG_ERRORS)
 
+        assets.prefabs[prefabName] = func
+        Log(f"DefinePrefab({prefabName})")
+
+    return decorator
 
 
 

@@ -6,6 +6,7 @@ class NetworkState:
     clientId = -1
 
     # Server Events
+    serverOnTransportOpen = {} #func(transportName : str)
     onClientConnect = {} #func(clientId : int)
     onClientDisconnect = {} #func(clientId : int)
 

@@ -8,6 +8,7 @@ import pygame._sdl2.controller
 
 from engine import ecs
 from engine.constants import *
+from engine.constants import NET_PROCESS_OPEN_SERVER_TRANSPORT
 from engine.datatypes.assetmanager import assets
 from engine.game import Game
 import time
@@ -240,6 +241,8 @@ class Engine:
                 networkDisconnect : NetworkDisconnect = nextMessage.data
                 NetworkState.TriggerHook(NetworkState.onDisconnect, (networkDisconnect.reason,networkDisconnect.transportName))
                 Log(f"Client Disconnected from server {networkDisconnect.transportName}")
+            elif nextMessage.id == NET_PROCESS_EVENT_ON_TRANSPORT_OPEN:
+                NetworkState.TriggerHook(NetworkState.serverOnTransportOpen, (nextMessage.data,))
             else:
                 Log(f"Engine Unknown message type received: {nextMessage}", LOG_NETWORKING)
 

@@ -138,7 +138,7 @@ class Input:
 
     @staticmethod
     def ActionPressed(actionName : str, clientId=None) -> bool:
-        if clientId is None:
+        if clientId is None or clientId == -1:
             return Input.KeyPressed(Input._actions[actionName].activeBind)
         if clientId not in Input._networkActionState:
             return False

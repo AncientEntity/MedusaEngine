@@ -8,13 +8,12 @@ from engine.constants import NET_PROCESS_SHUTDOWN, NET_PROCESS_OPEN_SERVER_TRANS
     NET_PROCESS_CLIENT_SEND_MESSAGE, NET_PROCESS_SERVER_SEND_MESSAGE, NET_CLIENT, NET_PROCESS_RECEIVE_MESSAGE, NET_HOST, \
     NET_SAFE_PROCESS_DELAY, NET_PROCESS_CLIENT_CONNECT, NET_PROCESS_CONNECT_SUCCESS, NET_PROCESS_CONNECT_FAIL, \
     NET_PROCESS_CLIENT_DISCONNECT, NET_USER_DISCONNECTED, NET_PROCESS_DISCONNECT, NET_CONNECTION_LOST, \
-    NET_PROCESS_KICK_CLIENT
-from engine.logging import Log, LOG_NETWORKING, LOG_NETWORKPROCESS
+    NET_PROCESS_KICK_CLIENT, NET_PROCESS_EVENT_ON_TRANSPORT_OPEN
+from engine.logging import Log, LOG_NETWORKPROCESS
 from engine.networking.connections.clientconnectionbase import ClientConnectionBase
 from engine.networking.networkclientbase import NetworkClientBase
 from engine.networking.networkevent import NetworkEventFromBytes
 from engine.networking.networkserverbase import NetworkServerBase
-from engine.tools.platform import IsBuilt
 
 
 class NetworkProcessMessage:
@@ -135,6 +134,7 @@ def OpenServerTransport(nextMessage : NetworkProcessMessage):
     networkServer.Open(openTransportInfo.name, openTransportInfo.transport(), openTransportInfo.ipandport)
     networkServer.transportHandlers[openTransportInfo.name].onClientConnect.append(NetworkClientConnect)
     networkServer.transportHandlers[openTransportInfo.name].onClientDisconnect.append(NetworkClientDisconnect)
+    processSocket.send_pyobj(NetworkProcessMessage(NET_PROCESS_EVENT_ON_TRANSPORT_OPEN, openTransportInfo.name))
     Log(f"Transport Opened {openTransportInfo.name} on ipandport={openTransportInfo.ipandport}", LOG_NETWORKPROCESS)
 def CloseServerTransport(nextMessage : NetworkProcessMessage):
     global networkServer
