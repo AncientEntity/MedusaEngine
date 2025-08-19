@@ -15,6 +15,7 @@ class NetworkTCPTransport(NetworkTransportBase):
 
         self._messageQueue = []
         self._queueLock : threading.Lock = threading.Lock()
+        self._messagesAvailable = threading.Semaphore(0)
 
         self.clientReceiveThread = None
 
@@ -103,6 +104,7 @@ class NetworkTCPTransport(NetworkTransportBase):
             self._queueLock.acquire()
             self._messageQueue.append((message, connection))
             self._queueLock.release()
+            self._messagesAvailable.release()
 
     def ThreadReceiveClient(self):
         while self._socket:
@@ -117,13 +119,14 @@ class NetworkTCPTransport(NetworkTransportBase):
             self._queueLock.acquire()
             self._messageQueue.append((message, None))
             self._queueLock.release()
+            self._messagesAvailable.release()
 
 
 
     def Receive(self, buffer=2048):
-        while len(self._messageQueue) == 0:
-            if not self.active:
-                return None
+        self._messagesAvailable.acquire()
+        if not self.active:
+            return None
 
         self._queueLock.acquire()
         message = self._messageQueue.pop(0)
