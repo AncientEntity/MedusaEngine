@@ -44,6 +44,8 @@ class PlayerSystem(EntitySystem):
             self.game.NetworkHostStart('127.0.0.1', 25565)
         elif Input.KeyDown(pygame.K_RIGHTBRACKET):
             self.game.NetworkClientConnect('127.0.0.1', 25565) #'107.174.246.137'
+        elif Input.KeyDown(pygame.K_BACKSLASH):
+            self.game.NetworkClientDisconnect()
 
         player : PlayerComponent
         for player in currentScene.components[PlayerComponent]:

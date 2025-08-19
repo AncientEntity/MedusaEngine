@@ -15,7 +15,7 @@ class NetworkTransportBase:
 
         self.onDisconnect = [] # func() # When client disconnects
 
-    def Connect(self):
+    def Connect(self, targetServer : (str, int)):
         pass
     def Open(self, ip : str, port : int):
         pass
