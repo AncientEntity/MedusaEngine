@@ -205,10 +205,13 @@ class Entity:
                 found = True
         return potentialId
 
+    def get_exact_position(self):
+        return self.position
+
 
 class NetworkEntity(Entity):
     def __init__(self, ownerId, forcedId=None):
-        self._position = NetworkVarVector()
+        self._position = NetworkVarVectorInterpolate()
         self._position.prioritizeOwner = True
 
         # Entity ID for networked object is always negative.

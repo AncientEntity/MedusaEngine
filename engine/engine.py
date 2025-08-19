@@ -8,6 +8,7 @@ import pygame._sdl2.controller
 
 from engine import ecs
 from engine.constants import *
+from engine.constants import NET_PROCESS_OPEN_SERVER_TRANSPORT
 from engine.datatypes.assetmanager import assets
 from engine.game import Game
 import time
@@ -93,8 +94,9 @@ class Engine:
             exit(0)
 
         if(self._game.webCanvasPixelated):
-            if sys.platform == 'emscripten':
+            if IsPlatformWeb():
                 platform.window.canvas.style.imageRendering = "pixelated"
+                Log("Setting canvas to pixelated", LOG_INFO)
 
         #Load splash screen if enabled otherwise load starting scene, if we load splash screen scene the splash screen scene swaps to the self._game.startingScene for us.
         if(not engine.tools.platform.headless and (self._game.startingSplashMode == SPLASH_ALWAYS or (IsBuilt() and
@@ -240,6 +242,8 @@ class Engine:
                 networkDisconnect : NetworkDisconnect = nextMessage.data
                 NetworkState.TriggerHook(NetworkState.onDisconnect, (networkDisconnect.reason,networkDisconnect.transportName))
                 Log(f"Client Disconnected from server {networkDisconnect.transportName}")
+            elif nextMessage.id == NET_PROCESS_EVENT_ON_TRANSPORT_OPEN:
+                NetworkState.TriggerHook(NetworkState.serverOnTransportOpen, (nextMessage.data,))
             else:
                 Log(f"Engine Unknown message type received: {nextMessage}", LOG_NETWORKING)
 

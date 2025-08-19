@@ -1,5 +1,5 @@
 from engine.networking.variables.networkvarbase import NetworkVarBase
-
+import struct
 
 class NetworkVarFloat(NetworkVarBase):
     def __init__(self, defaultValue=0.0):
@@ -17,7 +17,8 @@ class NetworkVarFloat(NetworkVarBase):
 
 
     def SetFromBytes(self, byteValue : bytes, modified=True):
-        self.value = float.from_bytes(byteValue, byteorder='big')
+        self.value = struct.unpack(">d", byteValue)[0]
         super().SetFromBytes(byteValue, modified)
     def GetAsBytes(self):
-        return self.value.to_bytes(8, byteorder='big')
+        return struct.pack(">d", self.value)
+        #return self.value.to_bytes(8, byteorder='big')

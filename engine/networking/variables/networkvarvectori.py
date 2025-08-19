@@ -8,18 +8,19 @@ class NetworkVarVectorInterpolate(NetworkVarVector):
     def __init__(self, defaultValue=[0,0]):
         super().__init__(defaultValue)
 
-        self.interpolateSpeed = 1
-        self.interpolateMaxDistance = 500
+        self.interpolateSpeed = 0.45
+        self.interpolateMaxDistance = 50
         self._interpolatePosition = defaultValue[:]
         self._lastInterpolateTime = time.time()
 
-        self.minByteChangeDifference = 100
+        self.minByteChangeDifference = None
 
     def Set(self, value : list, modified=True):
         super().Set(value, modified)
-        distance = Distance(self._interpolatePosition, self.value)
-        if distance >= self.interpolateMaxDistance or self.hasAuthority:
+        if not isinstance(value, WrappedList): # we might not need this depending on how WrappedList takes in a value...
             self._interpolatePosition = self.value[:]
+        else:
+            self._interpolatePosition = self.value[:].interp
 
     def Get(self):
         if self.hasAuthority:
@@ -31,9 +32,10 @@ class NetworkVarVectorInterpolate(NetworkVarVector):
                 return self._interpolatePosition
 
             curTime = time.time()
-            self._interpolatePosition = MoveTowards(self._interpolatePosition, self.value, self.interpolateSpeed*(curTime-self._lastInterpolateTime)*distance)
+            if distance <= self.interpolateSpeed: # todo issue seems to be coming from movetowards
+                self._interpolatePosition = MoveTowards(self._interpolatePosition, self.value, self.interpolateSpeed*(curTime-self._lastInterpolateTime)*distance**2)
             self._lastInterpolateTime = curTime
-            return WrappedList(self.value,self._interpolatePosition, self)
+            return WrappedList(self._interpolatePosition,self._interpolatePosition, self)
 
 if __name__ == '__main__':
     t = NetworkVarVectorInterpolate()

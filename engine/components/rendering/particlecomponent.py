@@ -26,6 +26,7 @@ class ParticleEmitterComponent(RendererComponent):
             defaultParticle = Sprite(pygame.image.load("engine/art/default-particle.png"))
 
         self.sprite : Sprite = defaultParticle.Copy()
+        self.doSpawning = True
         self.particlesPerSecond = 25.0
         self.maxParticles = 100
         self.particleInitializeFunction = None #Function that runs, takes argument particle : Particle. Meant to initialize particle.

@@ -142,15 +142,18 @@ class RenderingSystem(EntitySystem):
             return
 
         spriteSurface = GetSprite(spriteRenderer.sprite)
+        drawPosition = (spriteRenderer.parentEntity.position[0]+spriteRenderer.offset[0],
+                        spriteRenderer.parentEntity.position[1]+spriteRenderer.offset[1])
+
         # Validate if we found an actual sprite
         if (spriteSurface == None):
             return
 
         # Verify what is being drawn is on the screen
-        if (False == self.IsOnScreenSprite(spriteSurface, spriteRenderer.parentEntity.position, spriteRenderer.screenSpace)):
+        if (False == self.IsOnScreenSprite(spriteSurface, drawPosition, spriteRenderer.screenSpace)):
             return
 
-        finalPosition = self.FinalPositionOfSprite(spriteRenderer.parentEntity.position, spriteSurface, spriteRenderer.screenSpace)
+        finalPosition = self.FinalPositionOfSprite(drawPosition, spriteSurface, spriteRenderer.screenSpace)
         self._renderTarget.blit(spriteSurface, finalPosition)
 
         if (self.debug):  # If debug draw bounds of spriterenderers
@@ -183,11 +186,15 @@ class RenderingSystem(EntitySystem):
             return
 
         #See if a new particle should spawn, if so create it.
-        for i in range(int((self.game.frameStartTime - emitter._lastParticleSpawnTime) * emitter.particlesPerSecond)):
-            if (len(emitter._activeParticles) >= emitter.maxParticles):
-                break
-            emitter.NewParticle()
+        if emitter.doSpawning:
+            for i in range(int((self.game.frameStartTime - emitter._lastParticleSpawnTime) * emitter.particlesPerSecond)):
+                if (len(emitter._activeParticles) >= emitter.maxParticles):
+                    break
+                emitter.NewParticle()
+                emitter._lastParticleSpawnTime = self.game.frameStartTime
+        else:
             emitter._lastParticleSpawnTime = self.game.frameStartTime
+
 
         #Now simulate and render all particles
         particle : Particle

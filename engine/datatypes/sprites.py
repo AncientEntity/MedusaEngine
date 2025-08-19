@@ -3,6 +3,7 @@ import copy
 import pygame, time
 
 import engine.tools.platform
+from engine.datatypes.spritesheet import SpriteSheet
 
 
 #Get Sprite
@@ -15,6 +16,39 @@ def GetSprite(sprite, getTailSprite=False):
         if(getTailSprite == True and isinstance(nextSprite,pygame.Surface)):
             return sprite
         return nextSprite
+
+def GenerateSpriteStack(sprites : pygame.Surface or SpriteSheet, scale):
+    if isinstance(sprites, SpriteSheet):
+        sprites = sprites.spriteList[::-1]
+
+    if scale:
+        for i in range(len(sprites)):
+            sprites[i] = pygame.transform.scale(sprites[i], (sprites[i].get_width()*scale[0],sprites[i].get_height()*scale[1]))
+
+    outputSprites = []
+
+    for i in range(360):
+        rotated = []
+        largestX = 0
+        largestY = 0
+        for sprite in sprites:
+            rotatedSprite = pygame.transform.rotate(sprite, i)
+            if rotatedSprite.get_width() > largestX:
+                largestX = rotatedSprite.get_width()
+            if rotatedSprite.get_height() > largestY:
+                largestY = rotatedSprite.get_height()
+            rotated.append(rotatedSprite)
+
+        stackedSprite = pygame.Surface((largestX,largestY+len(sprites)*2), pygame.SRCALPHA)
+
+        offsetY = len(sprites)
+        for sprite in rotated:
+            stackedSprite.blit(sprite,(0,offsetY+len(sprites)//2))
+            offsetY -= 1
+        outputSprites.append(stackedSprite)
+
+    return outputSprites
+
 
 class Sprite:
     def __init__(self,filePathOrSurface : str or pygame.Surface):
@@ -214,6 +248,66 @@ class AnimatedSprite(Sprite):
     def SetRotation(self,rotation):
         for sprite in self._sprites:
             sprite.SetRotation(rotation)
+
+    def SetPixelScale(self, pixelScale):
+        for sprite in self._sprites:
+            sprite.SetPixelScale(pixelScale)
+
+    def get_width(self):
+        return self.GetSprite().get_width()
+    def get_height(self):
+        return self.GetSprite().get_height()
+
+class StackedSprite(Sprite):
+    def __init__(self,sprites : list[pygame.Surface] or SpriteSheet):
+        super().__init__("")
+        self.rotation = 0
+
+        self._sprites = []
+        self.AddSprites(GenerateSpriteStack(sprites, None))
+    def AddSprite(self,sprite):
+        if(isinstance(sprite,pygame.Surface)):
+            self._sprites.append(Sprite(sprite))
+        else:
+            self._sprites.append(sprite)
+    def AddSprites(self,sprites):
+        for sprite in sprites:
+            self.AddSprite(sprite)
+    def ReplaceSprite(self,sprite,index):
+        if(isinstance(sprite,pygame.Surface)):
+            self._sprites[index] = Sprite(sprite)
+        else:
+            self._sprites[index] = sprite
+    def InsertSprite(self,sprite,index):
+        if(isinstance(sprite,pygame.Surface)):
+            self._sprites.insert(index, Sprite(sprite))
+        else:
+            self._sprites.insert(index,sprite)
+
+    def GetSprite(self):
+        targetSprite = self._sprites[int(self.rotation) % 360]
+        if isinstance(targetSprite, pygame.Surface):
+            return targetSprite
+        elif(isinstance(targetSprite,Sprite)):
+            return targetSprite.GetSprite()
+    def SetFlipX(self, flipped):
+        if(self._flipX == flipped):
+            return
+
+        self._flipX = flipped
+        for i in range(len(self._sprites)):
+            if(isinstance(self._sprites[i], pygame.Surface)):
+                self._sprites[i] = pygame.transform.flip(self._sprites[i], True, False)
+            else:
+                self._sprites[i].SetFlipX(flipped)
+        return self
+    def SetTint(self,tint):
+        for sprite in self._sprites:
+            sprite.SetTint(tint)
+        self._tint = tint
+    def SetRotation(self,rotation):
+        self.rotation = rotation
+
     def get_width(self):
         return self.GetSprite().get_width()
     def get_height(self):

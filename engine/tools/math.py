@@ -16,8 +16,11 @@ def MoveTowardsDelta(current, target, delta):
     x = target[0]-current[0]
     y = target[1]-current[1]
     length = Distance(current,target)
-    if(length <= delta or length == 0):
-        return current
+    if(length == 0):
+        return (0,0)
+    elif(length <= delta):
+        return (x,y)
+
     normalizedVecAndDelta = (x/length*delta,y/length*delta)
     return normalizedVecAndDelta
 

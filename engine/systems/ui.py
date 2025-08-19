@@ -148,7 +148,7 @@ class UISystem(EntitySystem):
 
         spriteRenderer : SpriteRenderer
         for spriteRenderer in transform.parentEntity.GetComponents(SpriteRenderer):
-            if spriteRenderer:
+            if spriteRenderer and spriteRenderer.sprite:
                 if not spriteRenderer.rectMargin:
                     spriteRenderer.sprite.SetPixelScale(transform._calculatedBounds)
                 else:
@@ -188,11 +188,13 @@ class UISystem(EntitySystem):
                 component.SetParent(self.rootRect)
 
             self.UpdateRectTransform(component)
-        if (isinstance(component, UIComponent)):
+        if (isinstance(component, UIComponent)): # todo should this be like this?
             self.allUIElements.append(component)
 
     def OnDeleteComponent(self, component: Component):
-        self.allUIElements.remove(component)
+
+        if (isinstance(component, UIComponent)): # todo should this be like this?
+            self.allUIElements.remove(component)
 
         if(isinstance(component, RectTransformComponent)):
             self.rectTransforms.remove(component)
