@@ -13,6 +13,7 @@ class NetworkServerBase:
 
         self._messageQueue = []
         self._messageQueueLock = threading.Lock()
+        self._messagesAvailable = threading.Semaphore(0)
 
     def Open(self, layerName : str, connectionHandler : NetworkTransportBase, address : (str, int)):
         self.transportHandlers[layerName] = connectionHandler
@@ -42,14 +43,14 @@ class NetworkServerBase:
 
     def ThreadReceive(self, transporter : NetworkTransportBase):
         while transporter.active:
-            message = transporter.Receive(2048)
+            message = transporter.Receive(8192)
             self._messageQueueLock.acquire()
             self._messageQueue.append(message)
             self._messageQueueLock.release()
+            self._messagesAvailable.release()
 
     def GetNextMessage(self) -> tuple[bytes, ClientConnectionBase]:
-        if len(self._messageQueue) == 0:
-            return None
+        self._messagesAvailable.acquire()
 
         self._messageQueueLock.acquire()
         message = self._messageQueue.pop(0)

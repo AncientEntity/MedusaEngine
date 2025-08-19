@@ -26,7 +26,7 @@ class NetworkTransportBase:
 
     def Send(self, message, clientConnection : ClientConnectionBase):
         pass
-    def Receive(self, buffer=2048) -> tuple[bytes, ClientConnectionBase]:
+    def Receive(self, buffer=8192) -> tuple[bytes, ClientConnectionBase]:
         pass
 
     def CallHook(self, hookArray, args):

@@ -19,7 +19,7 @@ import time
 # - HTBNone    : Heartbeat
 # IMPORTANT TODOS:
 # todo - snapshots over 65536 compressed will error (gracefully within try/catch).
-# todo   Need to break snapshots up when too big, or messages, and handle fragmenting...
+# todo   Need to break messages up when too big, like into 4096 byte fragments, and handle fragmenting...
 class NetworkUDPTransport(NetworkTransportBase):
     def __init__(self):
         super().__init__()
@@ -97,8 +97,16 @@ class NetworkUDPTransport(NetworkTransportBase):
             self.DisconnectClient(clientConnection.address)
             Log(f"NetworkUDPTransport has kicked: {clientConnection.address[0]}")
 
-    def Send(self, message, clientConnection : ClientConnectionBase):
+    # todo implement a SendAll into NetworkTransportBase and here so we only compress one time...
+    def Send(self, message, clientConnection : ClientConnectionSocket):
+        # For udp, if someone disconnects but we dont know yet it slows this down, slowing the server down.
+        # So for those who missed a heartbeat we dont send anything...
+        if self._role == NET_HOST and time.time() - clientConnection.udpHeartbeat > self.heartbeatDelay:
+            return
+
         msgCompressed = lzma.compress(b"MSG"+message)
+        if len(msgCompressed) > 65536:
+            Log(f"msgCompressed exceeds the max size of 65536. Size: {len(msgCompressed)}")
         if self._role == NET_HOST and clientConnection:
             self._socket.sendto(msgCompressed, clientConnection.address)
         elif self._role == NET_CLIENT:
@@ -118,14 +126,16 @@ class NetworkUDPTransport(NetworkTransportBase):
                     Log(f"Client({client.nickname}) missed {self.maxMissedHeartbeats} heartbeats, assuming connection closed.")
             time.sleep(self.heartbeatDelay / 2.0) # magic number I know but c'mon
 
-    def Receive(self, buffer=65536) -> tuple[bytes, ClientConnectionBase]:
+    def Receive(self, buffer=8192) -> tuple[bytes, ClientConnectionBase]:
 
         try:
             message, addrMsg = self._socket.recvfrom(buffer)
+            message = lzma.decompress(message)
+        except ConnectionResetError as e:
+            return None
         except Exception as e:
-            print(e)
-            return None # todo handle this in some way...
-        message = lzma.decompress(message)
+            Log(f"Error raised within Receive() or NetworkUDPTransport {e}", LOG_WARNINGS) # todo better handling
+            return None
 
         if addrMsg[0] in self._kickedIPs:
             return None
@@ -143,9 +153,7 @@ class NetworkUDPTransport(NetworkTransportBase):
                 if message.startswith(b"END"): # Disconnect
                     self.DisconnectClient(addrMsg)
                     return None
-                elif message.startswith(b"HTB"):
-                    clientConnection.udpHeartbeat = time.time()
-                    #print(f"HTB for {clientConnection.nickname}")
+                clientConnection.udpHeartbeat = time.time()
 
         elif self._role == NET_CLIENT:
             clientConnection = None
