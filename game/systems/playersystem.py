@@ -51,7 +51,7 @@ class PlayerSystem(EntitySystem):
         for player in currentScene.components[PlayerComponent]:
             if player.parentEntity.ownerId == NetworkState.clientId or not NetworkState.identity:
                 self.PlayerMovement(player)
-                RenderingSystem.instance.cameraPosition = player.parentEntity.position
+                RenderingSystem.instance.cameraPosition = player.parentEntity.get_exact_position()
 
                 if Input.KeyDown(pygame.K_q):
                     if player.tintEvent == None:
