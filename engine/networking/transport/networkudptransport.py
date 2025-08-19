@@ -1,5 +1,7 @@
 import socket
 import threading
+import lzma
+
 
 from engine.constants import NET_NONE, NET_CLIENT, NET_HOST
 from engine.logging import Log, LOG_WARNINGS, LOG_ERRORS
@@ -8,12 +10,16 @@ from engine.networking.connections.clientconnectionsocket import ClientConnectio
 from engine.networking.transport.networktransportbase import NetworkTransportBase
 import time
 
+# NetworkUDPTransport is EXPERIMENTAL WITH SOME INEVITABLE ISSUES LISTED AS TODOS A LITTLE LOWER.
 # INFO ON MESSAGES
 # Each message is sent like ID+MESSAGE(optional)
 # as in:
 # - MSGMessage : Message for game.
 # - ENDNone    : End
 # - HTBNone    : Heartbeat
+# IMPORTANT TODOS:
+# todo - snapshots over 65536 compressed will error (gracefully within try/catch).
+# todo   Need to break snapshots up when too big, or messages, and handle fragmenting...
 class NetworkUDPTransport(NetworkTransportBase):
     def __init__(self):
         super().__init__()
@@ -34,12 +40,6 @@ class NetworkUDPTransport(NetworkTransportBase):
         self.activeConnectionsDict = {}
 
         self.heartbeatThread = None
-
-        # todo needs heartbeat to know that it is still connected... every 15 seconds?
-
-    #def __del__(self):
-    #    if self.active:
-    #        self.Close()
 
     def Connect(self, targetServer : (str, int)):
         if self._role != NET_NONE:
@@ -72,9 +72,7 @@ class NetworkUDPTransport(NetworkTransportBase):
         if self._role == NET_NONE:
             Log(f"NetworkUDPTransport already inactive.", LOG_WARNINGS)
 
-        # send message of size 0 so they know we are closing shop.
-
-        if self._role == NET_CLIENT: # Empty message gracefully lets server know we shutdown.
+        if self._role == NET_CLIENT:
             self._socket.sendto(b"END", self._serverIp)
 
         self._kickedIPs = []
@@ -100,14 +98,15 @@ class NetworkUDPTransport(NetworkTransportBase):
             Log(f"NetworkUDPTransport has kicked: {clientConnection.address[0]}")
 
     def Send(self, message, clientConnection : ClientConnectionBase):
+        msgCompressed = lzma.compress(b"MSG"+message)
         if self._role == NET_HOST and clientConnection:
-            self._socket.sendto(b"MSG"+message, clientConnection.address)
+            self._socket.sendto(msgCompressed, clientConnection.address)
         elif self._role == NET_CLIENT:
-            self._socket.sendto(b"MSG"+message, self._serverIp)
+            self._socket.sendto(msgCompressed, self._serverIp)
 
     def ClientHeartbeat(self):
         while self.active:
-            self._socket.sendto(b"HTB", self._serverIp)
+            self._socket.sendto(lzma.compress(b"HTB"), self._serverIp)
             time.sleep(self.heartbeatDelay)
 
     def ServerHeartbeat(self):
@@ -119,12 +118,14 @@ class NetworkUDPTransport(NetworkTransportBase):
                     Log(f"Client({client.nickname}) missed {self.maxMissedHeartbeats} heartbeats, assuming connection closed.")
             time.sleep(self.heartbeatDelay / 2.0) # magic number I know but c'mon
 
-    def Receive(self, buffer=8192) -> tuple[bytes, ClientConnectionBase]:
+    def Receive(self, buffer=65536) -> tuple[bytes, ClientConnectionBase]:
 
         try:
             message, addrMsg = self._socket.recvfrom(buffer)
         except Exception as e:
+            print(e)
             return None # todo handle this in some way...
+        message = lzma.decompress(message)
 
         if addrMsg[0] in self._kickedIPs:
             return None
