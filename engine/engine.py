@@ -466,7 +466,7 @@ class Engine:
     def NetworkServerSend(self, message, transport, target):
         self._networkProcessSocket.send_pyobj(NetworkProcessMessage(NET_PROCESS_SERVER_SEND_MESSAGE,
                                                                     NetworkSendMessage(transport, target,
-                                                                          message, NetworkState.clientId if NetworkState.clientId != -1 else None)))
+                                                                          message, NetworkState.clientId if NetworkState.clientId != -1 else None), 3.0))
 
     def NetworkClientSend(self, message, transport):
-        self._networkProcessSocket.send_pyobj(NetworkProcessMessage(NET_PROCESS_CLIENT_SEND_MESSAGE, NetworkSendMessage(transport, None, message, None)))
+        self._networkProcessSocket.send_pyobj(NetworkProcessMessage(NET_PROCESS_CLIENT_SEND_MESSAGE, NetworkSendMessage(transport, None, message, None), 3.0))
