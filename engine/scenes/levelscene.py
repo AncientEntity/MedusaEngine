@@ -140,6 +140,8 @@ class LevelScene(Scene):
                     return prop["value"]
         return None
 
+    GetPropertyOfObject = GetPropertyOfLayer
+
     #Returns the first found tiled object.
     def GetTiledObjectByName(self,objName):
         if(objName in self.layerObjectsDict):
@@ -156,6 +158,13 @@ class LevelScene(Scene):
         if(obj != None and "trigger" in obj):
             return obj["trigger"]
         return None
+
+    def GetTriggersByName(self, triggerName):
+        found = []
+        for obj in self.GetTiledObjectsByName(triggerName):
+            if obj and "trigger" in obj:
+                found.append(obj["trigger"])
+        return found
 
     def GetRandomTiledObjectByName(self,objName):
         if(objName in self.layerObjectsDict):

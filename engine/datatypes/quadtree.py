@@ -120,7 +120,7 @@ class QuadNode:
         if not found: #todo remove this exception when certain it works as it should.
             raise Exception("Quadrant couldn't be found for body. Outside world bounds?" +
                             "Make sure your min quad node size is a power of 2, and you're" +
-                            " root node bounds are a power of 2. BodyBounds: "+str(body.bounds)+", Last Child Bounds: "+str(child.bounds))
+                            f" root node bounds are a power of 2. Position: {body.parentEntity.get_exact_position()}, BodyBounds: "+str(body.bounds)+", Last Child Bounds: "+str(child.bounds))
 
     def GetBodiesRecursive(self):
         if self._isLeafNode:
@@ -141,8 +141,9 @@ class QuadNode:
 
     @staticmethod
     def BodyOverlappingBounds(body : PhysicsComponent, bounds : pygame.Rect):
-        bodyBounds = pygame.FRect(body.parentEntity.position[0]-body.bounds[0] / 2 + body.offset[0],
-                                 body.parentEntity.position[1]-body.bounds[1] / 2 + body.offset[1],
+        exactPosition = body.parentEntity.get_exact_position()
+        bodyBounds = pygame.FRect(exactPosition[0]-body.bounds[0] / 2 + body.offset[0],
+                                 exactPosition[1]-body.bounds[1] / 2 + body.offset[1],
                                  body.bounds[0],
                                  body.bounds[1])
         return bounds.colliderect(bodyBounds)

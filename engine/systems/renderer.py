@@ -1,5 +1,6 @@
 import pygame.display
 
+import engine.tools.platform
 from engine.components.rendering.particlecomponent import ParticleEmitterComponent, Particle
 from engine.components.rendering.renderercomponent import RendererComponent
 from engine.components.rendering.spriterenderer import SpriteRenderer
@@ -18,6 +19,8 @@ class RenderingSystem(EntitySystem):
     instance = None
     def __init__(self):
         super().__init__([SpriteRenderer,TilemapRenderer,ParticleEmitterComponent,TextRenderer])
+        self.removeOnHeadless = True
+
         self.cameraPosition = [0,0]
         self.worldPixelsToScreenPixels = (3.0 / 800.0)
         self.overrideRenderScale = None
@@ -45,8 +48,9 @@ class RenderingSystem(EntitySystem):
 
     def OnEnable(self, currentScene : Scene):
         RenderingSystem.instance = self
-        Input.onWindowResized[self] = self.InitializeScreenData
-        self.InitializeScreenData()
+        if not engine.tools.platform.headless:
+            Input.onWindowResized[self] = self.InitializeScreenData
+            self.InitializeScreenData()
 
     def OnNewComponent(self,component : RendererComponent):
         self.InsertIntoSortedRenderOrder(component)
@@ -103,6 +107,9 @@ class RenderingSystem(EntitySystem):
         self._sortedDrawOrder.insert(i, component)
 
     def Update(self,currentScene : Scene):
+        if engine.tools.platform.headless:
+            return
+
         self._renderTarget.fill(self.backgroundColor)
 
         self.rawMousePosition = pygame.mouse.get_pos()
@@ -135,15 +142,18 @@ class RenderingSystem(EntitySystem):
             return
 
         spriteSurface = GetSprite(spriteRenderer.sprite)
+        drawPosition = (spriteRenderer.parentEntity.position[0]+spriteRenderer.offset[0],
+                        spriteRenderer.parentEntity.position[1]+spriteRenderer.offset[1])
+
         # Validate if we found an actual sprite
         if (spriteSurface == None):
             return
 
         # Verify what is being drawn is on the screen
-        if (False == self.IsOnScreenSprite(spriteSurface, spriteRenderer.parentEntity.position, spriteRenderer.screenSpace)):
+        if (False == self.IsOnScreenSprite(spriteSurface, drawPosition, spriteRenderer.screenSpace)):
             return
 
-        finalPosition = self.FinalPositionOfSprite(spriteRenderer.parentEntity.position, spriteSurface, spriteRenderer.screenSpace)
+        finalPosition = self.FinalPositionOfSprite(drawPosition, spriteSurface, spriteRenderer.screenSpace)
         self._renderTarget.blit(spriteSurface, finalPosition)
 
         if (self.debug):  # If debug draw bounds of spriterenderers
@@ -176,11 +186,15 @@ class RenderingSystem(EntitySystem):
             return
 
         #See if a new particle should spawn, if so create it.
-        for i in range(int((self.game.frameStartTime - emitter._lastParticleSpawnTime) * emitter.particlesPerSecond)):
-            if (len(emitter._activeParticles) >= emitter.maxParticles):
-                break
-            emitter.NewParticle()
+        if emitter.doSpawning:
+            for i in range(int((self.game.frameStartTime - emitter._lastParticleSpawnTime) * emitter.particlesPerSecond)):
+                if (len(emitter._activeParticles) >= emitter.maxParticles):
+                    break
+                emitter.NewParticle()
+                emitter._lastParticleSpawnTime = self.game.frameStartTime
+        else:
             emitter._lastParticleSpawnTime = self.game.frameStartTime
+
 
         #Now simulate and render all particles
         particle : Particle

@@ -4,6 +4,7 @@ from pygame import display
 import traceback
 import os
 
+import engine.tools.platform
 from engine.tools.platform import IsPlatformWeb, IsDebug
 
 # Log Constants
@@ -12,6 +13,9 @@ LOG_ERRORS = 1
 LOG_WARNINGS = 2
 LOG_INFO = 3
 LOG_ALL = 4
+
+LOG_NETWORKING = 2.1
+LOG_NETWORKPROCESS = 3.1
 
 # Log Settings
 LOG_LEVEL = LOG_INFO
@@ -30,8 +34,15 @@ def LogPrefix(level):
         return "[Warning]"
     elif(level == LOG_ERRORS):
         return "[ERROR]"
+    elif (level == LOG_NETWORKING):
+        return "[NET]"
+    elif(level == LOG_NETWORKPROCESS):
+        return "[NETPROCESS]"
 
 def CreateErrorBox(message):
+    if engine.tools.platform.headless:
+        return
+
     stacktrace = "\nTrace\n"
     foundEngine = False
     stack = traceback.format_stack()
@@ -48,7 +59,7 @@ def CreateErrorBox(message):
 
     display.message_box("ERROR", message + stacktrace)
 
-def Log(message,level):
+def Log(message,level=LOG_INFO):
     global _FILE_LOG_COUNT
     if(LOG_LEVEL >= level):
         output = f"{LogPrefix(level)} {datetime.now()} {message}"
