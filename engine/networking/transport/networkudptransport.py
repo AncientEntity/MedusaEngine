@@ -19,7 +19,7 @@ class NetworkUDPTransport(NetworkTransportBase):
         super().__init__()
         self._socket : socket.socket = None
 
-        self.heartbeatDelay = 3
+        self.heartbeatDelay = 8
         self.maxMissedHeartbeats = 3
 
         self.targetServer : (str,int) = None
@@ -144,7 +144,7 @@ class NetworkUDPTransport(NetworkTransportBase):
                     return None
                 elif message.startswith(b"HTB"):
                     clientConnection.udpHeartbeat = time.time()
-                    print(f"HTB for {clientConnection.nickname}")
+                    #print(f"HTB for {clientConnection.nickname}")
 
         elif self._role == NET_CLIENT:
             clientConnection = None
