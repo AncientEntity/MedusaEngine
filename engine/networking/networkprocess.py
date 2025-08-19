@@ -134,8 +134,8 @@ def OpenServerTransport(nextMessage : NetworkProcessMessage):
     networkServer.Open(openTransportInfo.name, openTransportInfo.transport(), openTransportInfo.ipandport)
     networkServer.transportHandlers[openTransportInfo.name].onClientConnect.append(NetworkClientConnect)
     networkServer.transportHandlers[openTransportInfo.name].onClientDisconnect.append(NetworkClientDisconnect)
+    Log(f"STransport Opened {openTransportInfo.name} on ipandport={openTransportInfo.ipandport}", LOG_NETWORKPROCESS)
     processSocket.send_pyobj(NetworkProcessMessage(NET_PROCESS_EVENT_ON_TRANSPORT_OPEN, openTransportInfo.name))
-    Log(f"Transport Opened {openTransportInfo.name} on ipandport={openTransportInfo.ipandport}", LOG_NETWORKPROCESS)
 def CloseServerTransport(nextMessage : NetworkProcessMessage):
     global networkServer
     if not networkServer:

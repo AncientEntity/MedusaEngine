@@ -58,9 +58,9 @@ class NetworkServerBase:
 
 if __name__ == '__main__':
     t = NetworkServerBase()
-    t.Open("tcp", NetworkTCPTransport(), ("127.0.0.1",25238))
+    t.Open("udp", NetworkUDPTransport(), ("127.0.0.1",25238))
     while True:
         next = t.GetNextMessage()
         if next:
             print(next[0].decode())
-            t.Send(f"Reply: {next[0].decode()}".encode(), next[1], "tcp")
+            t.Send(f"Reply: {next[0].decode()}".encode(), next[1], "udp")

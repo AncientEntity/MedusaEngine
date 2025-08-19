@@ -29,6 +29,7 @@ from engine.networking.networksnapshot import NetworkSnapshot, NetworkEntitySnap
 from engine.networking.networkstate import NetworkState
 from engine.networking.rpc import RPCAction
 from engine.networking.transport.networktcptransport import NetworkTCPTransport
+from engine.networking.transport.networkudptransport import NetworkUDPTransport
 from engine.scenes import splashscene
 from engine.tools.platform import IsBuilt, IsDebug, currentPlatform, IsPlatformWeb
 if not IsPlatformWeb():
@@ -267,9 +268,9 @@ class Engine:
             self._currentScene.networkDeletedQueue.clear()
 
             if NetworkState.identity & NET_HOST:
-                self.NetworkServerSend(bytesToSend, "tcp", None)
+                self.NetworkServerSend(bytesToSend, "udp", None)
             elif NetworkState.identity & NET_CLIENT:
-                self.NetworkClientSend(bytesToSend, "tcp")
+                self.NetworkClientSend(bytesToSend, "udp")
 
     def NetworkCreateProcess(self):
         if not self._networkProcess:
@@ -296,7 +297,7 @@ class Engine:
 
     def NetworkHostStart(self, ip, port):
         self._networkProcessSocket.send_pyobj(NetworkProcessMessage(NET_PROCESS_OPEN_SERVER_TRANSPORT,
-                                                                    NetworkUpdateTransport("tcp", NetworkTCPTransport, (ip, port))))
+                                                                    NetworkUpdateTransport("udp", NetworkUDPTransport, (ip, port))))
 
         NetworkState.identity |= NET_HOST
 
@@ -307,7 +308,7 @@ class Engine:
         if not NetworkState.identity & NET_HOST:
             return
         self._networkProcessSocket.send_pyobj(NetworkProcessMessage(NET_PROCESS_CLOSE_SERVER_TRANSPORT,
-                                                                    NetworkUpdateTransport("tcp", None, None)))
+                                                                    NetworkUpdateTransport("udp", None, None)))
 
         if NetworkState.identity & NET_HOST:
             NetworkState.identity -= NET_HOST
@@ -324,12 +325,12 @@ class Engine:
             Log("Failed to NetworkClientConnect, network client already exists", LOG_ERRORS)
 
         self._networkProcessSocket.send_pyobj(NetworkProcessMessage(NET_PROCESS_CONNECT_CLIENT_TRANSPORT,
-                                                                    NetworkUpdateTransport("tcp", NetworkTCPTransport, (ip, port))))
+                                                                    NetworkUpdateTransport("udp", NetworkUDPTransport, (ip, port))))
 
         NetworkState.identity |= NET_CLIENT
 
         networkEventBytes = NetworkEventToBytes(NetworkEvent(NET_EVENT_INIT, bytearray()))
-        self.NetworkClientSend(networkEventBytes, "tcp")
+        self.NetworkClientSend(networkEventBytes, "udp")
 
         self.clientInitialized = False
         Log(f"Network Client Connect, Identity: {NetworkState.identity}", LOG_NETWORKING)
@@ -340,7 +341,7 @@ class Engine:
             return
 
         self._networkProcessSocket.send_pyobj(NetworkProcessMessage(NET_PROCESS_CLOSE_CLIENT_TRANSPORT,
-                                                                    NetworkUpdateTransport("tcp", None, None)))
+                                                                    NetworkUpdateTransport("udp", None, None)))
 
         if NetworkState.identity & NET_CLIENT:
             NetworkState.identity -= NET_CLIENT
@@ -361,12 +362,12 @@ class Engine:
                 # send new connection it's client ID and such
                 networkEventBytes = NetworkEventToBytes(NetworkEvent(NET_EVENT_INIT, networkEvent.sender.to_bytes(4,"big")))
                 self.AddConnection(networkEvent.sender)
-                self.NetworkServerSend(networkEventBytes, "tcp", networkEvent.sender)
+                self.NetworkServerSend(networkEventBytes, "udp", networkEvent.sender)
 
                 # send new connection full snapshot
                 snapshot = NetworkSnapshot.GenerateSnapshotFull(self._currentScene) # todo net sometimes just do partial snapshots
                 bytesToSend = NetworkEventToBytes(NetworkEvent(NET_EVENT_SNAPSHOT_FULL, snapshot.SnapshotToBytes()))
-                self.NetworkServerSend(bytesToSend, "tcp", networkEvent.sender)
+                self.NetworkServerSend(bytesToSend, "udp", networkEvent.sender)
 
         if not self.clientInitialized and NetworkState.identity != NET_HOST:
             return

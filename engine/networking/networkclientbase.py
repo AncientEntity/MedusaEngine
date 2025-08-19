@@ -55,10 +55,10 @@ class NetworkClientBase:
 
 if __name__ == '__main__':
     t = NetworkClientBase()
-    t.Connect("tcp", NetworkTCPTransport(), ("127.0.0.1", 25238))
+    t.Connect("udp", NetworkUDPTransport(), ("127.0.0.1", 25238))
     while True:
         import random, time
-        t.Send(f"test!{random.randint(0,999)}".encode(), "tcp")
+        t.Send(f"test!{random.randint(0,999)}".encode(), "udp")
         msg = None
         while not msg:
             msg = t.GetNextMessage()
