@@ -78,7 +78,7 @@ def Log(message,level=LOG_INFO):
             raise Exception(message)
             exit(-1)
 
-logFileName = datetime.now().strftime("logging/log-%Y-%m-%d_%H-%M-%S.log")
+logFileName = datetime.now().strftime(f"logging/log-%Y-%m-%d_%H-%M-%S-p{os.getpid()}.log")
 if not IsPlatformWeb():
     if not os.path.exists("logging"):
         os.mkdir("logging")
@@ -92,7 +92,7 @@ if not IsPlatformWeb():
         oldestFileTime = None
         for existingLog in existingLogFiles:
             try:
-                timeCreated = datetime.strptime(existingLog, "log-%Y-%m-%d_%H-%M-%S.log")
+                timeCreated = datetime.strptime(existingLog[0:existingLog.index("-p")], "log-%Y-%m-%d_%H-%M-%S")
             except ValueError:
                 validLogCount -= 1
                 continue # whatever file is in logging doesnt match the regex of strptime.
