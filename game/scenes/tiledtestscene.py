@@ -27,13 +27,12 @@ class TiledTestScene(LevelScene):
         self.systems.append(UISystem())
         self.player = None
 
-        NetworkState.onDisconnect["ondisconnect"] = self.OnDisconnect
-
-        
     def LevelStart(self):
         if IsPlatformWeb():
             self.player = assets.Instantiate("player", self)
             self.player.position = self.GetRandomTiledObjectByName("SPAWN")["position"][:]
+
+        NetworkState.onDisconnect["ondisconnect"] = self.OnDisconnect
 
         self.worldTextTest = self.CreateEntity("World Text Test",[-150,0],[TextRenderer("World Test String :)", 12, "Arial")])
         self.worldTextTest.GetComponent(TextRenderer).screenSpace = False
