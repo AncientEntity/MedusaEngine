@@ -29,14 +29,14 @@ class TinyFactoryScene(LevelScene):
 
         # Replace static conveyor sprites with animated ones
 
-        self.tileMapLayersByName["Objects"].tileMap.SetSpriteAtIndex(AnimatedSprite([self.worldTileset.sprites[4], self.worldTileset.sprites[28],
-                                                                                     self.worldTileset.sprites[36],self.worldTileset.sprites[44]], 16), 4)
-        self.tileMapLayersByName["Objects"].tileMap.SetSpriteAtIndex(AnimatedSprite([self.worldTileset.sprites[5], self.worldTileset.sprites[29],
-                                                                                     self.worldTileset.sprites[37],self.worldTileset.sprites[45]], 16), 5)
-        self.tileMapLayersByName["Objects"].tileMap.SetSpriteAtIndex(AnimatedSprite([self.worldTileset.sprites[6], self.worldTileset.sprites[30],
-                                                                                     self.worldTileset.sprites[38],self.worldTileset.sprites[46]], 16), 6)
-        self.tileMapLayersByName["Objects"].tileMap.SetSpriteAtIndex(AnimatedSprite([self.worldTileset.sprites[7], self.worldTileset.sprites[31],
-                                                                                     self.worldTileset.sprites[39],self.worldTileset.sprites[47]], 16), 7)
+        self.tileMapLayersByName["Objects"].tileMap.SetSpriteAtIndex(AnimatedSprite([self.worldTileset.spriteList[4], self.worldTileset.spriteList[28],
+                                                                                     self.worldTileset.spriteList[36],self.worldTileset.spriteList[44]], 16), 4)
+        self.tileMapLayersByName["Objects"].tileMap.SetSpriteAtIndex(AnimatedSprite([self.worldTileset.spriteList[5], self.worldTileset.spriteList[29],
+                                                                                     self.worldTileset.spriteList[37],self.worldTileset.spriteList[45]], 16), 5)
+        self.tileMapLayersByName["Objects"].tileMap.SetSpriteAtIndex(AnimatedSprite([self.worldTileset.spriteList[6], self.worldTileset.spriteList[30],
+                                                                                     self.worldTileset.spriteList[38],self.worldTileset.spriteList[46]], 16), 6)
+        self.tileMapLayersByName["Objects"].tileMap.SetSpriteAtIndex(AnimatedSprite([self.worldTileset.spriteList[7], self.worldTileset.spriteList[31],
+                                                                                     self.worldTileset.spriteList[39],self.worldTileset.spriteList[47]], 16), 7)
 
         import sys
         print("PLAT:",sys.platform)
