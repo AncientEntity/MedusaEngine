@@ -18,7 +18,7 @@ LOG_NETWORKING = 2.1
 LOG_NETWORKPROCESS = 3.1
 
 # Log Settings
-LOG_LEVEL = LOG_INFO
+LOG_LEVEL = LOG_INFO # todo load this and other logging settings from a cfg file.
 MAX_LOG_FILES = 10
 
 # Controls how often Log() will flush the log file's buffer.
