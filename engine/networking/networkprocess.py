@@ -139,7 +139,7 @@ def OpenServerTransport(nextMessage : NetworkProcessMessage):
     networkServer.transportHandlers[openTransportInfo.name].onClientDisconnect.append(NetworkClientDisconnect)
     Log(f"STransport Opened {openTransportInfo.name} on ipandport={openTransportInfo.ipandport}", LOG_NETWORKPROCESS)
     if not serverReceiveThread or not serverReceiveThread.is_alive():
-        serverReceiveThread = threading.Thread(target=NetworkProcessServerRecvThread, args=())
+        serverReceiveThread = threading.Thread(target=NetworkProcessServerRecvThread, args=(), daemon=True)
         serverReceiveThread.start()
     processSocket.send_pyobj(NetworkProcessMessage(NET_PROCESS_EVENT_ON_TRANSPORT_OPEN, openTransportInfo.name))
 def CloseServerTransport(nextMessage : NetworkProcessMessage):
@@ -172,7 +172,7 @@ def ConnectClientTransport(nextMessage : NetworkProcessMessage):
     networkClient.transportHandlers[openTransportInfo.name].onDisconnect.append(NetworkConnectionLost(openTransportInfo.name))
     processSocket.send_pyobj(NetworkProcessMessage(NET_PROCESS_CONNECT_SUCCESS, nextMessage.data))
     if not clientReceiveThread or not clientReceiveThread.is_alive():
-        clientReceiveThread = threading.Thread(target=NetworkProcessClientRecvThread, args=())
+        clientReceiveThread = threading.Thread(target=NetworkProcessClientRecvThread, args=(), daemon=True)
         clientReceiveThread.start()
     Log(f"Transport Opened {openTransportInfo.name} on ipandport={openTransportInfo.ipandport}", LOG_NETWORKPROCESS)
 def CloseClientTransport(nextMessage : NetworkProcessMessage, disconnectReason=NET_USER_DISCONNECTED):

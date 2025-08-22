@@ -22,7 +22,7 @@ class NetworkClientBase:
     def Connect(self, layerName : str, connectionHandler : NetworkTransportBase, address : (str, int)):
         self.transportHandlers[layerName] = connectionHandler
         connectionHandler.Connect(address)
-        connectionHandler.receiveThread = threading.Thread(target=self.ThreadReceive,args=(connectionHandler,))
+        connectionHandler.receiveThread = threading.Thread(target=self.ThreadReceive,args=(connectionHandler,), daemon=True)
         connectionHandler.receiveThread.name = f"CNetThreadRecv{layerName}"
         connectionHandler.receiveThread.start()
 

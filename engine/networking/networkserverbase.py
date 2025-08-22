@@ -18,7 +18,7 @@ class NetworkServerBase:
     def Open(self, layerName : str, connectionHandler : NetworkTransportBase, address : (str, int)):
         self.transportHandlers[layerName] = connectionHandler
         connectionHandler.Open(address[0], address[1])
-        connectionHandler.receiveThread = threading.Thread(target=self.ThreadReceive, args=(connectionHandler,))
+        connectionHandler.receiveThread = threading.Thread(target=self.ThreadReceive, args=(connectionHandler,), daemon=True)
         connectionHandler.receiveThread.name = f"SNetThreadRecv{layerName}"
         connectionHandler.receiveThread.start()
 
