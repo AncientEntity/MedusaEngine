@@ -30,7 +30,7 @@ class NetworkTCPTransport(NetworkTransportBase):
         self._socket.listen(listenCount)
         self.active = True
 
-        acceptThread = threading.Thread(target=self.ThreadAccept)
+        acceptThread = threading.Thread(target=self.ThreadAccept, daemon=True)
         acceptThread.name = "SNetThreadAccept"
         acceptThread.start()
 
@@ -42,7 +42,7 @@ class NetworkTCPTransport(NetworkTransportBase):
         self._socket.connect(targetServer)
         self.active = True
 
-        self.clientReceiveThread = threading.Thread(target=self.ThreadReceiveClient)
+        self.clientReceiveThread = threading.Thread(target=self.ThreadReceiveClient, daemon=True)
         self.clientReceiveThread.start()
 
     def Close(self):
@@ -84,7 +84,7 @@ class NetworkTCPTransport(NetworkTransportBase):
             clientConnection.tcpConnection = c
             self.clientConnections.append(clientConnection)
             self.CallHook(self.onClientConnect, (clientConnection,))
-            receiveThread = threading.Thread(target=self.ThreadReceiveListener, args=(clientConnection,))
+            receiveThread = threading.Thread(target=self.ThreadReceiveListener, args=(clientConnection,), daemon=True)
             receiveThread.start()
 
 

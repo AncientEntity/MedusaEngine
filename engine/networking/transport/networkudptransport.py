@@ -49,7 +49,7 @@ class NetworkUDPTransport(NetworkTransportBase):
         self._socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         self._serverIp = targetServer
 
-        self.heartbeatThread = threading.Thread(target=self.ClientHeartbeat, args=())
+        self.heartbeatThread = threading.Thread(target=self.ClientHeartbeat, args=(), daemon=True)
         self.heartbeatThread.start()
 
         self._role = NET_CLIENT
@@ -63,7 +63,7 @@ class NetworkUDPTransport(NetworkTransportBase):
         self._socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         self._socket.bind((ip, port))
 
-        self.heartbeatThread = threading.Thread(target=self.ServerHeartbeat, args=())
+        self.heartbeatThread = threading.Thread(target=self.ServerHeartbeat, args=(), daemon=True)
         self.heartbeatThread.start()
 
         self.active = True
