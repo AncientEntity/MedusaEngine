@@ -8,6 +8,8 @@ from engine.constants import ALIGN_TOPLEFT
 from engine.scenes.levelscene import LevelScene
 from engine.systems.physics import PhysicsSystem
 from engine.systems.ui import UISystem
+from engine.tools.platform import IsPlatformWeb
+from engine.tools.webutils import GetCookie
 from game import prefabs
 from game.assets import worldTileset
 from game.systems import playersystem
@@ -27,6 +29,11 @@ class TiledTestScene(LevelScene):
     def LevelStart(self):
         self.player = prefabs.CreatePlayer(self)
         self.player.position = self.GetRandomTiledObjectByName("SPAWN")["position"][:]
+        if IsPlatformWeb():
+            self.player.position = [
+                float(GetCookie("me_tts_pos_x", self.player.position[0])),
+                float(GetCookie("me_tts_pos_y", self.player.position[1]))
+            ]
 
         self.worldTextTest = self.CreateEntity("World Text Test",[-150,0],[TextRenderer("World Test String :)", 12, "Arial")])
         self.worldTextTest.GetComponent(TextRenderer).screenSpace = False
