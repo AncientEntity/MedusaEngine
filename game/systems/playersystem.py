@@ -6,7 +6,7 @@ from engine.ecs import EntitySystem, Scene
 from engine.engine import Input
 from engine.systems import physics
 from engine.systems.renderer import SpriteRenderer, RenderingSystem
-from engine.tools.webutils import SetCookie
+from engine.tools.webutils import SetLocalStorage
 from game import prefabs
 from game.components.playercomponent import PlayerComponent
 from game.scenes import sidescrollingscene
@@ -55,8 +55,9 @@ class PlayerSystem(EntitySystem):
             RenderingSystem.instance.cameraPosition = player.parentEntity.position
             player.parentEntity.GetComponent(SpriteRenderer).sprite = player.runAnim
             if engine.tools.platform.IsPlatformWeb():
-                SetCookie("me_tts_pos_x",str(player.parentEntity.position[0]))
-                SetCookie("me_tts_pos_y",str(player.parentEntity.position[1]))
+                SetLocalStorage("me_tts_pos", player.parentEntity.position)
+                #SetCookie("me_tts_pos_x",str(player.parentEntity.position[0]))
+                #SetCookie("me_tts_pos_y",str(player.parentEntity.position[1]))
         else:
             player.parentEntity.GetComponent(SpriteRenderer).sprite = player.idleAnim
         if(Input.KeyDown(pygame.K_r)):

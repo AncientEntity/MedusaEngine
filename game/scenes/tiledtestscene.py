@@ -9,7 +9,7 @@ from engine.scenes.levelscene import LevelScene
 from engine.systems.physics import PhysicsSystem
 from engine.systems.ui import UISystem
 from engine.tools.platform import IsPlatformWeb
-from engine.tools.webutils import GetCookie
+from engine.tools.webutils import GetLocalStorage
 from game import prefabs
 from game.assets import worldTileset
 from game.systems import playersystem
@@ -17,6 +17,7 @@ from game.systems.NPCSystem import NPCSystem
 
 
 class TiledTestScene(LevelScene):
+    loadWebCookies = True
     def __init__(self):
         super().__init__(random.choice(["game/art/tiled/testmap1.tmj"]),worldTileset, {"SKELETON" : prefabs.CreateSkeleton})
         self.name = "Tiled Test Scene"
@@ -29,11 +30,13 @@ class TiledTestScene(LevelScene):
     def LevelStart(self):
         self.player = prefabs.CreatePlayer(self)
         self.player.position = self.GetRandomTiledObjectByName("SPAWN")["position"][:]
-        if IsPlatformWeb():
-            self.player.position = [
-                float(GetCookie("me_tts_pos_x", self.player.position[0])),
-                float(GetCookie("me_tts_pos_y", self.player.position[1]))
-            ]
+        if IsPlatformWeb() and TiledTestScene.loadWebCookies:
+            TiledTestScene.loadWebCookies = False
+            #self.player.position = [
+            #    float(GetCookie("me_tts_pos_x", self.player.position[0])),
+            #    float(GetCookie("me_tts_pos_y", self.player.position[1]))
+            #]
+            self.player.position = GetLocalStorage("me_tts_pos", self.player.position, "listfloat")
 
         self.worldTextTest = self.CreateEntity("World Text Test",[-150,0],[TextRenderer("World Test String :)", 12, "Arial")])
         self.worldTextTest.GetComponent(TextRenderer).screenSpace = False
