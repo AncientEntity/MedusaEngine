@@ -4,7 +4,6 @@ import threading
 from typing import Type
 
 import pygame
-import pygame._sdl2.controller
 
 from engine import ecs
 from engine.constants import *
@@ -154,7 +153,6 @@ class Engine:
         if not engine.tools.platform.headless:
             pygame.mixer.init()
             pygame.joystick.init()
-            pygame._sdl2.controller.init()
 
         Input.Init(self._game.inputActions)
 
