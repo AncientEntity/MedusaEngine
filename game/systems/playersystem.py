@@ -2,11 +2,11 @@ import pygame
 
 import engine.tools.platform
 from engine.datatypes.timedevents import TimedEvent
-from engine.ecs import EntitySystem, Scene
+from engine.ecs import EntitySystem, Scene, Component
 from engine.engine import Input
 from engine.systems import physics
 from engine.systems.renderer import SpriteRenderer, RenderingSystem
-from engine.tools.webutils import SetLocalStorage
+from engine.tools.webutils import SetLocalStorage, GetLocalStorage
 from game import prefabs
 from game.components.playercomponent import PlayerComponent
 from game.scenes import sidescrollingscene
@@ -19,6 +19,14 @@ class PlayerSystem(EntitySystem):
     def OnEnable(self, currentScene : Scene):
         for player in self.game.GetCurrentScene().components[PlayerComponent]:
             player.parentEntity.GetComponent(SpriteRenderer).sprite = player.idleAnim
+    def OnNewComponent(self,component : Component):
+        if isinstance(component, PlayerComponent):
+            if engine.tools.platform.IsPlatformWeb():
+                r = GetLocalStorage("me_tts_tint", False, "listint")
+                if r:
+                    component.idleAnim.SetTint(r)
+                    component.runAnim.SetTint(r)
+
     def Update(self, currentScene: Scene):
         for player in currentScene.components[PlayerComponent]:
             self.PlayerMovement(player)
@@ -70,3 +78,5 @@ class PlayerSystem(EntitySystem):
         r = (random.randint(0, 255), random.randint(0, 255), random.randint(0, 255), random.randint(0, 255))
         player.idleAnim.SetTint(r)
         player.runAnim.SetTint(r)
+        if engine.tools.platform.IsPlatformWeb():
+            SetLocalStorage("me_tts_tint", list(r))
