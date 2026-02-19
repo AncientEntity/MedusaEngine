@@ -18,6 +18,7 @@ class Game:
         self.resizableWindow = False # Will not be enabled on web platform
 
         self.webCanvasPixelated = True # Determine if the web canvas of a web build is pixelated or not.
+        self.webWarningOnClose = False # If True, it will trigger an "Are you sure?" in the browser before the tab closes.
 
         self.inputActions = {
             'up' : InputAction("up", K_w, True),

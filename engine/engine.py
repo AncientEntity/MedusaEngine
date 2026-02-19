@@ -83,6 +83,8 @@ class Engine:
 
             self._transportName = self._game.transportName
             self._transportClass = self._game.transportClass
+        else:
+            platform.window.onbeforeunload = None
 
 
         self.LoadGame() #Loads self._game into the engine
