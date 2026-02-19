@@ -9,7 +9,7 @@ from engine.scenes.levelscene import LevelScene
 from engine.systems.physics import PhysicsSystem
 from engine.systems.ui import UISystem
 from engine.tools.platform import IsPlatformWeb
-from engine.tools.webutils import GetLocalStorage
+from engine.tools.web import GetLocalStorage
 from game import prefabs
 from game.assets import worldTileset
 from game.systems import playersystem

@@ -6,7 +6,7 @@ from engine.ecs import EntitySystem, Scene, Component
 from engine.engine import Input
 from engine.systems import physics
 from engine.systems.renderer import SpriteRenderer, RenderingSystem
-from engine.tools.webutils import SetLocalStorage, GetLocalStorage
+from engine.tools.web import SetLocalStorage, GetLocalStorage
 from game import prefabs
 from game.components.playercomponent import PlayerComponent
 from game.scenes import sidescrollingscene
