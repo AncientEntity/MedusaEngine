@@ -32,10 +32,6 @@ class TiledTestScene(LevelScene):
         self.player.position = self.GetRandomTiledObjectByName("SPAWN")["position"][:]
         if IsPlatformWeb() and TiledTestScene.loadWebCookies:
             TiledTestScene.loadWebCookies = False
-            #self.player.position = [
-            #    float(GetCookie("me_tts_pos_x", self.player.position[0])),
-            #    float(GetCookie("me_tts_pos_y", self.player.position[1]))
-            #]
             self.player.position = GetLocalStorage("me_tts_pos", self.player.position, "listfloat")
 
         self.worldTextTest = self.CreateEntity("World Text Test",[-150,0],[TextRenderer("World Test String :)", 12, "Arial")])
