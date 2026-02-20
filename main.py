@@ -1,3 +1,10 @@
+# /// script
+# dependencies = [
+#  "pygame-ce"
+# ]
+# ///
+
+
 from engine.engine import *
 import asyncio
 

@@ -17,10 +17,11 @@ from engine.networking.networkserverbase import NetworkServerBase
 
 
 class NetworkProcessMessage:
-    def __init__(self, id, data):
+    def __init__(self, id, data, expiryDelay=None):
         self.id : int = id
         self.data = data
         self.requestMade : float = time.time()
+        self.expiryDelay : float = expiryDelay
 
 NetworkUpdateTransport = namedtuple('NetworkUpdateTransport', ['name', 'transport', 'ipandport'])
 
@@ -33,6 +34,8 @@ NetworkDisconnect = namedtuple('NetworkDisconnect', ['reason', 'transportName'])
 active = True
 networkServer: NetworkServerBase = None
 networkClient: NetworkClientBase = None
+serverReceiveThread : threading.Thread = None
+clientReceiveThread : threading.Thread = None
 processSocket = []
 connections = {}
 context: zmq.Context = zmq.Context()
@@ -46,14 +49,14 @@ def NetworkProcessMain(portUsed : int):
     processSocket.connect(f"tcp://localhost:{portUsed}")
     processSocket.send(b"ack")
 
-    receiveThread = threading.Thread(target=NetworkProcessReceiveThread, args=())
-    receiveThread.start()
-
     active = True
     while active:
         nextMessage : NetworkProcessMessage = processSocket.recv_pyobj()
 
         processDelay = time.time() - nextMessage.requestMade
+        if nextMessage.expiryDelay and processDelay > nextMessage.expiryDelay:
+            Log(f"Dropped stale message. {processDelay}, {nextMessage.expiryDelay}", LOG_NETWORKPROCESS)
+            continue
         if processDelay > NET_SAFE_PROCESS_DELAY:
             Log(f"Warning process delay above safe constant. Process Delay: {processDelay}", LOG_NETWORKPROCESS)
 
@@ -127,7 +130,7 @@ def NetworkProcessMain(portUsed : int):
     processSocket.close()
 
 def OpenServerTransport(nextMessage : NetworkProcessMessage):
-    global networkServer
+    global networkServer, serverReceiveThread
     openTransportInfo: NetworkUpdateTransport = nextMessage.data
     if not networkServer:
         networkServer = NetworkServerBase()
@@ -135,6 +138,9 @@ def OpenServerTransport(nextMessage : NetworkProcessMessage):
     networkServer.transportHandlers[openTransportInfo.name].onClientConnect.append(NetworkClientConnect)
     networkServer.transportHandlers[openTransportInfo.name].onClientDisconnect.append(NetworkClientDisconnect)
     Log(f"STransport Opened {openTransportInfo.name} on ipandport={openTransportInfo.ipandport}", LOG_NETWORKPROCESS)
+    if not serverReceiveThread or not serverReceiveThread.is_alive():
+        serverReceiveThread = threading.Thread(target=NetworkProcessServerRecvThread, args=(), daemon=True)
+        serverReceiveThread.start()
     processSocket.send_pyobj(NetworkProcessMessage(NET_PROCESS_EVENT_ON_TRANSPORT_OPEN, openTransportInfo.name))
 def CloseServerTransport(nextMessage : NetworkProcessMessage):
     global networkServer
@@ -150,7 +156,7 @@ def CloseServerTransport(nextMessage : NetworkProcessMessage):
     Log(f"STransport Closed {closeTransportInfo.name} on ipandport={closeTransportInfo.ipandport}", LOG_NETWORKPROCESS)
 
 def ConnectClientTransport(nextMessage : NetworkProcessMessage):
-    global networkClient
+    global networkClient, clientReceiveThread
     openTransportInfo: NetworkUpdateTransport = nextMessage.data
     if not networkClient:
         networkClient = NetworkClientBase()
@@ -165,8 +171,12 @@ def ConnectClientTransport(nextMessage : NetworkProcessMessage):
 
     networkClient.transportHandlers[openTransportInfo.name].onDisconnect.append(NetworkConnectionLost(openTransportInfo.name))
     processSocket.send_pyobj(NetworkProcessMessage(NET_PROCESS_CONNECT_SUCCESS, nextMessage.data))
+    if not clientReceiveThread or not clientReceiveThread.is_alive():
+        clientReceiveThread = threading.Thread(target=NetworkProcessClientRecvThread, args=(), daemon=True)
+        clientReceiveThread.start()
     Log(f"Transport Opened {openTransportInfo.name} on ipandport={openTransportInfo.ipandport}", LOG_NETWORKPROCESS)
 def CloseClientTransport(nextMessage : NetworkProcessMessage, disconnectReason=NET_USER_DISCONNECTED):
+    global networkClient
     if not networkClient:
         Log(f"CNetwork Server doesnt exist while trying to close server transport {nextMessage.data}",
             LOG_NETWORKPROCESS)
@@ -204,27 +214,33 @@ def NetworkConnectionLost(transportName : str):
 
     return _ConnectionLost
 
-def NetworkProcessReceiveThread():
-    global networkServer, networkClient, active, processSocket
+# Gets created when networkServer is created and remains till networkServer is gone
+# Usually gets removed when server is stopped.
+def NetworkProcessServerRecvThread():
+    global networkServer, active, processSocket
 
-    Log("NetworkProcessReceiveThread Started", LOG_NETWORKPROCESS)
-    while active:
-        if networkServer:
-            nextMessageBytes = 1
-            while nextMessageBytes:
-                nextMessageBytes = networkServer.GetNextMessage()
-                if nextMessageBytes:
-                    nextMessage = NetworkEventFromBytes(nextMessageBytes[0])
-                    nextMessage.processAs = NET_HOST
-                    nextMessage.sender = nextMessageBytes[1].referenceId
+    Log("NetworkProcessServerRecvThread Started", LOG_NETWORKPROCESS)
+    while networkServer:
+        nextMessageBytes = networkServer.GetNextMessage()
+        if nextMessageBytes:
+            nextMessage = NetworkEventFromBytes(nextMessageBytes[0])
+            nextMessage.processAs = NET_HOST
+            nextMessage.sender = nextMessageBytes[1].referenceId
 
-                    processSocket.send_pyobj(NetworkProcessMessage(NET_PROCESS_RECEIVE_MESSAGE, nextMessage))
+            processSocket.send_pyobj(NetworkProcessMessage(NET_PROCESS_RECEIVE_MESSAGE, nextMessage))
+    Log("NetworkProcessServerRecvThread Ended", LOG_NETWORKPROCESS)
 
-        if networkClient:
-            nextMessageBytes = 1
-            while nextMessageBytes:
-                nextMessageBytes = networkClient.GetNextMessage()
-                if nextMessageBytes:
-                    nextMessage = NetworkEventFromBytes(nextMessageBytes[0])
-                    nextMessage.processAs = NET_CLIENT
-                    processSocket.send_pyobj(NetworkProcessMessage(NET_PROCESS_RECEIVE_MESSAGE, nextMessage))
+
+# Gets created when networkClient is created and exists while it does.
+# usually this will remain till end of program...
+def NetworkProcessClientRecvThread():
+    global networkClient, active, processSocket
+
+    Log("NetworkProcessClientRecvThread Started", LOG_NETWORKPROCESS)
+    while networkClient:
+        nextMessageBytes = networkClient.GetNextMessage()
+        if nextMessageBytes:
+            nextMessage = NetworkEventFromBytes(nextMessageBytes[0])
+            nextMessage.processAs = NET_CLIENT
+            processSocket.send_pyobj(NetworkProcessMessage(NET_PROCESS_RECEIVE_MESSAGE, nextMessage))
+    Log("NetworkProcessClientRecvThread Ended", LOG_NETWORKPROCESS)

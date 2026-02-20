@@ -38,10 +38,10 @@ SPLASH_BUILDONLY = 2 # Only show splash in build, not debug mode.
 # ----------------------------------------
 # NETWORK CONSTANTS
 # ----------------------------------------
-NET_TICKRATE = 64
-NET_SNAPSHOT_RATE = 20
+NET_TICKRATE = 25
 
 NET_SAFE_PROCESS_DELAY = 0.1
+NET_STALE_DELAY = 3.0
 
 NET_EVENT_NONE = 0
 NET_EVENT_INIT = 1

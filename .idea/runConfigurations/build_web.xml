@@ -1,5 +1,5 @@
 <component name="ProjectRunConfigurationManager">
-  <configuration default="false" name="buildwindows" type="PythonConfigurationType" factoryName="Python" folderName="building">
+  <configuration default="false" name="build web" type="PythonConfigurationType" factoryName="Python" folderName="building">
     <module name="MedusaEngine" />
     <option name="ENV_FILES" value="" />
     <option name="INTERPRETER_OPTIONS" value="" />
@@ -13,8 +13,8 @@
     <option name="ADD_CONTENT_ROOTS" value="true" />
     <option name="ADD_SOURCE_ROOTS" value="true" />
     <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
-    <option name="SCRIPT_NAME" value="build/buildwindows.py" />
-    <option name="PARAMETERS" value="build" />
+    <option name="SCRIPT_NAME" value="build/buildweb.py" />
+    <option name="PARAMETERS" value="" />
     <option name="SHOW_COMMAND_LINE" value="false" />
     <option name="EMULATE_TERMINAL" value="false" />
     <option name="MODULE_MODE" value="false" />
