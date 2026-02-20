@@ -7,7 +7,7 @@ from engine.components.rendering.textrenderer import TextRenderer
 from engine.components.rendering.tilemaprenderer import TilemapRenderer
 from engine.components.ui.buttoncomponent import ButtonComponent
 from engine.constants import CURSOR_PRESSED, ALIGN_TOPLEFT, ALIGN_BOTTOMLEFT, ALIGN_CENTERLEFT, ALIGN_CENTERRIGHT, \
-    ALIGN_CENTERBOTTOM, ALIGN_CENTER, ALIGN_CENTERTOP, ALIGN_TOPRIGHT
+    ALIGN_CENTERBOTTOM, ALIGN_CENTER, ALIGN_CENTERTOP, ALIGN_TOPRIGHT, ALIGN_BOTTOMRIGHT
 from engine.datatypes.font import Font
 from engine.ecs import EntitySystem
 from engine.engine import Input
@@ -15,6 +15,8 @@ from engine.prefabs.audio.AudioSinglePrefab import CreateAudioSingle
 from engine.prefabs.ui.ButtonPrefab import CreateButtonPrefab
 from engine.scenes.levelscene import LevelScene
 from engine.systems.renderer import RenderingSystem
+from engine.tools.platform import IsPlatformWeb
+from engine.tools.web import GetLocalStorage, SetLocalStorage
 from game.components.ConsumerComponent import ConsumerComponent
 from game.components.GeneratorComponent import GeneratorComponent
 from game.components.ItemComponent import ItemComponent
@@ -42,6 +44,11 @@ class GameSystem(EntitySystem):
 
         self.placeables = [ConveyorPlaceable,UndergroundEntrance,UndergroundExit]
         self.currentlyPlacing : Placeable = self.placeables[0]
+
+        if IsPlatformWeb():
+            self._highScore = int(GetLocalStorage("tiny_factory_high_score", 0, int))
+        else:
+            self._highScore = 0
     def OnEnable(self, currentScene : LevelScene):
         self.LoadGame(currentScene)
 
@@ -61,6 +68,14 @@ class GameSystem(EntitySystem):
         self.levelText.enabled = False
         self.nextOrderText = TextRenderer("Next Order: 20s",10,self.mainFont)
         self.nextOrderText.enabled = False
+
+        self.highScoreText = TextRenderer(f"High Score: {self._highScore}", 10, self.mainFont)
+        self.highScoreText.SetAlign(ALIGN_CENTERRIGHT)
+        self.highScoreText.enabled = False
+        self.highScoreEnt = currentScene.CreateEntity("HighScoreText",[0,0],components=[self.highScoreText,
+                                                      RectTransformComponent(ALIGN_BOTTOMRIGHT, (-5,-12),(0.5,0.05))])
+        self.highScoreEnt.GetComponent(TextRenderer).SetColor((255,255,255))
+        self.highScoreEnt.GetComponent(TextRenderer).SetAntialiased(False)
 
         self.moneyTextEnt = currentScene.CreateEntity("MoneyText",[-90,-128],components=[self.moneyText,
                                                       RectTransformComponent(ALIGN_TOPLEFT, (0,0),(60.0 / 256.0,1),topContainer
@@ -147,6 +162,15 @@ class GameSystem(EntitySystem):
         self.resultReasonText.SetColor((255,255,255))
         self.resultReasonText.SetAntialiased(False)
 
+        self.resultScoreText = TextRenderer("Score: 0",10, self.mainFont)
+        self.resultScoreText.enabled = False
+        self.resultScoreText.SetAlign(ALIGN_CENTERLEFT)
+        self.resultScoreText.SetRectMargin(None)
+        self.resultReasonTextEnt = currentScene.CreateEntity("resultScoreText",[-80,20],components=[self.resultScoreText,
+                                            RectTransformComponent(ALIGN_BOTTOMLEFT,(0,5),(1,15.0 / 150.0),loseContainerRect)])
+        self.resultScoreText.SetColor((255,255,255))
+        self.resultScoreText.SetAntialiased(False)
+
         mainContainerRect = RectTransformComponent(ALIGN_CENTERTOP,(0,40),(200.0 / 256.0,120.0 / 272.0))
         self.mainContainer = currentScene.CreateEntity("UI-MainContainer",(0,0),components=[
             mainContainerRect])
@@ -208,6 +232,8 @@ class GameSystem(EntitySystem):
         self.moneyText.enabled = True
         self.levelText.enabled = True
         self.nextOrderText.enabled = True
+        if IsPlatformWeb():
+            self.highScoreText.enabled = True
         self.gameTitleText.enabled = False
         self.pressStartText.enabled = False
         self.creditsText.enabled = False
@@ -228,6 +254,7 @@ class GameSystem(EntitySystem):
         self.moneyText.enabled = False
         self.levelText.enabled = False
         self.nextOrderText.enabled = False
+        self.highScoreText.enabled = False
         self.gameTitleText.enabled = True
         self.pressStartText.enabled = True
         self.creditsText.enabled = True
@@ -237,6 +264,7 @@ class GameSystem(EntitySystem):
         self.resultLevelText.enabled = False
         self.resultMoneyText.enabled = False
         self.resultReasonText.enabled = False
+        self.resultScoreText.enabled = False
 
     def ClearMap(self, currentScene):
 
@@ -259,6 +287,7 @@ class GameSystem(EntitySystem):
         CreateAudioSingle(currentScene, "PlaceSoundSingle", "game/sound/loss.ogg", 1)
         self.creditsText.enabled = value
         self.lostText.enabled = value
+        self.highScoreText.enabled = not value
         self.pressRestartText.enabled = value
         self.resultLevelText.enabled = value
         self.resultLevelText.SetText("Level: "+str(self._level))
@@ -266,6 +295,9 @@ class GameSystem(EntitySystem):
         self.resultMoneyText.SetText("Money: "+str(self._money))
         self.resultReasonText.enabled = value
         self.resultReasonText.SetText("Reason: "+reason)
+        score = 2**self._level + self._money
+        self.resultScoreText.enabled = value
+        self.resultScoreText.SetText(f"Score: {score}")
 
         currentScene.SetTile(self.previousHoverIndex, "PreviewLayer", -1)
         currentScene.SetTile(self.previousHoverIndex, "HoverLayer", -1)
@@ -276,6 +308,11 @@ class GameSystem(EntitySystem):
         if(self.undergroundExitButton):
             currentScene.DeleteEntity(self.undergroundExitButton.parentEntity)
         currentScene.DeleteEntity(self.placementPreviewIcon)
+
+        if IsPlatformWeb() and value and score > self._highScore:
+            self._highScore = 2**self._level + self._money
+            SetLocalStorage("tiny_factory_high_score", self._highScore)
+            self.highScoreText.SetText(f"High Score: {self._highScore}")
 
 
     def WorldInteraction(self, currentScene : LevelScene):
