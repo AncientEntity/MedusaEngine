@@ -1,7 +1,15 @@
+import os
+import shutil
 import subprocess
+import sys
 from pathlib import Path
 
-def GetAnswer(text):
+skipAll = True if "--skipAll" in sys.argv else False
+
+def GetAnswer(text, default):
+    if(skipAll):
+        return default
+
     while True:
         print(text + " (Y/N): ")
         val = input().upper()[0]
@@ -13,8 +21,8 @@ def GetAnswer(text):
 workingDirectory = Path.cwd()
 templatePath = str(workingDirectory) + "\\build\\medusaweb.tmpl"
 
-shouldUMEBlock = GetAnswer("Enable ume_block?")
-getArchive = GetAnswer("Archive? (Y for itch.io uploads..., etc)")
+shouldUMEBlock = GetAnswer("Enable ume_block?", True)
+getArchive = GetAnswer("Archive? (Y for itch.io uploads..., etc)", False)
 
 def ConstructCL():
     cl = [".venv\\Scripts\\pygbag.exe"]
@@ -26,8 +34,16 @@ def ConstructCL():
     cl.append("--disable-sound-format-error") # Web builds only support OGG files, but sometimes you have both...
     cl.append("--template") # Web builds only support OGG files, but sometimes you have both...
     cl.append(templatePath) # Web builds only support OGG files, but sometimes you have both...
-    cl.append("main.py")
+    cl.append("build\\webtemp\\main.py")
     return cl
+
+if os.path.exists("build\\webtemp"):
+    shutil.rmtree("build\\webtemp")
+os.mkdir("build\\webtemp")
+shutil.copytree("game", "build\\webtemp\\game")
+shutil.copytree("engine", "build\\webtemp\\engine")
+shutil.copy2("main.py", "build\\webtemp")
+shutil.copy2("favicon.png", "build\\webtemp")
 
 cl = ConstructCL()
 print(f"Building with: {cl}")

@@ -8,6 +8,8 @@ def CleanWeb():
         shutil.rmtree("build\\web-cache")
     if(os.path.exists("build\\version.txt")):
         os.remove("build\\version.txt")
+    if os.path.exists("build\\webtemp"):
+        shutil.rmtree("build\\webtemp")
     print("Web Cleaned")
 
 def CleanWindows():
