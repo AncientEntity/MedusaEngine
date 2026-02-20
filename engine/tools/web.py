@@ -10,7 +10,7 @@ if engine.tools.platform.IsPlatformWeb():
         if cookieValue is None:
             return defaultValue
 
-        if returnType[0:4] == "list" or isinstance(returnType, list):
+        if (isinstance(returnType, str) and returnType[0:4] == "list") or isinstance(returnType, list):
             valuesType = returnType[4:] if isinstance(returnType, str) else None
             vec = []
             for val in cookieValue.split("|"):
