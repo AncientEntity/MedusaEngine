@@ -1,6 +1,10 @@
 import socket
 import threading
-import lzma
+
+from engine.tools.platform import IsPlatformWeb
+
+if not IsPlatformWeb():
+    import lzma
 
 
 from engine.constants import NET_NONE, NET_CLIENT, NET_HOST
@@ -20,6 +24,8 @@ import time
 # IMPORTANT TODOS:
 # todo - snapshots over 65536 compressed will error (gracefully within try/catch).
 # todo   Need to break messages up when too big, like into 4096 byte fragments, and handle fragmenting...
+
+
 class NetworkUDPTransport(NetworkTransportBase):
     def __init__(self):
         super().__init__()

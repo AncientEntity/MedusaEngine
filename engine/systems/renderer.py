@@ -135,7 +135,6 @@ class RenderingSystem(EntitySystem):
 
         #Finally blit the render target onto the final display.
         self.game.display.blit(pygame.transform.scale(self._renderTarget,(self._screenSize[0],self._screenSize[1])),(0,0))
-        pygame.display.update()
 
     def RenderSpriteRenderer(self,spriteRenderer : SpriteRenderer):
         if (spriteRenderer.sprite == None):

@@ -8,3 +8,6 @@ class ClientConnectionBase:
         self.referenceId = ClientConnectionBase.referenceIdIncrementer
         self.nickname : str = "unknown" # Should be set to ip/port or steamID, etc.
         ClientConnectionBase.referenceIdIncrementer += 1
+
+    def __str__(self):
+        return self.nickname

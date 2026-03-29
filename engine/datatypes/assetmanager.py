@@ -40,7 +40,7 @@ class AssetManager:
 
         return self.prefabs[prefab_name](entity, currentScene)
 
-def DefinePrefab(prefabName):
+def DefinePrefab(prefabName): # todo add "serverInstantiateOnly" as an option...
     def decorator(func):
         if prefabName in assets.prefabs:
             Log(f"Trying to define already existing prefab: {prefabName}", LOG_ERRORS)

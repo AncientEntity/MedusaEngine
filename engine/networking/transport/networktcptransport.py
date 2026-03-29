@@ -1,6 +1,7 @@
 import socket
 import threading
 import time
+import select
 
 from engine.logging import Log, LOG_WARNINGS, LOG_ERRORS
 from engine.networking.connections.clientconnectionbase import ClientConnectionBase
@@ -65,10 +66,10 @@ class NetworkTCPTransport(NetworkTransportBase):
 
     def Send(self, message, clientConnection : ClientConnectionSocket) -> None:
         if clientConnection:
-            clientConnection.tcpConnection.send(len(message).to_bytes(4, byteorder='big')+message)
+            clientConnection.tcpConnection.sendall(len(message).to_bytes(4, byteorder='big')+message)
             #clientConnection.tcpConnection.send(message)
         else:
-            self._socket.send(len(message).to_bytes(4, byteorder='big')+message) # Probably client not server
+            self._socket.sendall(len(message).to_bytes(4, byteorder='big')+message) # Probably client not server
             #self._socket.send(message) # Probably client not server
 
     def ThreadAccept(self):
@@ -91,8 +92,8 @@ class NetworkTCPTransport(NetworkTransportBase):
     def ThreadReceiveListener(self, connection : ClientConnectionSocket) -> None:
         while connection.active:
             try:
-                messageSize = int.from_bytes(connection.tcpConnection.recv(4),byteorder='big')
-                message = connection.tcpConnection.recv(messageSize)
+                messageSize = int.from_bytes(self._safe_socket_recv(connection.tcpConnection, 4),byteorder='big')
+                message = self._safe_socket_recv(connection.tcpConnection, messageSize)
             except Exception:
                 Log(f"Error receiving from client: {connection.referenceId}, assuming disconnect.")
                 if connection.active:
@@ -109,10 +110,10 @@ class NetworkTCPTransport(NetworkTransportBase):
     def ThreadReceiveClient(self):
         while self._socket:
             try:
-                messageSize = int.from_bytes(self._socket.recv(4),byteorder='big')
-                message = self._socket.recv(messageSize)
-            except Exception:
-                Log(f"Error receiving from server, assuming connection lost.")
+                messageSize = int.from_bytes(self._safe_socket_recv(self._socket, 4),byteorder='big')
+                message = self._safe_socket_recv(self._socket, messageSize)
+            except Exception as e:
+                Log(f"Error receiving from server, assuming connection lost. {e}")
                 if self._socket:
                     self.CallHook(self.onDisconnect, ())
                 return
@@ -121,7 +122,16 @@ class NetworkTCPTransport(NetworkTransportBase):
             self._queueLock.release()
             self._messagesAvailable.release()
 
-
+    def _safe_socket_recv(self, socket, size):
+        buffer = bytearray()
+        while len(buffer) < size:
+            ready, _, _ = select.select([socket], [], [], 0.15)
+            if ready:
+                chunk = socket.recv(size - len(buffer))
+                if not chunk:
+                    raise ConnectionError("Socket closed")
+                buffer += chunk
+        return buffer
 
     def Receive(self, buffer=2048):
         self._messagesAvailable.acquire()

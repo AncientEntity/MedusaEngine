@@ -4,7 +4,6 @@ import threading
 from typing import Type
 
 import pygame
-import pygame._sdl2.controller
 
 from engine import ecs
 from engine.constants import *
@@ -48,6 +47,7 @@ class Engine:
 
         self.headless = "headless" in sys.argv
         engine.tools.platform.headless = self.headless
+        self.fps_clock = pygame.time.Clock() if self.headless or self._game.vsync == False else None
 
         # Display
         self.display : pygame.Surface = None
@@ -72,7 +72,8 @@ class Engine:
             self.clientInitialized = False
             self._queuedNetworkEvents = []
             self._networkSendQueue = []
-            self._lastSnapshotTime = 0
+            self._lastSnapshotTimeSent = 0
+            self._lastSnapshotTimeRecv = 0
 
             self._networkServer : NetworkServerBase = None
             self._networkClient : NetworkClientBase = None
@@ -83,6 +84,9 @@ class Engine:
 
             self._transportName = self._game.transportName
             self._transportClass = self._game.transportClass
+        else:
+            if not self._game.webWarningOnClose:
+                platform.window.onbeforeunload = None
 
 
         self.LoadGame() #Loads self._game into the engine
@@ -136,6 +140,12 @@ class Engine:
             if Input.quitPressed:
                 self.Quit()
             self._currentScene.Update()
+            if not self.headless:
+                pygame.display.update() # todo rendering system should have layers and then eventually this should be moved back to it.
+                                        # todo other systems such as DebugSystem should communicate with RenderingSystem instead of direct draw.
+
+            if self.fps_clock:
+                self.fps_clock.tick(self._game.targetFps)
 
             await asyncio.sleep(0)
     def Init(self):
@@ -152,7 +162,6 @@ class Engine:
         if not engine.tools.platform.headless:
             pygame.mixer.init()
             pygame.joystick.init()
-            pygame._sdl2.controller.init()
 
         Input.Init(self._game.inputActions)
 
@@ -200,7 +209,8 @@ class Engine:
     def CreateDisplay(self):
         self.displayFlags = pygame.FULLSCREEN if self._game.startFullScreen else 0
         self.displayFlags |= pygame.RESIZABLE if self._game.resizableWindow and not IsPlatformWeb() else 0
-        self.display = pygame.display.set_mode(self._game.windowSize, self.displayFlags)
+        vsyncValue = 1 if self._game.vsync and not self.headless else 0
+        self.display = pygame.display.set_mode(self._game.windowSize, self.displayFlags, vsync=vsyncValue)
         pygame.display.set_caption(
             f"{self.gameName}{'' if not IsDebug() else f' (Debug Environment, Platform: {currentPlatform})'}")
         if (self._game.icon == None):
@@ -241,7 +251,7 @@ class Engine:
             elif nextMessage.id == NET_PROCESS_DISCONNECT:
                 networkDisconnect : NetworkDisconnect = nextMessage.data
                 NetworkState.TriggerHook(NetworkState.onDisconnect, (networkDisconnect.reason,networkDisconnect.transportName))
-                Log(f"Client Disconnected from server {networkDisconnect.transportName}")
+                Log(f"Client Disconnected from server {networkDisconnect.transportName}, {networkDisconnect.reason}", LOG_NETWORKING)
             elif nextMessage.id == NET_PROCESS_EVENT_ON_TRANSPORT_OPEN:
                 NetworkState.TriggerHook(NetworkState.serverOnTransportOpen, (nextMessage.data,))
             else:
@@ -256,8 +266,8 @@ class Engine:
 
         # Snapshots
         curTime = time.time()
-        if curTime - self._lastSnapshotTime >= self.snapshotDelay:
-            self._lastSnapshotTime = curTime
+        if curTime - self._lastSnapshotTimeSent >= self.snapshotDelay:
+            self._lastSnapshotTimeSent = curTime
             if NetworkState.identity & NET_HOST:
                 snapshot = NetworkSnapshot.GenerateSnapshotFull(self._currentScene)
                 bytesToSend = NetworkEventToBytes(NetworkEvent(NET_EVENT_SNAPSHOT_PARTIAL, snapshot.SnapshotToBytes()))
@@ -283,6 +293,7 @@ class Engine:
             self._networkProcess.name = NET_SUBPROCESS_NAME
             self._networkProcess.daemon = True
             self._networkProcess.start()
+            Log(f"Network Subprocess created with PID: {self._networkProcess.pid}", LOG_NETWORKING)
             subprocessAck = self._networkProcessSocket.recv(4)
             if subprocessAck != b"ack":
                 Log(f"Incorrect acknowledgement from network subprocess. Port: {portUsed}", LOG_NETWORKING)
@@ -381,6 +392,7 @@ class Engine:
 
     def NetworkHandleSnapshot(self, networkEvent : NetworkEvent):
         snapshot : NetworkSnapshot = NetworkSnapshot.SnapshotFromBytes(networkEvent.data)
+        self._lastSnapshotTimeRecv = time.time()
 
         # Prevent input tampering of other clients
         if NetworkState.identity & NET_HOST:

@@ -8,7 +8,7 @@ from engine.constants import NET_PROCESS_SHUTDOWN, NET_PROCESS_OPEN_SERVER_TRANS
     NET_PROCESS_CLIENT_SEND_MESSAGE, NET_PROCESS_SERVER_SEND_MESSAGE, NET_CLIENT, NET_PROCESS_RECEIVE_MESSAGE, NET_HOST, \
     NET_SAFE_PROCESS_DELAY, NET_PROCESS_CLIENT_CONNECT, NET_PROCESS_CONNECT_SUCCESS, NET_PROCESS_CONNECT_FAIL, \
     NET_PROCESS_CLIENT_DISCONNECT, NET_USER_DISCONNECTED, NET_PROCESS_DISCONNECT, NET_CONNECTION_LOST, \
-    NET_PROCESS_KICK_CLIENT, NET_PROCESS_EVENT_ON_TRANSPORT_OPEN
+    NET_PROCESS_KICK_CLIENT, NET_PROCESS_EVENT_ON_TRANSPORT_OPEN, NET_TICKRATE
 from engine.logging import Log, LOG_NETWORKPROCESS
 from engine.networking.connections.clientconnectionbase import ClientConnectionBase
 from engine.networking.networkclientbase import NetworkClientBase
@@ -49,8 +49,12 @@ def NetworkProcessMain(portUsed : int):
     processSocket.connect(f"tcp://localhost:{portUsed}")
     processSocket.send(b"ack")
 
+    pollTimeout = round((1.0 / NET_TICKRATE) * 1000)
+
     active = True
     while active:
+        if not processSocket.poll(timeout=pollTimeout):
+            continue
         nextMessage : NetworkProcessMessage = processSocket.recv_pyobj()
 
         processDelay = time.time() - nextMessage.requestMade

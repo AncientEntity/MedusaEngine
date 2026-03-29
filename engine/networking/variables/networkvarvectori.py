@@ -10,6 +10,7 @@ class NetworkVarVectorInterpolate(NetworkVarVector):
 
         self.interpolateSpeed = 0.45
         self.interpolateMaxDistance = 50
+        self.interpolateMinDistance = 5
         self._interpolatePosition = defaultValue[:]
         self._lastInterpolateTime = time.time()
 
@@ -30,10 +31,11 @@ class NetworkVarVectorInterpolate(NetworkVarVector):
             if distance > self.interpolateMaxDistance:
                 self._interpolatePosition = self.value[:]
                 return self._interpolatePosition
+            if distance < self.interpolateMinDistance:
+                distance = self.interpolateMinDistance
 
             curTime = time.time()
-            if distance <= self.interpolateSpeed: # todo issue seems to be coming from movetowards
-                self._interpolatePosition = MoveTowards(self._interpolatePosition, self.value, self.interpolateSpeed*(curTime-self._lastInterpolateTime)*distance**2)
+            self._interpolatePosition = MoveTowards(self._interpolatePosition, self.value, self.interpolateSpeed*(curTime-self._lastInterpolateTime)*distance)
             self._lastInterpolateTime = curTime
             return WrappedList(self._interpolatePosition,self._interpolatePosition, self)
 
