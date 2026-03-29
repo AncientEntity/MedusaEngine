@@ -16,6 +16,8 @@ class Game:
         self.windowSize : tuple(int) = (800,600)
         self.startFullScreen = False
         self.resizableWindow = False # Will not be enabled on web platform
+        self.vsync = True # Overrides self.targetFps except on headless where there is nothing to vsync to.
+        self.targetFps = 60  # Will be overriden by self.targetFps, except on headless where there is nothing to vsync to.
 
         self.webCanvasPixelated = True # Determine if the web canvas of a web build is pixelated or not.
         self.webWarningOnClose = False # If True, it will trigger an "Are you sure?" in the browser before the tab closes.

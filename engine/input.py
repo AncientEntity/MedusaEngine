@@ -140,21 +140,21 @@ class Input:
     def ActionPressed(actionName : str, clientId=None) -> bool:
         if clientId is None or clientId == -1:
             return Input.KeyPressed(Input._actions[actionName].activeBind)
-        if clientId not in Input._networkActionState:
+        if clientId not in Input._networkActionState or len(Input._networkActionState[clientId]) == 0:
             return False
         return Input._networkActionState[clientId][Input._actions[actionName]._id] & KEYPRESSED
     @staticmethod
     def ActionDown(actionName : str, clientId=None) -> bool:
         if clientId is None:
             return Input.KeyDown(Input._actions[actionName].activeBind)
-        if clientId not in Input._networkActionState:
+        if clientId not in Input._networkActionState or len(Input._networkActionState[clientId]) == 0:
             return False
         return Input._networkActionState[clientId][Input._actions[actionName]._id] & KEYDOWN
     @staticmethod
     def ActionUp(actionName : str, clientId=None) -> bool:
         if clientId is None:
             return Input.KeyUp(Input._actions[actionName].activeBind)
-        if clientId not in Input._networkActionState:
+        if clientId not in Input._networkActionState or len(Input._networkActionState[clientId]) == 0:
             return False
         return Input._networkActionState[clientId][Input._actions[actionName]._id] & KEYUP
 
@@ -171,8 +171,18 @@ class Input:
                     Input._networkActionState.pop(clientId)
                 continue
 
-            Input._networkActionState[clientId] = bytearray(actionBytes)
+            Input._networkActionState[clientId] = actionBytes
 
     @staticmethod
     def GetNetworkActionState():
         return Input._networkActionState
+
+    @staticmethod
+    def DumpInputStates():
+        dumps = []
+        for clientId, inputState in Input._networkActionState.items():
+            dump = f"{clientId}: "
+            for i in range(len(Input._actionList)):
+                dump += f"{Input._actionList[i].name}={format(inputState[i], '03b')}, "
+            dumps.append(dump)
+        return dumps
