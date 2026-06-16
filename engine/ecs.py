@@ -1,9 +1,12 @@
+from engine.constants import NET_HOST
 from engine.datatypes.timedevents import TimedEvent
 import time
 import random
 
 from engine.networking.networkstate import NetworkState
+from engine.networking.stateassert import StateAssert
 from engine.networking.variables.networkvarbase import NetworkVarBase
+from engine.networking.variables.networkvarbool import NetworkVarBool
 from engine.networking.variables.networkvarvector import NetworkVarVector
 from engine.networking.variables.networkvarvectori import NetworkVarVectorInterpolate
 from engine.tools.platform import IsHeadless
@@ -12,10 +15,26 @@ from engine.tools.platform import IsHeadless
 class Component:
     def __init__(self):
         self.parentEntity : Entity = None
-        self.enabled = True # This only works if the given EntitySystem supports it.
+        self._enabled = True # This only works if the given EntitySystem supports it.
 
         # Tracks whether the component has been put through OnNewComponent/OnDeleteComponent on entity systems.
         self._registered = False
+    def get_enabled(self):
+        if isinstance(self._enabled, NetworkVarBool):
+            return self._enabled.Get()
+        else:
+            return self._enabled
+    def set_enabled(self, newValue):
+        if isinstance(self._enabled, NetworkVarBool):
+            self._enabled.Set(newValue)
+        else:
+            self._enabled = newValue
+
+    enabled = property(get_enabled, set_enabled)
+
+    # This should be ran when making the component, not midway through it's existence. Must be ran for everyone.
+    def setup_enabled_networking(self):
+        self._enabled = NetworkVarBool(self._enabled)
 
 class Scene:
     def __init__(self):
@@ -44,7 +63,7 @@ class Scene:
     def CreateNetworkEntity(self, name, position, components, ownerId, netentityId=None):
         newEnt = NetworkEntity(ownerId, netentityId)
         newEnt.name = name
-        newEnt.position = position
+        newEnt.engine_get_position_network_variable().Set(position)
         newEnt.components = components
         self.AddEntity(newEnt)
         return newEnt
@@ -83,7 +102,10 @@ class Scene:
         componentType = type(component)
         if (componentType in self.components):
             self.HandleDeleteComponent(component)
-            self.components[componentType].remove(component)
+
+            while componentType != object:
+                self.components[componentType].remove(component)
+                componentType = componentType.__bases__[0]
 
     def AddComponents(self, components : list[Component], parentEntity):
         for component in components:
@@ -129,17 +151,20 @@ class Scene:
     def HandleNewComponents(self): #Runs OnNewComponent for each new component (just added to the scene) for every system that it relates to.
         startComp : Component
         for startComp in self._newComponentQueue:
+            # Add component to self.components dictionary lists.
+            componentType = type(startComp)
+            while componentType != object:
+                if (componentType not in self.components):
+                    self.components[componentType] = []
+                self.components[componentType].append(startComp)
+                componentType = componentType.__bases__[0]
+
             for system in self.systems:
                 if self.SystemUsesComponent(startComp, system):
                     # if(type(component) in system.targetComponents): #swapped out for the above line as that function considers inheritance.
                     system.OnNewComponent(startComp)
             startComp._registered = True
 
-            # Add component to self.components dictionary lists.
-            componentType = type(startComp)
-            if (componentType not in self.components):
-                self.components[componentType] = []
-            self.components[componentType].append(startComp)
 
         self._newComponentQueue = []
 
@@ -212,7 +237,7 @@ class Entity:
 class NetworkEntity(Entity):
     def __init__(self, ownerId, forcedId=None):
         self._position = NetworkVarVectorInterpolate()
-        self._position.prioritizeOwner = True
+        self._position.serverAuthorityRequired = True
 
         # Entity ID for networked object is always negative.
         if forcedId is not None:
@@ -222,31 +247,40 @@ class NetworkEntity(Entity):
             self.entityId = -abs(self.entityId)
 
         self._networkVariables = None
+        self._networkVariablesDict = None
 
         self.ownerId = ownerId
 
     def GetNetworkVariables(self):
         if self._networkVariables:
             return self._networkVariables
-        hasAuthority = NetworkState.clientId == self.ownerId
+        hasAuthority = NetworkState.clientId == self.ownerId or NetworkState.identity & NET_HOST
 
-
+        self._networkVariablesDict = {}
         self._networkVariables = []
         self._networkVariables.append(("_position", self._position))
+        self._networkVariablesDict["_position"] = self._position
         if hasAuthority:
-            self._position.hasAuthority = hasAuthority
+            self._position.hasAuthority = hasAuthority and (not self._position.serverAuthorityRequired or NetworkState.identity & NET_HOST)
         for component in self.components:
             for attr in dir(component):
                 attrValue = getattr(component, attr)
                 if isinstance(attrValue, NetworkVarBase):
                     self._networkVariables.append((attr, attrValue))
-                    attrValue.hasAuthority = hasAuthority
+                    self._networkVariablesDict[attr] = attrValue
+                    attrValue.hasAuthority = hasAuthority and (not attrValue.serverAuthorityRequired or NetworkState.identity & NET_HOST)
         return self._networkVariables
 
+    def get_network_variables_dict(self):
+        if not self._networkVariablesDict:
+            self.GetNetworkVariables()
+        return self._networkVariablesDict
+    def engine_get_position_network_variable(self):
+        return self._position
     def get_position(self):
         return self._position.Get()
     def set_position(self, value):
-        self._position.Set(value, True)
+        self._position.Set(value, self._position.hasAuthority)
 
     def get_exact_position(self):
         return self._position.GetExact()
@@ -308,7 +342,7 @@ class EntitySystem:
         curIndex = 0
 
         for curIndex in range(len(self._activeTimedEvents)):
-            if(self._activeTimedEvents[curIndex].TimeUntilNextTrigger(currentTime) < timeUntil):
+            if timeUntil <= self._activeTimedEvents[curIndex].TimeUntilNextTrigger(currentTime):
                 break
 
         self._activeTimedEvents.insert(curIndex, timedEvent)

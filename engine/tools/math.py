@@ -51,3 +51,12 @@ def Clamp(value, min, max):
     elif(value > max):
         return max
     return value
+
+def AddVectors(vec1, vec2, assertSameSize=True):
+    if(assertSameSize):
+        assert len(vec1) == len(vec2)
+
+    result = []
+    for i in range(len(vec1)):
+        result.append(vec1[i]+vec2[i])
+    return result

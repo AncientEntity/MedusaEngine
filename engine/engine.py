@@ -4,7 +4,6 @@ import threading
 from typing import Type
 
 import pygame
-import pygame._sdl2.controller
 
 from engine import ecs
 from engine.constants import *
@@ -21,15 +20,12 @@ import engine.tools.platform
 from engine.input import Input
 from engine.logging import Log, LOG_ERRORS, LOG_INFO, LOG_WARNINGS, LOG_NETWORKING
 from engine.networking.connectioninfo import ConnectionInfo
-from engine.networking.connections.clientconnectionbase import ClientConnectionBase
 from engine.networking.networkclientbase import NetworkClientBase
 from engine.networking.networkevent import NetworkEvent, NetworkEventToBytes
 from engine.networking.networkserverbase import NetworkServerBase
 from engine.networking.networksnapshot import NetworkSnapshot, NetworkEntitySnapshot
 from engine.networking.networkstate import NetworkState
 from engine.networking.rpc import RPCAction
-from engine.networking.transport.networktcptransport import NetworkTCPTransport
-from engine.networking.transport.networkudptransport import NetworkUDPTransport
 from engine.scenes import splashscene
 from engine.tools.platform import IsBuilt, IsDebug, currentPlatform, IsPlatformWeb
 if not IsPlatformWeb():
@@ -51,6 +47,7 @@ class Engine:
 
         self.headless = "headless" in sys.argv
         engine.tools.platform.headless = self.headless
+        self.fps_clock = pygame.time.Clock() if self.headless or self._game.vsync == False else None
 
         # Display
         self.display : pygame.Surface = None
@@ -68,14 +65,15 @@ class Engine:
 
         # Networking
         if not IsPlatformWeb():
-            self.snapshotDelay = 1.0 / 25.0
+            self.snapshotDelay = 1.0 / NET_TICKRATE
             self.connections = []
             self.connectionsReference : dict[int, ConnectionInfo] = {} # key=ClientConnectionBase, value=ConnectionInfo
 
             self.clientInitialized = False
             self._queuedNetworkEvents = []
             self._networkSendQueue = []
-            self._lastSnapshotTime = 0
+            self._lastSnapshotTimeSent = 0
+            self._lastSnapshotTimeRecv = 0
 
             self._networkServer : NetworkServerBase = None
             self._networkClient : NetworkClientBase = None
@@ -83,6 +81,14 @@ class Engine:
             self._netContext : zmq.Context = zmq.Context()
             self._networkProcessSocket : zmq.Socket = None
             self._networkProcess : multiprocessing.Process = None
+
+            self._transportName = self._game.transportName
+            self._transportClass = self._game.transportClass
+
+            self._playerCount = 0
+        else:
+            if not self._game.webWarningOnClose:
+                platform.window.onbeforeunload = None
 
 
         self.LoadGame() #Loads self._game into the engine
@@ -136,6 +142,12 @@ class Engine:
             if Input.quitPressed:
                 self.Quit()
             self._currentScene.Update()
+            if not self.headless:
+                pygame.display.update() # todo rendering system should have layers and then eventually this should be moved back to it.
+                                        # todo other systems such as DebugSystem should communicate with RenderingSystem instead of direct draw.
+
+            if self.fps_clock:
+                self.fps_clock.tick(self._game.targetFps)
 
             await asyncio.sleep(0)
     def Init(self):
@@ -152,7 +164,6 @@ class Engine:
         if not engine.tools.platform.headless:
             pygame.mixer.init()
             pygame.joystick.init()
-            pygame._sdl2.controller.init()
 
         Input.Init(self._game.inputActions)
 
@@ -200,7 +211,8 @@ class Engine:
     def CreateDisplay(self):
         self.displayFlags = pygame.FULLSCREEN if self._game.startFullScreen else 0
         self.displayFlags |= pygame.RESIZABLE if self._game.resizableWindow and not IsPlatformWeb() else 0
-        self.display = pygame.display.set_mode(self._game.windowSize, self.displayFlags)
+        vsyncValue = 1 if self._game.vsync and not self.headless else 0
+        self.display = pygame.display.set_mode(self._game.windowSize, self.displayFlags, vsync=vsyncValue)
         pygame.display.set_caption(
             f"{self.gameName}{'' if not IsDebug() else f' (Debug Environment, Platform: {currentPlatform})'}")
         if (self._game.icon == None):
@@ -241,7 +253,8 @@ class Engine:
             elif nextMessage.id == NET_PROCESS_DISCONNECT:
                 networkDisconnect : NetworkDisconnect = nextMessage.data
                 NetworkState.TriggerHook(NetworkState.onDisconnect, (networkDisconnect.reason,networkDisconnect.transportName))
-                Log(f"Client Disconnected from server {networkDisconnect.transportName}")
+                self.NetworkClientDisconnect()
+                Log(f"Client Disconnected from server {networkDisconnect.transportName}, {networkDisconnect.reason}", LOG_NETWORKING)
             elif nextMessage.id == NET_PROCESS_EVENT_ON_TRANSPORT_OPEN:
                 NetworkState.TriggerHook(NetworkState.serverOnTransportOpen, (nextMessage.data,))
             else:
@@ -256,11 +269,11 @@ class Engine:
 
         # Snapshots
         curTime = time.time()
-        if curTime - self._lastSnapshotTime >= self.snapshotDelay:
-            self._lastSnapshotTime = curTime
+        if curTime - self._lastSnapshotTimeSent >= self.snapshotDelay:
+            self._lastSnapshotTimeSent = curTime
             if NetworkState.identity & NET_HOST:
                 snapshot = NetworkSnapshot.GenerateSnapshotFull(self._currentScene)
-                bytesToSend = NetworkEventToBytes(NetworkEvent(NET_EVENT_SNAPSHOT_PARTIAL, snapshot.SnapshotToBytes()))
+                bytesToSend = NetworkEventToBytes(NetworkEvent(NET_EVENT_SNAPSHOT_FULL, snapshot.SnapshotToBytes()))
             elif NetworkState.identity & NET_CLIENT:
                 snapshot = NetworkSnapshot.GenerateSnapshotPartial(self._currentScene)
                 bytesToSend = NetworkEventToBytes(NetworkEvent(NET_EVENT_SNAPSHOT_PARTIAL, snapshot.SnapshotToBytes()))
@@ -268,9 +281,9 @@ class Engine:
             self._currentScene.networkDeletedQueue.clear()
 
             if NetworkState.identity & NET_HOST:
-                self.NetworkServerSend(bytesToSend, "udp", None)
+                self.NetworkServerSend(bytesToSend, self._transportName, None)
             elif NetworkState.identity & NET_CLIENT:
-                self.NetworkClientSend(bytesToSend, "udp")
+                self.NetworkClientSend(bytesToSend, self._transportName)
 
     def NetworkCreateProcess(self):
         if not self._networkProcess:
@@ -283,6 +296,7 @@ class Engine:
             self._networkProcess.name = NET_SUBPROCESS_NAME
             self._networkProcess.daemon = True
             self._networkProcess.start()
+            Log(f"Network Subprocess created with PID: {self._networkProcess.pid}", LOG_NETWORKING)
             subprocessAck = self._networkProcessSocket.recv(4)
             if subprocessAck != b"ack":
                 Log(f"Incorrect acknowledgement from network subprocess. Port: {portUsed}", LOG_NETWORKING)
@@ -297,7 +311,9 @@ class Engine:
 
     def NetworkHostStart(self, ip, port):
         self._networkProcessSocket.send_pyobj(NetworkProcessMessage(NET_PROCESS_OPEN_SERVER_TRANSPORT,
-                                                                    NetworkUpdateTransport("udp", NetworkUDPTransport, (ip, port))))
+                                                                    NetworkUpdateTransport(self._transportName,
+                                                                                           self._transportClass,
+                                                                                           (ip, port))))
 
         NetworkState.identity |= NET_HOST
 
@@ -308,7 +324,7 @@ class Engine:
         if not NetworkState.identity & NET_HOST:
             return
         self._networkProcessSocket.send_pyobj(NetworkProcessMessage(NET_PROCESS_CLOSE_SERVER_TRANSPORT,
-                                                                    NetworkUpdateTransport("udp", None, None)))
+                                                                    NetworkUpdateTransport(self._transportName, None, None)))
 
         if NetworkState.identity & NET_HOST:
             NetworkState.identity -= NET_HOST
@@ -325,12 +341,12 @@ class Engine:
             Log("Failed to NetworkClientConnect, network client already exists", LOG_ERRORS)
 
         self._networkProcessSocket.send_pyobj(NetworkProcessMessage(NET_PROCESS_CONNECT_CLIENT_TRANSPORT,
-                                                                    NetworkUpdateTransport("udp", NetworkUDPTransport, (ip, port))))
+                                                                    NetworkUpdateTransport(self._transportName, self._transportClass, (ip, port))))
 
         NetworkState.identity |= NET_CLIENT
 
         networkEventBytes = NetworkEventToBytes(NetworkEvent(NET_EVENT_INIT, bytearray()))
-        self.NetworkClientSend(networkEventBytes, "udp")
+        self.NetworkClientSend(networkEventBytes, self._transportName)
 
         self.clientInitialized = False
         Log(f"Network Client Connect, Identity: {NetworkState.identity}", LOG_NETWORKING)
@@ -341,7 +357,7 @@ class Engine:
             return
 
         self._networkProcessSocket.send_pyobj(NetworkProcessMessage(NET_PROCESS_CLOSE_CLIENT_TRANSPORT,
-                                                                    NetworkUpdateTransport("udp", None, None)))
+                                                                    NetworkUpdateTransport(self._transportName, None, None)))
 
         if NetworkState.identity & NET_CLIENT:
             NetworkState.identity -= NET_CLIENT
@@ -362,12 +378,12 @@ class Engine:
                 # send new connection it's client ID and such
                 networkEventBytes = NetworkEventToBytes(NetworkEvent(NET_EVENT_INIT, networkEvent.sender.to_bytes(4,"big")))
                 self.AddConnection(networkEvent.sender)
-                self.NetworkServerSend(networkEventBytes, "udp", networkEvent.sender)
+                self.NetworkServerSend(networkEventBytes, self._transportName, networkEvent.sender)
 
                 # send new connection full snapshot
                 snapshot = NetworkSnapshot.GenerateSnapshotFull(self._currentScene) # todo net sometimes just do partial snapshots
                 bytesToSend = NetworkEventToBytes(NetworkEvent(NET_EVENT_SNAPSHOT_FULL, snapshot.SnapshotToBytes()))
-                self.NetworkServerSend(bytesToSend, "udp", networkEvent.sender)
+                self.NetworkServerSend(bytesToSend, self._transportName, networkEvent.sender)
 
         if not self.clientInitialized and NetworkState.identity != NET_HOST:
             return
@@ -379,6 +395,9 @@ class Engine:
 
     def NetworkHandleSnapshot(self, networkEvent : NetworkEvent):
         snapshot : NetworkSnapshot = NetworkSnapshot.SnapshotFromBytes(networkEvent.data)
+        self._lastSnapshotTimeRecv = time.time()
+
+        self._playerCount = snapshot.currentPlayerCount
 
         # Prevent input tampering of other clients
         if NetworkState.identity & NET_HOST:
@@ -412,15 +431,21 @@ class Engine:
                 continue
 
 
-            entVars = ent.GetNetworkVariables()
-            for variable in netEntitySnapshot.variables:
-                for foundVar in entVars:
-                    if foundVar[1].prioritizeOwner and netEntitySnapshot.ownerId == NetworkState.clientId:
-                        continue
+            entVars = ent.get_network_variables_dict()
+            for modifiedVariable in netEntitySnapshot.variables:
+                variableName = modifiedVariable[0]
 
-                    if foundVar[0] == variable[0] and not foundVar[1].AreBytesEqual(variable[1]):
-                        foundVar[1].SetFromBytes(variable[1], modified=False)
-                        break
+                if variableName not in entVars:
+                    Log(f"Sender: {networkEvent.sender} tried to modify non existing variable: {variableName}", LOG_NETWORKING)
+                    continue
+                foundVar = entVars[variableName]
+
+                if not foundVar.AreBytesEqual(modifiedVariable[1]):
+                    if foundVar.serverAuthorityRequired and NetworkState.identity & NET_HOST:
+                        Log(f"Client {networkEvent.sender} tried to modify a serverAuthorityRequired network variable: {ent.name}.{variableName}")
+                        continue # If server and received a variable update from a client, and it needs server authority. Don't update.
+
+                    foundVar.SetFromBytes(modifiedVariable[1], modified=False)
 
 
         if networkEvent.sender == NetworkState.clientId:
@@ -438,9 +463,13 @@ class Engine:
                 if funcToCall.__rpc__['serverAuthorityRequired'] and NetworkState.clientId != networkEvent.sender:
                     Log(f"ClientId: {networkEvent.sender} tried to run a RPC function that is serverOnly: {rpc.systemType}.{rpc.funcName}", LOG_WARNINGS)
                     continue
+                rpc.callerId = networkEvent.sender # make sure client doesn't lie.
                 NetworkState.rpcQueue.append(rpc)
 
-            funcToCall(self=system, argBytes=rpc.args, isCaller=False)
+            if funcToCall.__rpc__['includeCallerId']:
+                funcToCall(self=system, argBytes=rpc.args, isCaller=False, callerId=rpc.callerId)
+            else:
+                funcToCall(self=system, argBytes=rpc.args, isCaller=False)
 
 
 
@@ -466,7 +495,13 @@ class Engine:
     def NetworkServerSend(self, message, transport, target):
         self._networkProcessSocket.send_pyobj(NetworkProcessMessage(NET_PROCESS_SERVER_SEND_MESSAGE,
                                                                     NetworkSendMessage(transport, target,
-                                                                          message, NetworkState.clientId if NetworkState.clientId != -1 else None)))
+                                                                          message, NetworkState.clientId if NetworkState.clientId != -1 else None), NET_STALE_DELAY))
 
     def NetworkClientSend(self, message, transport):
-        self._networkProcessSocket.send_pyobj(NetworkProcessMessage(NET_PROCESS_CLIENT_SEND_MESSAGE, NetworkSendMessage(transport, None, message, None)))
+        self._networkProcessSocket.send_pyobj(NetworkProcessMessage(NET_PROCESS_CLIENT_SEND_MESSAGE, NetworkSendMessage(transport, None, message, None), NET_STALE_DELAY))
+
+    def NetworkPlayerCount(self):
+        if NetworkState.identity & NET_HOST:
+            return len(self.connections)
+        else:
+            return self._playerCount

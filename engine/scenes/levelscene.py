@@ -34,6 +34,8 @@ class LevelScene(Scene):
         self.layerObjects : list = []
         self.layerObjectsDict : dict = {}
         self.triggers : list = []
+
+        self.mapSize = ()
     def Init(self):
         self.Clear()
         self.layerObjects = []
@@ -71,6 +73,8 @@ class LevelScene(Scene):
 
     def LoadTileLayer(self,layer,drawOrder):
         size = (layer["width"], layer["height"])
+        self.mapSize = size
+
         tileSize = self.mapJson["tilewidth"]
 
         physicsLayer = self.GetPropertyOfLayer(layer, "physicsLayer")
@@ -133,7 +137,7 @@ class LevelScene(Scene):
         object["trigger"] = triggerPhysics
         self.triggers.append(trigger)
 
-    def GetPropertyOfLayer(self,layer,propertyName):
+    def GetPropertyOfLayer(self,layer, propertyName):
         if("properties" in layer):
             for prop in layer["properties"]:
                 if(prop["name"] == propertyName):

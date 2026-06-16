@@ -17,11 +17,12 @@ class NetworkClientBase:
 
         self._messageQueue = []
         self._messageQueueLock = threading.Lock()
+        self._messagesAvailable = threading.Semaphore(0)
 
     def Connect(self, layerName : str, connectionHandler : NetworkTransportBase, address : (str, int)):
         self.transportHandlers[layerName] = connectionHandler
         connectionHandler.Connect(address)
-        connectionHandler.receiveThread = threading.Thread(target=self.ThreadReceive,args=(connectionHandler,))
+        connectionHandler.receiveThread = threading.Thread(target=self.ThreadReceive,args=(connectionHandler,), daemon=True)
         connectionHandler.receiveThread.name = f"CNetThreadRecv{layerName}"
         connectionHandler.receiveThread.start()
 
@@ -37,16 +38,17 @@ class NetworkClientBase:
     def Send(self, message, transportName):
         self.transportHandlers[transportName].Send(message, None)
 
+    # todo do we even need a recv thread for the client?
     def ThreadReceive(self, transporter: NetworkTransportBase):
         while transporter.active:
-            message = transporter.Receive(2048)
+            message = transporter.Receive(8192)
             self._messageQueueLock.acquire()
             self._messageQueue.append(message)
             self._messageQueueLock.release()
+            self._messagesAvailable.release()
 
     def GetNextMessage(self):
-        if len(self._messageQueue) == 0:
-            return None
+        self._messagesAvailable.acquire()
 
         self._messageQueueLock.acquire()
         message = self._messageQueue.pop(0)

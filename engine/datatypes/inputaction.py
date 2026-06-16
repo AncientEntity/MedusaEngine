@@ -7,6 +7,6 @@ class InputAction:
         self.defaultBind = defaultBind
         self.activeBind = self.defaultBind
 
-        self.networked = networked
+        self.networked = networked # todo implement this...
 
         self._id = -1

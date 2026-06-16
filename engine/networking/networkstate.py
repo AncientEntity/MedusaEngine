@@ -1,4 +1,4 @@
-from engine.constants import NET_NONE
+from engine.constants import NET_NONE, NET_LISTENSERVER, NET_HOST, NET_CLIENT
 
 
 class NetworkState:
@@ -24,3 +24,16 @@ class NetworkState:
             hookList = list(hookList.values())
         for hook in hookList:
             hook(*args)
+
+    @staticmethod
+    def GetNetworkIdentityString():
+        if NetworkState.identity == NET_NONE:
+            return "None"
+        elif NetworkState.identity == NET_LISTENSERVER:
+            return "ListenServer"
+        elif NetworkState.identity == NET_HOST:
+            return "Host"
+        elif NetworkState.identity == NET_CLIENT:
+            return "Client"
+        else:
+            return "Unknown"

@@ -1,8 +1,10 @@
-from engine.components.audioplayer import AudioPlayer
+from engine.components.audio.audioplayer import AudioPlayer
 from engine.ecs import Scene
 
 
-def CreateAudioSingle(currentScene : Scene, entityName : str, sound, volume):
+def CreateAudioSingle(currentScene : Scene, entityName : str, sound, volume, position=None):
     player = AudioPlayer(sound,True,volume)
     player.destroyOnFinish = True
-    return currentScene.CreateEntity(entityName,[0,0],[player])
+    if position is not None:
+        player.volumeDistanceBased = True
+    return currentScene.CreateEntity(entityName, position,[player])

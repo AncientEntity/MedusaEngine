@@ -7,7 +7,7 @@
 # a way to fully serialize any entity into bytes and back for saving/loading easily.
 from engine.constants import NET_HOST
 from engine.ecs import Scene
-from engine.logging import Log, LOG_ERRORS
+from engine.logging import Log, LOG_ERRORS, LOG_WARNINGS
 from engine.networking.networkstate import NetworkState
 
 
@@ -17,6 +17,10 @@ class AssetManager:
 
 
     def Instantiate(self, prefab_name : str, currentScene : Scene, position=[0,0]):
+        if prefab_name not in self.prefabs:
+            Log(f"Tried to Instantiate prefab that doesn't exist: {prefab_name}", LOG_WARNINGS)
+            return None
+
         entity = currentScene.CreateEntity("",position,[])
         entity.prefabName = prefab_name
         return self.prefabs[prefab_name](entity, currentScene)
@@ -31,8 +35,12 @@ class AssetManager:
 
             return self.NetInstantiate(prefab_name, _currentScene)
         return _NetInstantiate
-    def NetInstantiate(self, prefab_name : str, currentScene : Scene, networkId = None, ownerId = -1, position=[0,0]):
-        if ownerId == -1:
+    def NetInstantiate(self, prefab_name : str, currentScene : Scene, networkId = None, ownerId = None, position=[0,0]):
+        if prefab_name not in self.prefabs:
+            Log(f"Tried to NetInstantiate prefab that doesn't exist: {prefab_name}", LOG_WARNINGS)
+            return None
+
+        if ownerId is None:
             ownerId = NetworkState.clientId
 
         entity = currentScene.CreateNetworkEntity(prefab_name,position,[], ownerId, networkId)#, Engine._instance.clientId)
@@ -40,7 +48,7 @@ class AssetManager:
 
         return self.prefabs[prefab_name](entity, currentScene)
 
-def DefinePrefab(prefabName):
+def DefinePrefab(prefabName): # todo add "serverInstantiateOnly" as an option...
     def decorator(func):
         if prefabName in assets.prefabs:
             Log(f"Trying to define already existing prefab: {prefabName}", LOG_ERRORS)

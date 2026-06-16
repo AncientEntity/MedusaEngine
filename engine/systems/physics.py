@@ -41,12 +41,15 @@ class PhysicsSystem(EntitySystem):
         # update objects based on if they have moved. But this is still faster.
         self.quadtree = QuadNode(None,self.quadtree.bounds)
         for body in currentScene.components[PhysicsComponent]:
+            if not body.enabled:
+                continue
+
             body._overlappingSpatialPartitions.clear()
             self.quadtree.AddBody(body)
 
         #Physics Component Collision
         for body in currentScene.components[PhysicsComponent]:
-            if(body.static): #If static do not check for collisions with others, as it should be stationary.
+            if not body.enabled or body.static: #If static do not check for collisions with others, as it should be stationary.
                 continue
             #Add gravity
             self.ApplyGravity(body,stepTime)

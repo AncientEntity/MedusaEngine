@@ -11,16 +11,22 @@ def GetSound(audioClip, getTailSound=False):
 
 class AudioClip:
     def __init__(self, filePathOrSound : str or pygame.mixer.Sound):
+        self.filePathOrSound = filePathOrSound
         self.sound = None
-        if(isinstance(filePathOrSound, str)):
-            if(filePathOrSound != ""):
-                self.sound = pygame.mixer.Sound(filePathOrSound)
+
+    def GetSound(self):
+        if self.sound is None:
+            self._LoadSound()
+
+        return self.sound
+    def _LoadSound(self):
+        if(isinstance(self.filePathOrSound, str)):
+            if(self.filePathOrSound != ""):
+                self.sound = pygame.mixer.Sound(self.filePathOrSound)
             else:
                 self.sound = None
-        elif(isinstance(filePathOrSound, pygame.mixer.Sound)):
-            self.sound = filePathOrSound
-    def GetSound(self):
-        return self.sound
+        elif(isinstance(self.filePathOrSound, pygame.mixer.Sound)):
+            self.sound = self.filePathOrSound
 
 class RandomAudioClip(AudioClip):
     def __init__(self, sounds):

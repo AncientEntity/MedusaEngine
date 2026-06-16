@@ -5,6 +5,7 @@ class NetworkVarInt(NetworkVarBase):
     def __init__(self, defaultValue=0):
         super().__init__()
         self.value : int = defaultValue
+        self.signed = True
 
     def Set(self, value, modified=True):
         self.value = value
@@ -16,8 +17,8 @@ class NetworkVarInt(NetworkVarBase):
         return self.value
 
 
-    def SetFromBytes(self, byteValue : bytes, modified=True):
-        self.value = int.from_bytes(byteValue, byteorder='big')
+    def SetFromBytes(self, byteValue: bytes, modified=True):
+        self.value = int.from_bytes(byteValue, byteorder='big', signed=self.signed)
         super().SetFromBytes(byteValue, modified)
     def GetAsBytes(self):
-        return self.value.to_bytes(4, byteorder='big')
+        return self.value.to_bytes(4, byteorder='big', signed=self.signed)

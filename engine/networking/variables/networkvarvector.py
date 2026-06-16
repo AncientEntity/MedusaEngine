@@ -1,3 +1,5 @@
+from engine.constants import NET_HOST
+from engine.networking.networkstate import NetworkState
 from engine.networking.variables.networkvarbase import NetworkVarBase
 import struct
 
@@ -16,7 +18,7 @@ class WrappedList(list):
     def __setitem__(self, key, value):
         super().__setitem__(key, value)
         self.interp[key] = value
-        self.netVar._modified = True
+        self.netVar._modified = self.netVar.hasAuthority
 
 class NetworkVarVector(NetworkVarBase):
     def __init__(self, defaultValue=[0,0]):
@@ -24,12 +26,16 @@ class NetworkVarVector(NetworkVarBase):
         self.value : list = defaultValue
 
         self.minSize = 2
-        self.minByteChangeDifference = None
 
         self.byteType = 'd' # either 'f' or 'd' to select float or double for byte serialization.
         self._dataSize = 8 if self.byteType == 'd' else 4
 
-    def Set(self, value : list, modified=True):
+        self.valueChangeLimit = 0
+
+    def Set(self, value: list, modified=True):
+        if not NetworkState.identity & NET_HOST and self.valueChangeLimit and Distance(self.value, value) > self.valueChangeLimit:
+            return
+
         self.value = list(value) if isinstance(value, tuple) else value
         while len(self.value) < self.minSize:
             self.value.append(0.0)
@@ -43,7 +49,7 @@ class NetworkVarVector(NetworkVarBase):
     def GetExact(self):
         return tuple(self.value) # Return immutable tuple to prevent issues with it not being a WrappedList.
 
-    def SetFromBytes(self, byteValue : bytes, modified=True):
+    def SetFromBytes(self, byteValue: bytes, modified=True):
         newValue = []
         for i in range(len(byteValue) // self._dataSize):
             floatBytes = byteValue[i*self._dataSize:i*self._dataSize+self._dataSize]
@@ -53,8 +59,10 @@ class NetworkVarVector(NetworkVarBase):
         while len(newValue) < self.minSize:
             newValue.append(0.0)
 
-        if self.minByteChangeDifference and Distance(self.value, newValue) < self.minByteChangeDifference:
-            return
+        if NetworkState.identity & NET_HOST:
+            if self.valueChangeLimit and Distance(self.value, newValue) > self.valueChangeLimit:
+                self._modified = True
+                return
 
         self.value = newValue
         super().SetFromBytes(byteValue, modified)
@@ -64,10 +72,9 @@ class NetworkVarVector(NetworkVarBase):
             byteArray.extend(struct.pack(self.byteType, float(self.value[i])))
         return byteArray
 
-
 if __name__ == '__main__':
     t = NetworkVarVector()
-    t.Set([-2.100,5.0,-2.9])
+    t.Set([-2.100, 5.0, -2.9])
     s = t.GetAsBytes()
     print(s)
     t.SetFromBytes(s)

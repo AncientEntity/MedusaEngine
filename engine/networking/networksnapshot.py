@@ -4,6 +4,7 @@ from engine.input import Input
 from engine.networking.networkstate import NetworkState
 from engine.networking.rpc import RPCAction
 from engine.networking.variables.networkvarbase import NetworkVarBase
+from engine.networking.variables.networkvarbool import NetworkVarBool
 from engine.networking.variables.networkvarint import NetworkVarInt
 from engine.networking.variables.networkvarvector import NetworkVarVector
 
@@ -17,9 +18,9 @@ class NetworkEntitySnapshot:
         self.markDeletion : bool = False
 
     # SERIALIZATION IMPORTANT
-    # technically ToBytes and FromBytes doesnt give back a perfect conversion
+    # technically ToBytes and FromBytes doesn't give back a perfect conversion
     # at this time ToBytes expects variables of form (attr, NetworkVarBase)
-    # but FromBytes fills variables list with form (attr, bytearray)
+    # but FromBytes fills variables list with form (attr, bytearray, modifiedFlags)
 
     def ToBytes(self):
         snapshotBytes = bytearray()
@@ -73,6 +74,7 @@ class NetworkSnapshot:
         self.entities = []
         self.rpcCalls = []
         self.actionStates : dict[int,bytearray] = {} # clientID/Bytearray of input actions
+        self.currentPlayerCount = 0
     def __str__(self):
         return f"NetworkSnapshot({self.snapshotType}), len(entities)={len(self.entities)}"
 
@@ -96,6 +98,8 @@ class NetworkSnapshot:
         currentNetworkState = Input.GetNetworkActionState()
         for clientId in currentNetworkState.keys():
             snapshot.actionStates[clientId] = currentNetworkState[clientId]
+
+        snapshot.currentPlayerCount = currentScene.game.NetworkPlayerCount()
 
         return snapshot
 
@@ -154,6 +158,7 @@ class NetworkSnapshot:
             snapshotBytes.extend(clientId.to_bytes(4, byteorder='big'))
             snapshotBytes.extend(len(actionState).to_bytes(4, byteorder='big'))
             snapshotBytes.extend(actionState)
+        snapshotBytes.extend(self.currentPlayerCount.to_bytes(4, byteorder='big'))
 
         return snapshotBytes
 
@@ -185,6 +190,8 @@ class NetworkSnapshot:
             actionStateBytes = snapshotBytes[currentByte:currentByte+actionStateLength]
             currentByte += actionStateLength
             snapshot.actionStates[clientId] = actionStateBytes
+        snapshot.currentPlayerCount = int.from_bytes(snapshotBytes[currentByte:currentByte + 4], byteorder='big')
+        currentByte += 4
 
         return snapshot
 
@@ -192,6 +199,9 @@ if __name__ == '__main__':
     variables = []
     variables.append(("_position", NetworkVarVector((-12.29,3,5.234))))
     variables.append(("test", NetworkVarInt(100001)))
+    vbool = NetworkVarBool(False)
+    vbool.Set(True, True)
+    variables.append(("teadsrgst", vbool))
 
     t = NetworkEntitySnapshot(12, 69, variables)
     t.markDeletion = False
@@ -203,15 +213,22 @@ if __name__ == '__main__':
     t2.actionStates[54] = b"023423423432"
     t2.actionStates[123223] = b"1"
 
-    t2.rpcCalls.append(RPCAction('FakeSystem', 'FakeFunc', b"testing"))
-    t2.rpcCalls.append(RPCAction('FakeS23423ystem', 'Fak234eFunc', b"tes234ting"))
-    t2.rpcCalls.append(RPCAction('Fak3eSystem', 'FakeFu2332nc', b"test2222ing"))
-    t2.rpcCalls.append(RPCAction('Fake33System', 'Fak22eFunc', b"testi23423ng"))
+    t2.rpcCalls.append(RPCAction('FakeSystem', 'FakeFunc', b"testing", -1))
+    t2.rpcCalls.append(RPCAction('FakeS23423ystem', 'Fak234eFunc', b"tes234ting", 1))
+    t2.rpcCalls.append(RPCAction('FakeS23423ystem', 'Fak234eFunc', b"tes234ting", 0))
+    t2.rpcCalls.append(RPCAction('Fak3eSystem', 'FakeFu2332nc', b"test2222ing", 1000))
+    t2.rpcCalls.append(RPCAction('Fake33System', 'Fak22eFunc', b"testi23423ng", 59604))
+
+    t2.currentPlayerCount = 123
 
     snapBytes = t2.SnapshotToBytes()
     backSnap = NetworkSnapshot.SnapshotFromBytes(snapBytes)
     print(backSnap.entities[0].prefabName)
     print(backSnap.entities[0].markDeletion)
+    print("Vars")
+    print(backSnap.entities[0].variables)
+
+    print("Player Count", backSnap.currentPlayerCount)
     print(t2.actionStates)
     for i in range(len(backSnap.rpcCalls)):
         print(backSnap.rpcCalls[i])

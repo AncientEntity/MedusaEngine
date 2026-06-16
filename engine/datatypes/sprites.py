@@ -253,6 +253,10 @@ class AnimatedSprite(Sprite):
         for sprite in self._sprites:
             sprite.SetPixelScale(pixelScale)
 
+    def SetScale(self, scale):
+        for sprite in self._sprites:
+            sprite.SetScale(scale)
+
     def get_width(self):
         return self.GetSprite().get_width()
     def get_height(self):

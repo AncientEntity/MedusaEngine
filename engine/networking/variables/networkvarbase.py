@@ -1,23 +1,32 @@
+from engine.constants import NET_NONE, NET_HOST
 from engine.logging import Log
+from engine.networking.networkstate import NetworkState
 
 
 class NetworkVarBase:
     def __init__(self):
         self._modified = False
         self.hasAuthority = False
-        self.prioritizeOwner = False # If true, the server's incoming values wont modify the owner's variable value
+
+        self.serverAuthorityRequired = False
 
         self._hooks = [] # func(self) passes in self
-        self._memoryView = None
+        self._bytesValue : bytearray = b""
 
 
     # Get/Set/Add as intended values
     def Set(self, value, modified=True):
-        self._modified = modified
+        if self.hasAuthority:
+            self._modified = modified
+
         self.TriggerHooks()
+        self._bytesValue = self.GetAsBytes()
     def Add(self, value, modified=True):
-        self._modified = modified
+        if self.hasAuthority: # only update locally if you dont have authority.
+            self._modified = modified
+
         self.TriggerHooks()
+        self._bytesValue = self.GetAsBytes()
     def Get(self):
         pass
 
@@ -26,13 +35,13 @@ class NetworkVarBase:
     def SetFromBytes(self, byteValue, modified=True):
         self._modified = modified
         self.TriggerHooks()
-        self._memoryView = memoryview(byteValue)
+        self._bytesValue = byteValue
 
     def GetAsBytes(self):
         pass
 
     def AreBytesEqual(self, otherBytes : bytearray):
-        return memoryview(otherBytes) == self._memoryView
+        return otherBytes == self._bytesValue
 
     def AddHook(self, func, triggerOnAdd=False):
         self._hooks.append(func)

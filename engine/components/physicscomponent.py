@@ -2,6 +2,8 @@ from engine.components.rendering.spriterenderer import SpriteRenderer
 from engine.ecs import Component
 from engine.logging import LOG_WARNINGS, Log
 from engine.networking.variables.networkvarvector import NetworkVarVector
+from engine.networking.variables.networkvarvectori import NetworkVarVectorInterpolate
+from engine.tools.math import Magnitude, AddVectors
 
 
 class PhysicsComponent(Component):
@@ -21,8 +23,7 @@ class PhysicsComponent(Component):
         self.mass = 100.0
         self.static = False #If static it wont be checked in the physics loop as the main body only as other body.
         self.gravity : tuple(float) = gravity #either None or a tuple like: (0,9.84)
-        self._velocity = NetworkVarVector([0,0])
-        self._velocity.prioritizeOwner = True
+        self._velocity = [0,0]
 
         self._moveRequest = None #Move() adds to this so the physics calculations know what the object wants.
         self._thisStepTriggeredWith = [] #List of other physics components that this collided with this frame.
@@ -32,9 +33,13 @@ class PhysicsComponent(Component):
         self._overlappingSpatialPartitions = []
 
     def get_velocity(self):
-        return self._velocity.Get()
-    def set_velocity(self, value):
-        self._velocity.Set(value)
+        return self._velocity
+
+    def set_velocity(self,value):
+        self._velocity = value[:]
+
+    def get_speed(self):
+        return Magnitude(self._velocity)
 
     velocity = property(get_velocity,
                                  set_velocity)
@@ -46,7 +51,7 @@ class PhysicsComponent(Component):
         self._moveRequest[1] += movement[1]
 
     def AddVelocity(self,impulse):
-        self._velocity.Add(impulse)
+        self.velocity = AddVectors(self.velocity, impulse)
 
     #Makes bounds the same as the sprite's width/height
     def MapToSpriteRenderer(self):
